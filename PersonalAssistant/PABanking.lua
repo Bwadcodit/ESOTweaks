@@ -14,6 +14,7 @@ local function _finishBankingItemTransfer()
     PAB.debugln("==============================================================")
     PAB.debugln("PA.Banking._finishBankingItemTransfer (7)")
     PAB.isBankItemTransferBlocked = false
+    if AutoCategory then AutoCategory.ExitBulkMode() end
     -- update the icons
     if PA.Loot and PA.ProfileManager.PALoot.hasActiveProfile() then
         PA.Loot.ItemIcons.refreshScrollListVisible()
@@ -65,6 +66,7 @@ local function executeBankingItemTransfers()
     if not PAB.isBankItemTransferBlocked then
         -- block other item transfers
         PAB.isBankItemTransferBlocked = true
+        if AutoCategory then AutoCategory.EnterHardBulkMode() end
         -- update/hide the Keybind Strip
         PAB.KeybindStrip.updateBankKeybindStrip()
 
