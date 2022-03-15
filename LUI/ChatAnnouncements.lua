@@ -11158,7 +11158,7 @@ function ChatAnnouncements.CollectibleResult()
             LUIE.LastMementoUsed == 479 and GetString(SI_LUIE_SLASHCMDS_COLLECTIBLE_WITCH)
 
         -- Just in case string is nil then don't do anything here.
-        if string ~= nil then
+        if string ~= nil and string ~= false then
             local message = zo_strformat(string, link, formattedIcon)
             local alert = zo_strformat(string, name, "")
 
