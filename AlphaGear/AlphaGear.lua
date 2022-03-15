@@ -1427,34 +1427,36 @@ function AG.GetAbility(abilityId)
 end
 
 
-function AG.LoadSkill(nr, slot)
+function AG.LoadSkill(nr, slot, pair) -- TWEAK TODO
     if not nr or not slot then return end
+    if pair == nil then pair = GetActiveWeaponPairInfo() end -- slot on active hotbar if not specified
+    if pair ~= 1 and pair ~= 2 then return end -- invalid pair number
 
     local skillID = AG.setdata[nr].Skill[slot]
-    
-    -- TODO remove skill from bar, if set is locked and skillID == 0
-    if skillID == 0 then return end
+    local currentSkillID = GetSlotBoundId(slot + 2, pair - 1)
+    if skillID == 0 or skillID == currentSkillID then return end
+    trace('SkillId in slot %d changed. Current: %d new: %d', slot, currentSkillID, skillID)
+    local newAbilityIndex = AG.GetAbility(skillID)
+    local currentAbilityIndex = AG.GetAbility(currentSkillID)
+    if newAbilityIndex == 0 or newAbilityIndex == currentAbilityIndex then return end
+    trace('AbilityIndex has changed, replacing. Current AI: %d, New AI: %d', currentAbilityIndex, newAbilityIndex)
+    local res = ACTION_BAR_ASSIGNMENT_MANAGER:GetHotbar(pair - 1):AssignSkillToSlotByAbilityId(slot + 2, skillID)
+    --if not res then
+    --    d("|cFF0000Failed to set new skill due to a bug in ESO.|r Kill a mob and try again!")
+    --end
+end
 
-    local currentSkillID = GetSlotBoundId(slot+2)
-
-    if skillID ~= currentSkillID then
-        trace('SkillId in slot %d changed. Current: %d new: %d', slot, currentSkillID, skillID)
-        local newAbilityIndex = AG.GetAbility(skillID)
-        local currentAbilityIndex = AG.GetAbility(currentSkillID)
-
-        if newAbilityIndex ~= 0 and currentAbilityIndex ~= newAbilityIndex then 
-            trace('AbilityIndex has changed, replacing. Current AI: %d, New AI: %d', currentAbilityIndex, newAbilityIndex)
-            local res, msg = CallSecureProtected('SelectSlotAbility', newAbilityIndex, slot+2) 
-
-            if not res then 
-                -- d("|cFF0000Failed to set new skill. Message:|r "..(msg or "<none>"))
-                d("|cFF0000Failed to set new skill due to a bug in ESO.|r Kill a mob and try again!")
-            end
-        end
+function AG.LoadSetBars(nr) -- TWEAK TODO
+    if not nr then return end
+    for pair = 1, 2 do
+        local skillLineNr = AG.setdata[nr].Set.skill[pair]
+        for slot = 1, 6 do AG.LoadSkill(skillLineNr, slot, pair) end
     end
+    if AG.isShowWeaponIcon() then AG.ForceUpdateWeaponStats() end
 end
 
 function AG.LoadBar(nr)
+    if SWAP then return end -- TWEAK skip the delayed call after loading set, both bars are already set
     if not nr then return end
     for slot = 1, 6 do AG.LoadSkill(nr,slot) end
 end
@@ -1769,18 +1771,19 @@ function AG.LoadSetInternal(nr)
     -- load gear
     if AG.setdata[nr].Set.gear ~= 0 then AG.LoadGear(AG.setdata[nr].Set.gear, nr) end
 
-    -- load skills, wait until gear has loaded
-    if AG.setdata[nr].Set.skill[pair] ~= 0 then
-        table.insert(AG.Jobs, {AG.JOB_TYPE_LOAD_SKILL_BAR, AG.setdata[nr].Set.skill[pair], nil}) 
-        --- AG.LoadBar(AG.setdata[nr].Set.skill[pair]) 
-    end
+    -- load skills, | (wait until gear has loaded) not anymore  -- TWEAK TODO
+    table.insert(AG.Jobs, {AG.JOB_TYPE_LOAD_SKILL_BAR, nr, nil})
+    --if AG.setdata[nr].Set.skill[pair] ~= 0 then
+    --    table.insert(AG.Jobs, {AG.JOB_TYPE_LOAD_SKILL_BAR, AG.setdata[nr].Set.skill[pair], nil})
+    --    --- AG.LoadBar(AG.setdata[nr].Set.skill[pair])
+    --end
 
     -- Load Champion Points
     AG.LoadChampionPoints(nr)
 
     -- queue in swap message
     SWAP = true
-    table.insert(AG.Jobs, {AG.JOB_TYPE_SHOW_SWAP_MSG, nil, nil}) 
+    table.insert(AG.Jobs, {AG.JOB_TYPE_SHOW_SWAP_MSG, nil, nil})
 end
 
 function AG.Undress(mode)
@@ -2057,7 +2060,8 @@ function AG.HandleOnUpdate()
                     AG.UpdateUI() 
                 end
             elseif (jobType == AG.JOB_TYPE_LOAD_SKILL_BAR) then
-                AG.LoadBar(param1) 
+                --AG.LoadBar(param1)    TWEAK HERE
+                AG.LoadSetBars(param1)
                 delay = SKILL_CHANGE_DELAY
             elseif (jobType == AG.JOB_TYPE_START_BULK_MODE) then
                 AG.InBulkMode = true
