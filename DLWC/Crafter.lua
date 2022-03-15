@@ -238,7 +238,10 @@ local function setupConditionsTable(quest, info,indexTableToUse)
 end
 
 function isCurrentStationsWritComplete()
-	local questIndex = WritCreater.writSearch()[GetCraftingInteractionType()]
+	-- TODO TWEAK HERE: this functon is reached after a craft is complete, which in the case of enchanting means the writ is fully crafted, thus auto-exit should be reached even if quest is not complete (materials still need to be acquired)
+	local station = GetCraftingInteractionType() -- TODO TWEAK HERE -- whole line, can be safely left here 
+	if station == CRAFTING_TYPE_ENCHANTING then return true end -- TODO CUSTOM TWEAK HERE (this single line) -- considers writ complete if enchanting
+	local questIndex = WritCreater.writSearch()[station] -- TODO TWEAK HERE -- work with previous line (-2),  "GetCraftingInteractionType()" replaced by "station", can be safely left here 
 	for i = 0, 7 do
 		local text, _,_,_,_,_,_, conditionType = GetJournalQuestConditionInfo(questIndex, 1, i)
 		if text~="" and conditionType == 45 then
