@@ -45,10 +45,10 @@ function DailyAlchemy:CraftCompleted(eventCode, craftSkill)
     local isEmpty = true
     for key, value in pairs(self.checkedJournal) do
         self:Debug("　　<<1>>=<<2>>", key, tostring(value))
-        if (not value) then
+        --[[if (not value) then
            self:Debug("　　> return(not value)")
            return
-        end
+        end--]]		-- TODO TWEAK HERE -- 4 line commented out -- avoid not reaching auto-exit if quest is not complete
         isEmpty = false
     end
     if isEmpty then
