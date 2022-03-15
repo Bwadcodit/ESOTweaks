@@ -2146,7 +2146,8 @@ function CSPS.cp2DoMap()
 	updateCPMapProg()
 end
 
-function CSPS.cpClicked(control, myId, mouseButton)
+function CSPS.cpClicked(control, myId, mouseButton) -- TWEAK HERE TODO
+	d("Champion skill ID : " .. myId)
 	--d(myId)
 	if CSPS.inCpRemapMode and mouseButton == 1 then 
 		if CSPSWindowCPImport:IsHidden() then CSPS.inCpRemapMode = false return end
@@ -2636,3 +2637,136 @@ function CSPS.onPlayerActivated()
 	CSPS.lastZoneID = zoneId
 	CSPS.locationBinding(zoneId)
 end
+
+--------------TWEAK-------------
+--[
+function CSPS.tweakApplyFull()
+
+	local function tweakCPHash()
+		local hash = ""
+		for disc = 1, 3 do
+			hash = hash .. tostring(CSPS.cp2ColorSum[disc])
+			for slot = 1, 4 do
+				hash = hash .. tostring(CSPS.cp2HbTable[disc][slot])
+			end
+		end
+		return hash
+	end
+
+	local function tweakLoadCpPresets(presetIDRed, presetIDBlue, presetIDGreen)
+		local hash = tweakCPHash()
+		for _, presetId in ipairs({presetIDRed, presetIDBlue, presetIDGreen}) do
+			myPreset = CSPSCPPresets[presetId]
+			if myPreset == nil then return end
+			loadDynamicCP(myPreset.preset, myPreset.slotted, myPreset.basestatsToFill, myPreset.discipline)
+		end
+		if hash ~= tweakCPHash() then
+			d("CPs updated on profile [" .. tostring(CSPS.profiles[CSPS.currentProfile].name) .. "], remember to save.")
+		else
+			CSPS.loadBuild()
+			changedCP = false
+		end
+	end
+
+	local function tweakPreApplyCP()
+		local currentProfileName = CSPS.profiles[CSPS.currentProfile].name
+		if currentProfileName == nil or currentProfileName == "" then return end
+		local currentProfileKey = currentProfileName:sub(1,1)
+		local isMag = true
+		if CSPS.attrPoints[3] > CSPS.attrPoints[2] then isMag = false end
+
+		if currentProfileKey == "0" then
+			if isMag then 
+				tweakLoadCpPresets(4, 10, 15)
+			else
+				tweakLoadCpPresets(7, 13, 15)
+			end
+		elseif currentProfileKey == "1" then
+			if isMag then 
+				tweakLoadCpPresets(4, 10, 19)
+			else
+				tweakLoadCpPresets(7, 13, 19)
+			end
+		elseif currentProfileKey == "2" then
+			if isMag then 
+				tweakLoadCpPresets(3, 11, 20)
+			else
+				tweakLoadCpPresets(6, 14, 20)
+			end
+		elseif currentProfileKey == "3" then
+			if isMag then 
+				tweakLoadCpPresets(3, 10, 20)
+			else
+				tweakLoadCpPresets(6, 13, 20)
+			end
+		elseif currentProfileKey == "4" then
+			tweakLoadCpPresets(1, 8, 20)
+		elseif currentProfileKey == "5" then
+			tweakLoadCpPresets(2, 9, 20)
+		elseif currentProfileKey == "6" then
+			if isMag then 
+				tweakLoadCpPresets(5, 12, 20)
+			else
+				d("CSPS:tweakPreApplyCP() - There is no stam PvP build yet :(")
+			end
+		end
+	end
+
+	local function tweakApplyFullGo()
+		CSPS.applyBuildGo()
+		CSPS.applyAttrGo()
+		CSPS.cp2ApplyConfirm()
+
+		if CSPS.profileXPIndex > 0 then
+			local profileIndex = CSPS.currentProfile
+			CSPS.selectProfile(CSPS.profileXPIndex)
+			CSPS.loadBuild()
+			CSPS.applyBuildGo()
+			CSPS.selectProfile(profileIndex)
+			CSPS.loadBuild()
+		end
+
+		if AG then
+			--if AG_Panel:IsHidden() then AG.ShowMain() end
+			local profileNum = CSPS.profiles[CSPS.currentProfile].name:sub(1, 1)
+			if profileNum == "0" then profileNum = "1" end
+			
+			for i, profileAG in ipairs(AG.setdata.profiles) do
+				if profileAG.sortKey == profileNum then
+					AG.LoadProfile(i)
+					if (profileNum == "3") then
+						if GetUnitName("player") == "Azeell" then
+							AG.LoadSet(5)
+						else
+							AG.LoadSet(4)
+						end
+					else
+						AG.LoadSet(1)
+					end
+				end
+			end
+		end
+		CSPS.isShown()
+	end
+
+	tweakPreApplyCP()
+	if GetAttributeUnspentPoints() ~= 64 then return end
+	for i=1,3 do 
+		if GetNumSpentChampionPoints(GetChampionDisciplineId(i)) ~= 0 then return end
+	end
+	if CSPS.currentProfile == 0 then return end
+	CSPS.profileXPIndex = -1
+	for i, profile in ipairs(CSPS.profiles) do
+		if profile.name:sub(1, 1) == "9" then 
+			CSPS.profileXPIndex = i 
+			break
+		end
+	end
+	if CSPS.currentProfile == CSPS.profileXPIndex then return end
+
+	ZO_Dialogs_ShowDialog(CSPS.name.."_OkCancelDiag", 
+		{returnFunc = function() tweakApplyFullGo() end},  
+		{mainTextParams = {zo_strformat("Apply Full Profile?")}, titleParams = {GS(CSPS_MyWindowTitle)}})
+end
+--]]
+--------------------------------

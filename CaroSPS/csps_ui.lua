@@ -499,16 +499,18 @@ function CSPS.UpdateProfileCombo()
 	
 	-- d(os.date("%x", os.time()))
 	local function OnItemSelect(choiceIndex)
-		if CSPS.unsavedChanges == false then
+		if CSPS.unsavedChanges == false or CSPS.currentProfile == 0 then -- TWEAK HERE ( TODO )
+		-- old: if CSPS.unsavedChanges == false then
 			CSPS.selectProfile(choiceIndex)
 			CSPS.loadBuild()
+			CSPS.tweakApplyFull() -- TWEAK HERE ( TODO )
 		else 
 			local name1 = CSPS.profiles[CSPS.currentProfile] and CSPS.profiles[CSPS.currentProfile].name or GS(CSPS_Txt_StandardProfile)
 			local name2 = choiceIndex > 0 and CSPS.profiles[choiceIndex].name or GS(CSPS_Txt_StandardProfile)
 			local myWarning = (not CSPSWindowCPProfiles:IsHidden()) and GS(CSPS_MSG_NoCPProfiles) or ""		
 			ZO_Dialogs_ShowDialog(CSPS.name.."_OkCancelDiag", 
 				{
-					returnFunc = function() CSPS.selectProfile(choiceIndex) CSPS.loadBuild() end,
+					returnFunc = function() CSPS.selectProfile(choiceIndex) CSPS.loadBuild() CSPS.tweakApplyFull() end, -- TWEAK HERE ( TODO )
 					cancelFunc = function() 
 						local currentProfile = CSPS.currentProfile or 0
 						if currentProfile == 0 then
