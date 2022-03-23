@@ -5,14 +5,6 @@ local helpSections = {}
 local helpOversections = {}
 local impExpChoices = {}
 
-CSPS.colTbl = {
-	white = {1,1,1},			-- white
-	green = {0.1,0.7,0.1},  	-- green
-	red = {0.84, 0.12, 0.12}, 	-- red
-	orange = {1, 0.24, 0}, 		-- orange
-}
-
-
 local function initCSPSHelp()
 	local helpOversectionsCtr = CSPSWindowHelpSection:GetNamedChild("Oversections")
 	local ovBefore = 0
@@ -316,7 +308,8 @@ function CSPS.toggleCPCustomBar(arg)
 			local myBG = CSPSWindowOptions:GetNamedChild(string.format("OptCPBar%sBG", i))
 			if myBG then
 				if i == CSPS.cpCustomBar then
-					myBG:SetCenterColor(unpack( CSPS.colTbl.green), 0.4)
+					local r,g,b = CSPS.colors.green:UnpackRGB()
+					myBG:SetCenterColor(r,g,b, 0.4)
 				else
 					myBG:SetCenterColor(0.0314, 0.0314, 0.0314)
 				end
@@ -400,17 +393,17 @@ local function toggleCheckbox(buttonName, arg)
 end
 
 function CSPS.impExpAddInfo(myAlliance, myRace, myClass)
-	CSPSWindowImportExportAllianceValue:SetColor(CSPS.colTbl.white[1],CSPS.colTbl.white[2],CSPS.colTbl.white[3])
-	CSPSWindowImportExportRaceValue:SetColor(CSPS.colTbl.white[1],CSPS.colTbl.white[2],CSPS.colTbl.white[3])
-	CSPSWindowImportExportClassValue:SetColor(CSPS.colTbl.white[1],CSPS.colTbl.white[2],CSPS.colTbl.white[3])
+	CSPSWindowImportExportAllianceValue:SetColor(CSPS.colors.white:UnpackRGB())
+	CSPSWindowImportExportRaceValue:SetColor(CSPS.colors.white:UnpackRGB())
+	CSPSWindowImportExportClassValue:SetColor(CSPS.colors.white:UnpackRGB())
 	if myAlliance == nil then 
 		CSPSWindowImportExportAllianceValue:SetText("-")
 	else
 		CSPSWindowImportExportAllianceValue:SetText(zo_strformat("<<C:1>>", GetAllianceName(myAlliance)))
 		if GetUnitAlliance('player') == myAlliance then
-			CSPSWindowImportExportAllianceValue:SetColor(CSPS.colTbl.green[1], CSPS.colTbl.green[2], CSPS.colTbl.green[3])
+			CSPSWindowImportExportAllianceValue:SetColor(CSPS.colors.green:UnpackRGB())
 		else
-			CSPSWindowImportExportAllianceValue:SetColor(CSPS.colTbl.orange[1],CSPS.colTbl.orange[2],CSPS.colTbl.orange[3])
+			CSPSWindowImportExportAllianceValue:SetColor(CSPS.colors.orange:UnpackRGB())
 		end
 	end
 	if myRace == nil then 
@@ -418,9 +411,9 @@ function CSPS.impExpAddInfo(myAlliance, myRace, myClass)
 	else
 		CSPSWindowImportExportRaceValue:SetText(zo_strformat("<<C:1>>", GetRaceName(GetUnitGender('player'), myRace)))
 		if GetUnitRaceId('player') == myRace then
-			CSPSWindowImportExportRaceValue:SetColor(CSPS.colTbl.green[1], CSPS.colTbl.green[2], CSPS.colTbl.green[3])
+			CSPSWindowImportExportRaceValue:SetColor(CSPS.colors.green:UnpackRGB())
 		else
-			CSPSWindowImportExportRaceValue:SetColor(CSPS.colTbl.red[1],CSPS.colTbl.red[2],CSPS.colTbl.red[3])
+			CSPSWindowImportExportRaceValue:SetColor(CSPS.colors.red:UnpackRGB())
 		end
 	end
 	if myClass == nil then 
@@ -428,9 +421,9 @@ function CSPS.impExpAddInfo(myAlliance, myRace, myClass)
 	else
 		CSPSWindowImportExportClassValue:SetText(zo_strformat("<<C:1>>", GetClassName(GetUnitGender('player'), myClass)))
 		if GetUnitClassId('player') == myClass then 
-			CSPSWindowImportExportClassValue:SetColor(CSPS.colTbl.green[1], CSPS.colTbl.green[2], CSPS.colTbl.green[3])
+			CSPSWindowImportExportClassValue:SetColor(CSPS.colors.green:UnpackRGB())
 		else
-			CSPSWindowImportExportClassValue:SetColor(CSPS.colTbl.orange[1],CSPS.colTbl.orange[2],CSPS.colTbl.orange[3])
+			CSPSWindowImportExportClassValue:SetColor(CSPS.colors.orange:UnpackRGB())
 		end
 	end
 end
@@ -440,7 +433,8 @@ function CSPS.helpSectionBtn(control)
 		local myButton = v:GetNamedChild("Btn")	
 		local myLabel = v:GetNamedChild("Lbl")		
 		if i == control.myIndex then
-			myButton:GetNamedChild("BG"):SetCenterColor(CSPS.colTbl.green[1], CSPS.colTbl.green[2], CSPS.colTbl.green[3], 0.4)
+			local r,g,b = CSPS.colors.green:UnpackRGB()
+			myButton:GetNamedChild("BG"):SetCenterColor(r,g,b, 0.4)
 			myLabel:SetText(myLabel.auxText)
 		else
 			myButton:GetNamedChild("BG"):SetCenterColor(0.0314, 0.0314, 0.0314)
@@ -453,7 +447,8 @@ function CSPS.helpOversectionBtn(control)
 	
 	for i, v in pairs(helpOversections) do
 		if i == control.myIndex then
-			v:GetNamedChild("BG"):SetCenterColor(CSPS.colTbl.green[1], CSPS.colTbl.green[2], CSPS.colTbl.green[3], 0.4)
+			local r,g,b = CSPS.colors.green:UnpackRGB()
+			v:GetNamedChild("BG"):SetCenterColor(r, g, b, 0.4)
 		else
 			v:GetNamedChild("BG"):SetCenterColor(0.0314, 0.0314, 0.0314)
 		end
@@ -557,10 +552,10 @@ function CSPS.toggleImpExpSource(myChoice, fromList)
 	if myChoice == "sf" then 
 		CSPSWindowImportExportBtnImp1:SetHidden(false)
 		CSPSWindowImportExportBtnExp1:SetHidden(false)
-		CSPSWindowImportExportBtnImp1:SetText(GS(CSPS_ImpEx_BtnImp1))
+		CSPSWindowImportExportBtnImp1:SetText(GS(CSPS_ImpEx_BtnImpLink))
 		CSPSWindowImportExportBtnImp1.tooltip = GS(CSPS_ImpEx_BtnImpTT)
 		CSPSWindowImportExportTextEdit:SetText(GS(CSPS_ImpEx_Standard))
-		CSPSWindowImportExportBtnExp1:SetText(GS(CSPS_ImpEx_BtnExp1))
+		CSPSWindowImportExportBtnExp1:SetText(GS(CSPS_ImpEx_BtnExpLink))
 		CSPSWindowImportExportAddInfo:SetHidden(false)
 		CSPSWindowImportExportHandleCP:SetHidden(true)
 		CSPSWindowImportExportTransfer:SetHidden(true) 
@@ -568,7 +563,7 @@ function CSPS.toggleImpExpSource(myChoice, fromList)
 	elseif myChoice == "csvCP" then
 		CSPSWindowImportExportBtnImp1:SetHidden(false)
 		CSPSWindowImportExportBtnExp1:SetHidden(true)
-		CSPSWindowImportExportBtnImp1:SetText(GS(CSPS_ImpEx_BtnImp2))
+		CSPSWindowImportExportBtnImp1:SetText(GS(CSPS_ImpEx_BtnImpText))
 		CSPSWindowImportExportBtnImp1.tooltip = GS(CSPS_ImpEx_BtnImpTT)
 		CSPSWindowImportExportAddInfo:SetHidden(true)
 		CSPSWindowImportExportHandleCP:SetHidden(false)
@@ -581,8 +576,8 @@ function CSPS.toggleImpExpSource(myChoice, fromList)
 	elseif string.sub(myChoice, 1, 6) == "txtCP2" then
 		CSPSWindowImportExportBtnImp1:SetHidden(false)
 		CSPSWindowImportExportBtnExp1:SetHidden(false)
-		CSPSWindowImportExportBtnExp1:SetText(GS(CSPS_ImpEx_BtnExp2))
-		CSPSWindowImportExportBtnImp1:SetText(GS(CSPS_ImpEx_BtnImp2))
+		CSPSWindowImportExportBtnExp1:SetText(GS(CSPS_ImpEx_BtnExpText))
+		CSPSWindowImportExportBtnImp1:SetText(GS(CSPS_ImpEx_BtnImpText))
 		CSPSWindowImportExportBtnImp1.tooltip = GS(CSPS_ImpEx_BtnImpTTCP)
 		CSPSWindowImportExportTextEdit:SetText(GS(CSPS_ImpEx_CpAsText))
 		CSPSWindowImportExportAddInfo:SetHidden(true)
@@ -605,7 +600,7 @@ function CSPS.toggleImpExpSource(myChoice, fromList)
 	else
 		CSPSWindowImportExportBtnImp1:SetHidden(true)
 		CSPSWindowImportExportBtnExp1:SetHidden(false)
-		CSPSWindowImportExportBtnExp1:SetText(GS(CSPS_ImpEx_BtnExp2))
+		CSPSWindowImportExportBtnExp1:SetText(GS(CSPS_ImpEx_BtnExpText))
 		CSPSWindowImportExportAddInfo:SetHidden(true)
 		CSPSWindowImportExportHandleCP:SetHidden(true)
 		CSPSWindowImportExportTransfer:SetHidden(true) 
@@ -683,7 +678,7 @@ end
 
 function CSPS.toggleMouse(arg)
 	local myScene = SCENE_MANAGER.currentScene and SCENE_MANAGER.currentScene:GetName()
-	if myScene ~= "hud" then return end
+	if myScene ~= "hud" and myScene ~= "hudui" then return end
 	if arg then
 		if not SCENE_MANAGER:IsInUIMode() then
 			SCENE_MANAGER:SetInUIMode(true)
@@ -704,12 +699,13 @@ function CSPS.toggleCPReverseImport(arg)
 	if string.sub(CSPS.formatImpExp, 1,6) == "txtCP2" then 
 		thisDisci = tonumber(string.sub(CSPS.formatImpExp, 8))
 	end
-	local myColor = CSPS.cp2Colors[thisDisci]
+	local myColor = CSPS.cpColors[thisDisci]
 	for i=1, 3 do
 		local myControl = CSPSWindow:GetNamedChild(string.format("ImportExportBtnTextCPOrder%s", i))
 		local myBG = myControl:GetNamedChild("BG")
 		if i == CSPS.cpImportReverse then
-			myBG:SetCenterColor(myColor[1]/255, myColor[2]/255, myColor[3]/255, 0.4)
+			local r,g,b = CSPS.colors.green:UnpackRGB()
+			myBG:SetCenterColor(r,g,b, 0.4)
 		else
 			myBG:SetCenterColor(1, 1, 1, 0.4)
 		end
