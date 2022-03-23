@@ -4,54 +4,21 @@ local cpSlT = {
 		"esoui/art/champion/actionbar/champion_bar_combat_selection.dds",
 		"esoui/art/champion/actionbar/champion_bar_conditioning_selection.dds",
 }
-local cpColHex = {"A6D852", "5CBDE7", "DE6531" }
-local cpProfDis = 1
-local cpProfType = 1
-local cpColTex = {
+--local cpColHex = {"A6D852", "5CBDE7", "DE6531" }
+local cpColors = CSPS.cpColors
+
+CSPS.cpProfDis = 1
+CSPS.cpProfType = 1
+
+CSPS.cpColTex = {
 		"esoui/art/champion/champion_points_stamina_icon-hud-32.dds",
 		"esoui/art/champion/champion_points_magicka_icon-hud-32.dds",
 		"esoui/art/champion/champion_points_health_icon-hud-32.dds",
 		"esoui/art/mainmenu/menubar_collections_up.dds",
-}
-local qsCooldown = false
-local zoneAbbr = {
-	[636] = "HRC",
-	[638] = "AA",
-	[639] = "SO",
-	[635] = "DSA",
-	[677] = "MA",
-	[725] = "MoL",
-	[975] = "HoF",
-	[1000] = "AS",
-	[1051] = "CR",
-	[1121] = "SS",
-	[1196] = "KA",
-	[1082] = "BRP",
-	[1227] = "VH",
-	[1263] = "RG",
+		"esoui/art/mainmenu/menubar_skills_up.dds",	
 }
 
-local roleFilter = ""
-
-local roleAbbr = {
-	[1] = "DD",
-	[2] = "T",
-	[3] = "", -- invalid
-	[4] = "H",
-}
-
-local classAbbr = {
-	[1] = "DK",
-	[2] = "Sorc",
-	[3] = "NB",
-	[4] = "Warden",
-	[5] = "Necro",
-	[6] = "Temp",
-}
-
-local changedCP = false
-
-local roles = {"DD", GS(CSPS_CPP_Tank), "", GS(SI_LFGROLE4), "DD(Mag)", "DD(Stam)", GS(SI_GEMIFIABLEFILTERTYPE0)}
+CSPS.changedCP = false
 
 local resizingNow = false
 
@@ -156,16 +123,8 @@ local skillsToImport = {}
 local skillsToSlot = {}
 local markedToSlot = {}
 local slotMarkers = false
-local lastZoneName = ""
 
-function CSPS.getTrialArenaList()
-	local myTrials = {}
-	for i, _ in pairs(zoneAbbr) do
-		local myName = zo_strformat("<<C:1>>", GetZoneNameById(i))
-		myTrials[myName] = i
-	end
-	return myTrials
-end
+
 
 local function getLayer(layerLists)
 	local newList = {}
@@ -482,7 +441,7 @@ function CSPS.showCpTT(control, myId, myValue, withTitle, hotbarExplain)
 			InformationTooltip:AddLine(zo_strformat(GS(CSPS_CPPCurrentlyApplied), myActualValue), "ZoFontGame")
 			if myActualValue ~= 0 then 
 				local myActualBonus = GetChampionSkillCurrentBonusText(myId, myActualValue) or ""
-				if myActualBonus ~= "" then InformationTooltip:AddLine(myActualBonus, "ZoFontGame", unpack(CSPS.colTbl.orange)) end
+				if myActualBonus ~= "" then InformationTooltip:AddLine(myActualBonus, "ZoFontGame", CSPS.colors.orange:UnpackRGB()) end
 			end
 		end
 	end
@@ -503,7 +462,7 @@ function CSPS.cp2HbIcons(disciplineIndex)
 				myCtrl:SetTexture("esoui/art/champion/champion_icon_32.dds")
 			end
 			
-			local myName = zo_strformat("|c<<1>><<C:2>>|r", cpColHex[disciplineIndex], GetChampionSkillName(myBar[i]))
+			local myName = cpColors[disciplineIndex]:Colorize(zo_strformat("<<C:1>>", GetChampionSkillName(myBar[i])))
 			myCtrlLabel:SetText(myName)
 
 			myCtrla:SetHandler("OnMouseEnter", function()  CSPS.showCpTT(myCtrla, myBar[i], CSPS.cp2Table[myBar[i]][2], true, true) end) 
@@ -631,14 +590,19 @@ function CSPS.cp2BtnPlusMinus(skId, x, shift)
 end
 
 function CSPS.cp2ResetTable(disciFilter)
+	if type(disciFilter) ~= "table" then
+		local disciFilterNum = disciFilter or false
+		disciFilter = disciFilterNum and {true, true, true} or {}
+		if disciFilterNum then disciFilter[disciFilterNum] = false end
+	end
 	-- Sets all entries to zero points and locked if not root
 	for i, v in pairs(CSPS.cp2ClustActive) do
-		if not disciFilter or disciFilter == CSPS.cp2Disci[i] then
+		if not disciFilter[CSPS.cp2Disci[i]] then
 			CSPS.cp2ClustActive[i] = false
 		end
 	end
 	for skId, v in pairs(CSPS.cp2Table) do
-		if not disciFilter or disciFilter == CSPS.cp2Disci[skId] then
+		if not disciFilter[CSPS.cp2Disci[skId]] then
 			local skType = GetChampionSkillType(skId) + 1
 			local isUnlocked = false
 			if IsChampionSkillRootNode(skId) or skType == 3 then 
@@ -677,17 +641,15 @@ function CSPS.cp2ReadCurrent()
 		CSPS.cp2UpdateSum(i)
 	end
 	CSPS.cp2UpdateSumClusters()
-	--if CSPS.tabEx  then
-		for i=1,3 do
-			CSPS.cp2UpdateUnlock(i) 
-			CSPS.cp2HbIcons(i)
-		end
-	--end
+	for i=1,3 do
+		CSPS.cp2UpdateUnlock(i) 
+		CSPS.cp2HbIcons(i)
+	end
 	CSPS.cp2UpdateHbMarks()
 	changedCP = false
 end
 
-local function cp2SingleBarCompress(myBar)
+function CSPS.cp2SingleBarCompress(myBar)
 	local cp2BarComp = {}
 	for j=1,4 do
 		cp2BarComp[j] = myBar[j] or "-"
@@ -699,7 +661,7 @@ end
 function CSPS.cp2HbCompress(myTable)
 	local cp2HbComp = {}
 	for i=1, 3 do
-		cp2HbComp[i] = cp2SingleBarCompress(myTable[i])
+		cp2HbComp[i] = CSPS.cp2SingleBarCompress(myTable[i])
 	end
 	cp2HbComp = table.concat(cp2HbComp, ";")
 	return cp2HbComp
@@ -716,14 +678,16 @@ function CSPS.cp2SingleBarExtract(cp2BarComp)
 	return barTable
 end
 
-function CSPS.cp2HbExtract(cp2HbComp)
+function CSPS.cp2HbExtract(cp2HbComp, disciFilter)
 	local cp2HbTable = {{},{},{}}
 	cp2HbComp = cp2HbComp or ""
 	if cp2HbComp ~= "" then
 		local auxHb = {SplitString(";", cp2HbComp)}
 		cp2HbTable = {}
 		for i=1, 3 do
-			cp2HbTable[i] = CSPS.cp2SingleBarExtract(auxHb[i])
+			if not disciFilter or not disciFilter[i] then
+				cp2HbTable[i] = CSPS.cp2SingleBarExtract(auxHb[i])
+			end
 		end
 	end
 	return cp2HbTable
@@ -740,14 +704,17 @@ end
 
 function CSPS.cp2Extract(cp2Comp, disciFilter)
 	CSPS.cp2ResetTable(disciFilter)
+	disciFilter = type(disciFilter) == "table" and disciFilter or {}
 	if cp2Comp ~= "" then
 		local myTable = {SplitString(";", cp2Comp)}
 		for i, v in pairs(myTable) do
 			local skId, myValue = SplitString("-", v)
 			skId = tonumber(skId)
 			myValue = tonumber(myValue)
-			if myValue > GetChampionSkillMaxPoints(skId) then myValue = GetChampionSkillMaxPoints(skId) end
-			CSPS.cp2Table[skId][2] = myValue
+			if not disciFilter[CSPS.cp2Disci[skId]] then
+				if myValue > GetChampionSkillMaxPoints(skId) then myValue = GetChampionSkillMaxPoints(skId) end
+				CSPS.cp2Table[skId][2] = myValue
+			end
 		end
 		CSPS.cp2UpdateUnlock(1)
 		CSPS.cp2UpdateUnlock(2)
@@ -789,7 +756,7 @@ function CSPS.cp2ApplyGo()
 	end
 	local myDisciplines = {GS(CSPS_MSG_CpPurchChosen)}
 	for i=1,3 do
-		if CSPS.applyCPc[i] then table.insert(myDisciplines, zo_strformat(" |t24:24:<<1>>|t |c<<2>><<3>>: <<4>>|r", cpColTex[i], cpColHex[i], GetChampionDisciplineName(GetChampionDisciplineId(i)), pointsNeeded[i])) end
+		if CSPS.applyCPc[i] then table.insert(myDisciplines, zo_strformat(" |t24:24:<<1>>|t |c<<2>><<3>>: <<4>>|r", CSPS.cpColTex[i], cpColors[i]:ToHex(), GetChampionDisciplineName(GetChampionDisciplineId(i)), pointsNeeded[i])) end
 	end
 	table.insert(myDisciplines, " ")
 	local myCost = respecNeeded and GetChampionRespecCost() or 0
@@ -890,1046 +857,7 @@ function CSPS.cp2ApplyConfirm(respecNeeded, hotbarsOnly)
 	if #unslottedSkills > 0 then
 		d(string.format("[CSPS] %s", GS(CSPS_MSG_Unslotted)))
 		for  i,v in pairs(unslottedSkills) do
-			d(zo_strformat(" - |c<<1>><<C:2>>|r", cpColHex[CSPS.cp2Disci[v]], GetChampionSkillName(v)))
-		end
-	end
-end
-
-
--- Champion point profiles from here 
-
-
-CSPScppList = ZO_SortFilterList:Subclass()
-
-local CSPScppList = CSPScppList
-
-function CSPScppList:New( control )
-	local list = ZO_SortFilterList.New(self, control)
-	list.frame = control
-	list:Setup()
-	return list
-end
-
-function CSPS.cp2KeyLoadAndApply(myId)
-	local hotbarsOnly = {false, false, false}
-	local myProfile = CSPS.currentCharData.cpHbProfiles[myId]
-	local hbComp = myProfile["hbComp"]
-	local myDiscipline = myProfile["discipline"]
-	hotbarsOnly[myDiscipline] = true
-	CSPS.cp2HbTable[myDiscipline] = CSPS.cp2SingleBarExtract(hbComp)
-	CSPS.cp2HbIcons(myDiscipline)		
-	CSPS.cp2UpdateHbMarks()
-	CSPS.unsavedChanges = true
-	CSPS.showElement("apply", true)
-	CSPS.showElement("save", true)
-	CSPS.cp2ApplyConfirm(false, hotbarsOnly)
-	for i=1, 3 do
-		CSPS.cp2ReCheckHotbar(i)
-	end
-	CSPS.cp2HbIcons(myDiscipline)		
-	CSPS.cp2UpdateHbMarks()
-	CSPS.refreshTree()
-end
-
-function CSPS.assignHkGroup(myGroup)
-	local myId = CSPSWindowcpHbHkNumberList.idToAssign
-	local myDiscipline = CSPSWindowcpHbHkNumberList.disciToAssign
-	if CSPS.cp2hbpHotkeys[myGroup][myDiscipline] == myId then 
-		CSPS.cp2hbpHotkeys[myGroup][myDiscipline] = nil
-	else
-		CSPS.cp2hbpHotkeys[myGroup][myDiscipline] = myId
-	end	
-	CSPS.currentCharData.cp2hbpHotkeys = CSPS.cp2hbpHotkeys
-	CSPSWindowcpHbHkNumberList:listDetails(myGroup)
-	CSPSWindowcpHbHkNumberList:showHotkeySelector(myId, myDiscipline, nil)
-	
-end
-
-function CSPS.getHotkeyByGroup(myHotkey)
-	local myKeyText = "-"
-	local layInd, catInd, actInd = GetActionIndicesFromName("CSPS_CPHK"..myHotkey)
-	if layInd and catInd and actInd then 
-		local keyCode, mod1, mod2, mod3, mod4 = GetActionBindingInfo(layInd, catInd, actInd, 1)
-		if keyCode > 0 then 
-			myKeyText = ZO_Keybindings_GetBindingStringFromKeys(keyCode, mod1, mod2, mod3, mod4)
-		else
-			myKeyText = ZO_Keybindings_GetBindingStringFromKeys(nil, 0, 0, 0, 0)
-		end
-	end
-	return myKeyText
-end
-
-function CSPS.getProfileNamesByGroup(myGroupId)
-	local myNames = {"-", "-", "-"}
-	local cpHbProfiles = CSPS.currentCharData.cpHbProfiles
-	local myGroup = CSPS.cp2hbpHotkeys[myGroupId]
-	for i=1, 3 do
-		if CSPS.cp2hbpHotkeys[myGroupId] ~= nil then
-			myNames[i] = myGroup[i] and cpHbProfiles[myGroup[i]] and cpHbProfiles[myGroup[i]].name or "-"
-		end
-	end
-	return myNames
-end
-
-function CSPS.initHkNumberList()
-	for i=1, 20 do
-		CSPSWindowcpHbHkNumberList:GetNamedChild(string.format("Btn%s", i)):SetHandler("OnMouseEnter", function() CSPSWindowcpHbHkNumberList:listDetails(i) end)
-		CSPSWindowcpHbHkNumberList:GetNamedChild(string.format("Btn%s", i)):SetHandler("OnMouseExit", function() CSPSWindowcpHbHkNumberList:listDetails(nil) end)
-	end
-	function CSPSWindowcpHbHkNumberList:listDetails(myGroupId)
-		if myGroupId ~= nil then
-			self:GetNamedChild("CurKey"):SetText(string.format("Hotkey: %s", CSPS.getHotkeyByGroup(myGroupId)))
-			local myColNames = CSPS.getProfileNamesByGroup(myGroupId)
-			self:GetNamedChild("Col1"):SetText(myColNames[2])
-			self:GetNamedChild("Col2"):SetText(myColNames[3])
-			self:GetNamedChild("Col3"):SetText(myColNames[1])
-		else
-			self:GetNamedChild("CurKey"):SetText("")
-			self:GetNamedChild("Col1"):SetText("")
-			self:GetNamedChild("Col2"):SetText("")
-			self:GetNamedChild("Col3"):SetText("")
-			
-		end
-	end
-	function CSPSWindowcpHbHkNumberList:showHotkeySelector(myId, myDiscipline, control)
-		self.col = {r = CSPS.cp2Colors[myDiscipline][1]/255, g = CSPS.cp2Colors[myDiscipline][2]/255, b = CSPS.cp2Colors[myDiscipline][3]/255}
-		self.idToAssign = myId
-		self.disciToAssign = myDiscipline
-		for i=1, 20 do
-			local myBtn = self:GetNamedChild(string.format("Btn%s", i))
-			local myBG = myBtn:GetNamedChild("BG")
-			if CSPS.cp2hbpHotkeys[i][myDiscipline] == myId then
-				myBG:SetCenterColor(self.col.r, self.col.g, self.col.b, 0.4)
-				myBtn:SetEnabled(true)
-			elseif CSPS.cp2hbpHotkeys[i][myDiscipline] == nil then
-				myBG:SetCenterColor(0.0314, 0.0314, 0.0314)
-				myBtn:SetEnabled(true)
-			else
-				myBG:SetCenterColor(1, 1, 1, 0.4)
-				myBtn:SetEnabled(false)
-			end
-		end
-		if control ~= nil then
-			self:ClearAnchors()
-			self:SetAnchor(TOPLEFT, control, BOTTOM)
-			self:SetHidden(false)
-			local function hideMe()
-				local moCtrl = WINDOW_MANAGER:GetMouseOverControl()
-				if string.find(moCtrl:GetName(), self:GetName()) == nil and string.find(moCtrl:GetName(), "Hotkey") == nil then
-					self:SetHidden(true)
-					EVENT_MANAGER:UnregisterForEvent(CSPS.name, EVENT_GLOBAL_MOUSE_DOWN)
-				end
-			end
-			EVENT_MANAGER:RegisterForEvent(CSPS.name, EVENT_GLOBAL_MOUSE_DOWN, hideMe)
-		end	
-	end
-end
-
-function CSPS.cpFilterCombo()
-	CSPSWindowCPProfilesRoleFilter.comboBox = CSPSWindowCPProfilesRoleFilter.comboBox or ZO_ComboBox_ObjectFromContainer(CSPSWindowCPProfilesRoleFilter)
-	local myComboBox = CSPSWindowCPProfilesRoleFilter.comboBox	
-	myComboBox:ClearItems()
-	myComboBox:SetSortsItems(true)
-	
-	local choices = {
-	}
-	
-	for i, v in pairs(roles) do
-		if v ~= "" and v~= roles[1] then choices[v] = i end
-	end
-	
-	local function OnItemSelect(_, choiceText, _)
-		roleFilter = choiceText
-		
-		CSPS.cppList:RefreshData()
-		PlaySound(SOUNDS.POSITIVE_CLICK)
-	end
-	
-	for i,j in pairs(choices) do
-		myComboBox:AddItem(myComboBox:CreateItemEntry(i, OnItemSelect))
-
-	end
-	if roleFilter ~= "" then 
-		myComboBox:SetSelectedItem(roleFilter)
-	else
-		myComboBox:SetSelectedItem(GS(SI_CHAT_OPTIONS_FILTERS))
-	end
-end
-
-function CSPS.cp2HbHkClick(myId, myDiscipline, control, mouseButton)
-	if not CSPSWindowcpHbHkNumberList:IsHidden() then 
-		CSPSWindowcpHbHkNumberList:SetHidden(true) 
-		return 
-	end
-	CSPSWindowcpHbHkNumberList:showHotkeySelector(myId, myDiscipline, control)
-	ZO_Tooltips_HideTextTooltip()
-end
-
-function CSPS.cp2HbPshowTTApply(myId, myDiscipline, control)
-	local myTooltip = {GS(CSPS_Tooltiptext_LoadAndApply)}
-	local myProfile = CSPS.currentCharData.cpHbProfiles[myId]
-	local myHb = {SplitString(",", myProfile["hbComp"])}
-	for i, v in pairs(myHb) do
-		local myString = zo_strformat("<<C:1>>", GetChampionSkillName(tonumber(v))) or "-"
-		local myColor = cpColHex[myDiscipline]
-		myString = string.format(" |t24:24:esoui/art/champion/champion_icon_32.dds|t %s) |c%s%s|r", i, myColor, myString)
-		table.insert(myTooltip, myString)
-	end
-	myTooltip = table.concat(myTooltip, "\n")
-	ZO_Tooltips_ShowTextTooltip(control, RIGHT, myTooltip)
-end
-
-local function ShowCustomCPProfileTT(control, data)
-	if data.type ~=1 and data.type ~=2 then return end
-	InitializeTooltip(InformationTooltip, control, LEFT)	
-	InformationTooltip:AddLine(data.name, "ZoFontWinH2")
-	local myId = data.myId
-	local myProfile = data.type == 1 and CSPS.savedVariables.cpProfiles and CSPS.savedVariables.cpProfiles[myId] or data.type == 2 and CSPS.currentCharData.cpProfiles and CSPS.currentCharData.cpProfiles[myId]
-	if not myProfile then return end
-	if myProfile.lastSaved then 
-		InformationTooltip:AddLine(string.format("(%s)", os.date("%x", myProfile.lastSaved)), "ZoFontGame") 
-	end
-	local myProfileIcon = cpColTex[myProfile.discipline] 
-	local myColor = cpColHex[myProfile.discipline]
-	if myProfile.hbComp then
-		ZO_Tooltip_AddDivider(InformationTooltip)
-		local myHbText = {}
-		for _, cpId in pairs({SplitString(",", myProfile.hbComp)}) do
-			if tonumber(cpId) then table.insert(myHbText, string.format("|c%s%s|r", myColor, zo_strformat("<<C:1>>", GetChampionSkillName(tonumber(cpId))))) end
-		end
-		InformationTooltip:AddLine(string.format("|t28:28:%s|t %s", myProfileIcon, table.concat(myHbText, ", ")))
-	end
-	if myProfile.cpComp then
-		local myCPList = {}
-		for _, cpValuePair in pairs({SplitString(";", myProfile.cpComp)}) do
-			local myPair = {SplitString("-", cpValuePair)}
-			local myCPKey = tonumber(myPair[1])
-			local myCPValue = tonumber(myPair[2])
-			if myCPKey and myCPValue then table.insert(myCPList, string.format("|c%s%s|r(%s)", myColor, zo_strformat("<<C:1>>", GetChampionSkillName(myCPKey)), myCPValue)) end
-		end		
-		ZO_Tooltip_AddDivider(InformationTooltip)
-		InformationTooltip:AddLine(table.concat(myCPList, ", "))
-	end
-end
-
-function CSPScppList:SetupItemRow( control, data )
-	control.data = data
-
-	control:GetNamedChild("Name").normalColor = ZO_DEFAULT_TEXT
-	control:GetNamedChild("Name"):SetText(data.name)
-
-	if data.discipline == 4 then -- 4 = not cp but quickslots
-		control:GetNamedChild("Name"):SetHandler("OnMouseEnter", function()  CSPS.showQuickSlotProfileTT(control, data.type, data.myId) CSPS.CPListRowMouseEnter(control) end)
-	elseif data.type == 1 or data.type == 2 then
-		control:GetNamedChild("Name"):SetHandler("OnMouseEnter", function()  ShowCustomCPProfileTT(control, data) CSPS.CPListRowMouseEnter(control) end)
-	elseif control:GetNamedChild("Name"):WasTruncated() and data.type ~=4 then
-		control:GetNamedChild("Name"):SetHandler("OnMouseEnter", function() ZO_Tooltips_ShowTextTooltip(control:GetNamedChild("Name"), RIGHT, data.name) CSPS.CPListRowMouseEnter(control) end)
-	else
-		control:GetNamedChild("Name"):SetHandler("OnMouseEnter", function() CSPS.CPListRowMouseEnter(control) end)
-	end
-
-	control:GetNamedChild("Points").normalColor = ZO_DEFAULT_TEXT
-	control:GetNamedChild("Points"):SetText(data.points)
-	
-	if data.type == 1 or data.type == 2 or data.type > 4 then 
-		control:GetNamedChild("Rename"):SetHandler("OnClicked", function() CSPS.cp2ProfileRename(data.myId, data.type) end)
-		control:GetNamedChild("Save"):SetHandler("OnClicked", function() CSPS.cp2ProfileSave(data.myId, data.type) end)
-		control:GetNamedChild("Minus"):SetHandler("OnClicked", function() CSPS.cp2ProfileMinus(data.myId, data.type) end)
-		if data.isNew then 
-			control:GetNamedChild("Name").normalColor = ZO_GAME_REPRESENTATIVE_TEXT
-			control:GetNamedChild("Points").normalColor = ZO_GAME_REPRESENTATIVE_TEXT
-		end
-	end
-	if data.type == 4 then 
-		control:GetNamedChild("Name"):SetWidth(200)
-		control:GetNamedChild("Role"):SetHidden(false)
-		control:GetNamedChild("Source"):SetHidden(false)
-		control:GetNamedChild("Role"):SetText(data.role)
-		control:GetNamedChild("Source"):SetText(data.source)
-		control:GetNamedChild("Role").normalColor = ZO_DEFAULT_TEXT
-		control:GetNamedChild("Source").normalColor = ZO_DEFAULT_TEXT
-	else
-		control:GetNamedChild("Name"):SetWidth(342)
-		control:GetNamedChild("Role"):SetHidden(true)
-		control:GetNamedChild("Source"):SetHidden(true)
-	end
-	if data.type == 5 then
-		control:GetNamedChild("Points"):SetHidden(true)
-		control:GetNamedChild("Hotkey"):SetHidden(false)
-		control:GetNamedChild("Apply"):SetHandler("OnClicked", function() CSPS.cp2KeyLoadAndApply(data.myId) end)
-		control:GetNamedChild("Apply"):SetHandler("OnMouseEnter", function() CSPS.cp2HbPshowTTApply(data.myId, data.discipline, control:GetNamedChild("Apply")) end)
-		control:GetNamedChild("Apply"):SetHidden(false)
-		local myHotkey = 0
-		for i, v in ipairs(CSPS.cp2hbpHotkeys) do
-			if v[data.discipline] == data.myId then myHotkey = i end
-		end
-		local myKeyText = "-"
-		if myHotkey and myHotkey > 0 then 
-			local layIdx, catIdx, actIdx = GetActionIndicesFromName("CSPS_CPHK"..myHotkey)
-			if layIdx and catIdx and actIdx then 
-				local keyCode, mod1, mod2, mod3, mod4 = GetActionBindingInfo(layIdx, catIdx, actIdx, 1)
-				if keyCode > 0 then 
-					myKeyText = ZO_Keybindings_GetBindingStringFromKeys(keyCode, mod1, mod2, mod3, mod4)
-				end
-			end
-		end
-		-- control:GetNamedChild("Hotkey"):SetText(zo_strformat("[<<1>>]<<2[/ (1)/ ($d)]>>", myKeyText, myHotkey)) -- With (hotkey group)
-		--control:GetNamedChild("Hotkey"):SetText(zo_strformat("[<<1>>]", myKeyText)) -- Without (hotkey group)
-		
-		control:GetNamedChild("Hotkey"):SetHandler("OnClicked", function(upInside, mouseButton) if upInside then CSPS.cp2HbHkClick(data.myId, data.discipline, control:GetNamedChild("Hotkey"), mouseButton) end end)
-		control:GetNamedChild("Hotkey"):SetHandler("OnMouseEnter", function() ZO_Tooltips_ShowTextTooltip(control:GetNamedChild("Hotkey"), RIGHT, GS(CSPS_Tooltiptext_CpHbHk)) end)
-	else
-		control:GetNamedChild("Points"):SetHidden(false)
-		control:GetNamedChild("Hotkey"):SetHidden(true)
-		control:GetNamedChild("Apply"):SetHidden(true)
-	end
-	local myIcon = control:GetNamedChild("Icon")
-	if myIcon ~= nil then myIcon:SetTexture(cpColTex[data.discipline]) end
-
-	ZO_SortFilterList.SetupRow(self, control, data)
-end
-
-function CSPS.cppSort(newSortKey)
-	if CSPS.savedVariables.settings.cppSortKey ~= newSortKey then
-		CSPS.savedVariables.settings.cppSortKey = newSortKey
-		CSPS.cppList.currentSortKey = newSortKey
-	else
-		CSPS.savedVariables.settings.cppSortOrder  = CSPS.savedVariables.settings.cppSortOrder  or false -- false = value for sort_order_down
-		CSPS.savedVariables.settings.cppSortOrder = not CSPS.savedVariables.settings.cppSortOrder 
-		CSPS.cppList.currentSortOrder = CSPS.savedVariables.settings.cppSortOrder
-	end
-	CSPS.cppList:RefreshData()
-end
-
-function CSPScppList:Setup( )
-	ZO_ScrollList_AddDataType(self.list, 1, "CSPSCPPLE", 30, function(control, data) self:SetupItemRow(control, data) end)
-	ZO_ScrollList_AddDataType(self.list, 2, "CSPSCPPLECUST", 30, function(control, data) self:SetupItemRow(control, data) end)
-	ZO_ScrollList_EnableHighlight(self.list, "ZO_ThinListHighlight")
-	self:SetAlternateRowBackgrounds(true)
-	self.masterList = { }
-	
-	local sortKeys = {
-		["name"]     = { caseInsensitive = true, },
-		["points"] = { caseInsensitive = true, tiebreaker = "name" },
-		["role"] = { caseInsensitive = true, tiebreaker = "name" },
-		["source"] = { caseInsensitive = true, tiebreaker = "role" },
-	}
-	
-	self.currentSortKey = CSPS.savedVariables.settings.cppSortKey or "name"
-	self.currentSortOrder = CSPS.savedVariables.settings.cppSortOrder  ~= nil and CSPS.savedVariables.settings.cppSortOrder or ZO_SORT_ORDER_UP
-	self.sortFunction = function( listEntry1, listEntry2 )
-		return ZO_TableOrderingFunction(listEntry1.data, listEntry2.data, self.currentSortKey, sortKeys, self.currentSortOrder)
-	end
-
-	self:RefreshData()
-end
-
-function CSPScppList:SortScrollList( )
-	if (self.currentSortKey ~= nil and self.currentSortOrder ~= nil) then
-		table.sort(ZO_ScrollList_GetDataList(self.list), self.sortFunction)
-		self:RefreshVisible()
-	end
-	if newProfileBringToTop then
-		local iToTop = 0
-		for i, v in pairs(ZO_ScrollList_GetDataList(self.list)) do
-			if v.data.isNew then iToTop = i end
-		end
-		if iToTop > 0 then
-			table.insert(ZO_ScrollList_GetDataList(self.list), 1, table.remove(ZO_ScrollList_GetDataList(self.list), iToTop))
-		end
-		newProfileBringToTop = false
-	end
-end
-
-function CSPScppList:BuildMasterList( )
-	self.masterList = { }
-	local custCharList = CSPS.currentCharData.cpProfiles or {}
-	local custAccountList = CSPS.savedVariables.cpProfiles or {}
-	local presetList = CSPSCPPresets or {}
-	local custBarList = CSPS.currentCharData.cpHbProfiles or {}
-	local qsCharList = CSPS.currentCharData.qsProfiles or {}
-	local qsAccList = CSPS.savedVariables.qsProfiles or {}
-	for i,v in pairs(custCharList) do
-		table.insert(self.masterList, {type = 2, name = v.name, discipline = v.discipline, myId = i, points = v.points, isNew = v.isNew})
-	end
-	for i,v in pairs(custAccountList) do
-		table.insert(self.masterList, {type = 1, name = v.name, discipline = v.discipline, myId = i, points = v.points, isNew = v.isNew})
-	end
-	for i,v in pairs(presetList) do
-		v.role = v.role or 7
-		local myRole = roles[v.role]
-		table.insert(self.masterList, {type = 4, name = v.name, discipline = v.discipline,  myId = i, points = v.points, role=myRole, source=v.source, addInfo = v.addInfo, website=v.website, updated=v.updated})
-	end
-	for i,v in pairs(custBarList) do
-		table.insert(self.masterList, {type = 5, name = v.name, discipline = v.discipline, myId = i, points = v.points, isNew = v.isNew})
-	end
-	for i,v in pairs(qsAccList) do 
-		table.insert(self.masterList, {type = 6, name = v.name, discipline = 4,  myId = i, points = v.points, isNew = v.isNew})
-	end
-	for i,v in pairs(qsCharList) do
-		table.insert(self.masterList, {type = 7, name = v.name, discipline = 4, myId = i, points = v.points, isNew = v.isNew})
-	end
-end
-
-function CSPScppList:FilterScrollList( )
-	local scrollData = ZO_ScrollList_GetDataList(self.list)
-	ZO_ClearNumericallyIndexedTable(scrollData)
-
-	for _, data in ipairs(self.masterList) do
-		local myType = 2 -- My type here refers to the UI element not the data type: 1 being a list entry for presets, 2 also contains the profile buttons
-		if data.type > 2 and data.type < 5 then myType = 1 end 
-		if (cpProfDis == nil or cpProfDis == data.discipline) and (cpProfType == nil or cpProfType == data.type) then
-			if data.type ~= 4 or roleFilter == "" or roleFilter == roles[7] or roleFilter == data.role or data.role == roles[7] or (data.role == 1 and (roleFilter == roles[5] or roleFilter == roles[6])) then
-				table.insert(scrollData, ZO_ScrollList_CreateDataEntry(myType, data))
-			end
-		end
-	end
-end
-
-function CSPS.cpProfile(i)
-	if CSPSWindowCPProfiles:IsHidden() == false and cpProfDis == i then
-		CSPSWindowCPProfiles:SetHidden(true)
-		CSPSWindowCPImport:SetHidden(true)
-		CSPSWindowCPProfiles:SetHeight(0)
-		return
-	end
-	if i~=4 and not CSPS.tabEx then  
-		CSPS.cp2ReadCurrent()
-		CSPS.createTable() -- Create the treeview if no treeview exists yet
-		CSPS.toggleCP(0, false)
-	end
-	if i~=4 and CSPS.cp2ParentTreeSection and not CSPS.cp2ParentTreeSection.node:IsOpen() then
-		CSPS.onToggleSektion(CSPS.cp2ParentTreeSection:GetNamedChild("Toggle"), MOUSE_BUTTON_INDEX_LEFT) 
-	end
-	CSPSWindowManageBars:SetHidden(true)
-	CSPSWindowOptions:SetHidden(true)
-	CSPSWindowMain:SetHidden(false)
-	cpProfDis = i or cpProfDis or 2
-	CSPS.cpProfileType()
-	if cpProfDis == 4 then
-		CSPSWindowCPProfilesTitle:SetText(GS(SI_COLLECTIONS_BOOK_QUICKSLOT_KEYBIND))
-	else
-		CSPSWindowCPProfilesTitle:SetText(GS(CSPS_Tooltiptext_CPProfile))
-	end
-	local r, g, b = CSPS.cp2Colors[cpProfDis][1]/255, CSPS.cp2Colors[cpProfDis][2]/255, CSPS.cp2Colors[cpProfDis][3]/255
-	CSPSWindowCPProfilesTitle:SetColor(r,g,b)
-	CSPSWindowCPProfilesHeaderPoints:SetColor(r,g,b)
-	CSPSWindowCPProfilesHeaderName:SetColor(r,g,b)
-	CSPSWindowCPProfilesHeaderRole:SetColor(r,g,b)
-	CSPSWindowCPProfilesHeaderSource:SetColor(r,g,b)
-	CSPS.showElement("cpProfiles", true)
-end
-
-local function compressQuickslots()
-	local myBar = {}	
-	local myPoints = 0
-	for i=ACTION_BAR_FIRST_UTILITY_BAR_SLOT + 1, ACTION_BAR_FIRST_UTILITY_BAR_SLOT + ACTION_BAR_UTILITY_BAR_SIZE do
-		local itemLink = GetSlotItemLink(i)
-		itemLink = itemLink or ""
-		if itemLink == "" then itemLink = "-" else myPoints = myPoints + 1 end
-		table.insert(myBar, itemLink)
-	end
-	myBar = table.concat(myBar, ",")
-	d(myBar)
-	return myBar, myPoints
-end
-
-function CSPS.cp2ProfilePlus(myType)
-	
-	local myProfile = {}
-	local myTable = {}
-	local myPoints = 0
-	local myBar = ""
-	
-	if myType < 5 then
-		for i, v in pairs (CSPS.cp2Table) do
-			if CSPS.cp2Disci[i] == cpProfDis then 
-				myTable[i] = v 
-				myPoints = myPoints + v[2]
-			end
-		end
-		myTable = CSPS.cp2Compress(myTable)
-	end
-	if myType < 6 then
-		myBar = cp2SingleBarCompress(CSPS.cp2HbTable[cpProfDis])	
-	else
-		--fill the quickslot profile here
-		myBar, myPoints = compressQuickslots()
-	end
-	local myName = GS(CSPS_Txt_NewProfile2)
-	local myZone = GetUnitWorldPosition("player")
-	myName = zoneAbbr[myZone] or myName
-	local myRole = GetSelectedLFGRole()
-	if myRole ~= 3 then 
-		local myMagStam = CSPS.isMagOrStam()
-		if myMagStam > 0 and myRole == 1 then
-			local magStamAbbr = {"Mag", "Stam"}
-			myName = string.format("%s (%s/%s-%s)", myName, classAbbr[GetUnitClassId("player")], magStamAbbr[myMagStam], roleAbbr[myRole]) 
-		else
-			myName = string.format("%s (%s/%s)", myName, classAbbr[GetUnitClassId("player")], roleAbbr[myRole]) 
-		end
-	end
-	if myType == 5 then 
-		myName = GS(CSPS_Txt_NewProfile2)
-		myProfile = {name = myName, discipline = cpProfDis, hbComp = myBar, isNew = true}
-	elseif myType > 5 then
-		myProfile = {name = myName, discipline = cpProfDis,  hbComp = myBar, points = myPoints, isNew = true}
-	else
-		myProfile = {name = myName, discipline = cpProfDis, points = myPoints, cpComp = myTable, hbComp = myBar, isNew = true}
-	end
-	
-	CSPS.savedVariables.cpProfiles = CSPS.savedVariables.cpProfiles or {}
-	CSPS.currentCharData.cpProfiles = CSPS.currentCharData.cpProfiles or {}
-	CSPS.currentCharData.cpHbProfiles = CSPS.currentCharData.cpHbProfiles or {}
-	CSPS.currentCharData.qsProfiles = CSPS.currentCharData.qsProfiles or {}
-	CSPS.savedVariables.qsProfiles = CSPS.savedVariables.qsProfiles or {}
-	
-	if myType == 1 then
-		table.insert(CSPS.savedVariables.cpProfiles, myProfile)
-	elseif myType == 2 then
-		table.insert(CSPS.currentCharData.cpProfiles, myProfile)
-	elseif myType == 5 then
-		table.insert(CSPS.currentCharData.cpHbProfiles, myProfile)
-	elseif myType == 6 then
-		table.insert(CSPS.savedVariables.qsProfiles, myProfile)
-	elseif myType == 7 then
-		table.insert(CSPS.currentCharData.qsProfiles, myProfile)
-	end
-	newProfileBringToTop = true
-	CSPS.cppList:RefreshData()	
-	
-	for i, v in pairs(CSPS.savedVariables.cpProfiles) do
-		v.isNew = nil
-	end
-	for i, v in pairs(CSPS.currentCharData.cpProfiles) do
-		v.isNew = nil
-	end
-	for i, v in pairs(CSPS.currentCharData.cpHbProfiles) do
-		v.isNew = nil
-	end
-	for i,v in pairs(CSPS.currentCharData.qsProfiles) do
-		v.isNew = nil
-	end
-	for i,v in pairs(CSPS.savedVariables.qsProfiles) do
-		v.isNew = nil
-	end
-end
-
-local function getCPProfileName(myId, myType)
-	local myName = false
-	if myType == 1 then 
-		myName = CSPS.savedVariables.cpProfiles[myId].name
-	elseif myType == 2 then
-		myName = CSPS.currentCharData.cpProfiles[myId].name
-	elseif myType == 5 then
-		myName = CSPS.currentCharData.cpHbProfiles[myId].name
-	elseif myType == 6 then
-		myName = CSPS.savedVariables.qsProfiles[myId].name
-	elseif myType == 7 then
-		myName = CSPS.currentCharData.qsProfiles[myId].name
-	end
-	return myName
-end
-
-function CSPS.cp2ProfileMinus(myId, myType)
-	local myName = getCPProfileName(myId, myType)
-	if not myName then return end
-	ZO_Dialogs_ShowDialog(CSPS.name.."_OkCancelDiag", 
-		{returnFunc = function()  CSPS.cp2ProfileDelete(myId, myType)  end},  
-		{mainTextParams = {zo_strformat(GS(CSPS_MSG_DeleteProfile), myName, "", "")}, titleParams = {GS(CSPS_MyWindowTitle)}})
-end
-
-function CSPS.cp2ProfileDelete(myId, myType)
-	if myType == 1 then
-		CSPS.savedVariables.cpProfiles[myId] = nil
-	elseif myType == 2 then
-		CSPS.currentCharData.cpProfiles[myId] = nil
-	elseif myType == 5 then
-		local myDiscipline = CSPS.currentCharData.cpHbProfiles[myId]["discipline"]
-		for i, v in ipairs(CSPS.cp2hbpHotkeys) do
-			if v[myDiscipline] == myId then v[myDiscipline] = nil end
-		end		
-		CSPS.currentCharData.cpHbProfiles[myId] = nil
-	elseif myType == 6 then
-		CSPS.savedVariables.qsProfiles[myId] = nil
-	elseif myType == 7 then
-		CSPS.currentCharData.qsProfiles[myId] = nil
-	end
-	CSPS.cppList:RefreshData()
-end
-
-function CSPS.cp2ProfileRename(myId, myType)
-	local myName = getCPProfileName(myId, myType)
-	if not myName then return end
-	ZO_Dialogs_ShowDialog(CSPS.name.."_RenameProfile", {myId = myId, myType = myType}, {mainTextParams = {myName, ""}, initialEditText = myName})
-end
-
-function CSPS.cp2ProfileRenameGo(newName, myId, myType)
-	if newName == "" then return end
-	if myType == 1 then 
-		CSPS.savedVariables.cpProfiles[myId].name = newName
-	elseif myType == 2 then
-		CSPS.currentCharData.cpProfiles[myId].name = newName
-	elseif myType == 5 then
-		CSPS.currentCharData.cpHbProfiles[myId].name = newName
-	elseif myType == 6 then
-		CSPS.savedVariables.qsProfiles[myId].name = newName
-	elseif myType == 7 then
-		CSPS.currentCharData.qsProfiles[myId].name = newName
-	else
-		return
-	end
-	CSPS.cppList:RefreshData()
-end
-
-function CSPS.cp2ProfileSave(myId, myType)
-	local myName = getCPProfileName(myId, myType)
-	if not myName then return end
-	
-	ZO_Dialogs_ShowDialog(CSPS.name.."_OkCancelDiag", 
-		{returnFunc = function() CSPS.cp2ProfileSaveGo(myId, myType)  end},  
-		{mainTextParams = {zo_strformat(GS(CSPS_MSG_ConfirmSave), myName, "")}, titleParams = {GS(CSPS_MyWindowTitle)}})
-end
-
-local function quickslotSaveGo(myId, myType)
-	local myBar, myPoints = compressQuickslots()
-	if myType == 6 then
-		CSPS.savedVariables.qsProfiles[myId].points = myPoints
-		CSPS.savedVariables.qsProfiles[myId].hbComp = myBar
-		CSPS.savedVariables.qsProfiles[myId].lastSaved = os.time()
-	elseif myType == 7 then
-		CSPS.currentCharData.qsProfiles[myId].points = myPoints
-		CSPS.currentCharData.qsProfiles[myId].hbComp = myBar
-		CSPS.currentCharData.qsProfiles[myId].lastSaved = os.time()
-	end
-	CSPS.cppList:RefreshData()
-end
-
-function CSPS.cp2ProfileSaveGo(myId, myType)
-	if myType > 5 then quickslotSaveGo(myId, myType) return end
-	local myTable = {}
-	local myPoints = 0
-	if myType ~= 5 then
-		for i, v in pairs (CSPS.cp2Table) do
-			if CSPS.cp2Disci[i] == cpProfDis then 
-				myTable[i] = v 
-				myPoints = myPoints + v[2]
-			end
-		end
-		myTable = CSPS.cp2Compress(myTable)
-	end
-	local myBar = cp2SingleBarCompress(CSPS.cp2HbTable[cpProfDis])
-	if myType == 1 then
-		CSPS.savedVariables.cpProfiles[myId].points = myPoints
-		CSPS.savedVariables.cpProfiles[myId].cpComp = myTable
-		CSPS.savedVariables.cpProfiles[myId].hbComp = myBar
-		CSPS.savedVariables.cpProfiles[myId].lastSaved = os.time()
-	elseif myType == 2 then
-		CSPS.currentCharData.cpProfiles[myId].points = myPoints
-		CSPS.currentCharData.cpProfiles[myId].cpComp = myTable
-		CSPS.currentCharData.cpProfiles[myId].hbComp = myBar
-		CSPS.currentCharData.cpProfiles[myId].lastSaved = os.time()
-	elseif myType == 5 then
-		CSPS.currentCharData.cpHbProfiles[myId].hbComp = myBar
-	end
-	CSPS.cppList:RefreshData()
-end
-
-function CSPS.cpProfileType(myType)
-	if myType == cpProfType then return end
-	if myType ~= nil then 
-		if myType == 3 then
-			if CSPS.formatImpExp ~= string.format("txtCP2_%d", cpProfDis) then
-				CSPSWindowImportExportSrcList.comboBox:SetSelectedItem(GetString("CSPS_ImpEx_TxtCP2_", cpProfDis))
-				CSPS.toggleImpExpSource(string.format("txtCP2_%d", cpProfDis))
-			end
-			CSPS.toggleImportExport(true)
-			CSPS.showElement("cpProfiles", false)
-			return
-		end
-		cpProfType = myType
-	end
-	if cpProfDis == 4 and cpProfType < 6 then
-		if cpProfType == 1 then cpProfType = 6 else cpProfType = 7 end
-	end
-	if cpProfDis ~= 4 and cpProfType > 5 then
-		if cpProfType == 6 then cpProfType = 1 else cpProfType = 2 end
-	end
-	if cpProfType < 3 or cpProfType > 4 then CSPSWindowCPProfilesCPProfilePlus:SetHidden(false) else CSPSWindowCPProfilesCPProfilePlus:SetHidden(true) end
-	if cpProfType == 5 then	
-		CSPSWindowCPProfilesHeaderPoints:SetText(GS(CSPS_CPP_Hotkey))
-		CSPSWindowCPProfilesHeaderPoints:SetHorizontalAlignment(0)
-		CSPSWindowCPProfilesHeaderHotkey:SetHidden(false)
-		CSPSWindowCPProfilesHeaderPoints:SetWidth(59)
-		CSPSWindowCPProfilesHeaderHotkey:SetWidth(25)
-	else
-		CSPSWindowCPProfilesHeaderPoints:SetText(GS(CSPS_CPP_Points))
-		CSPSWindowCPProfilesHeaderPoints:SetHorizontalAlignment(1)
-		CSPSWindowCPProfilesHeaderHotkey:SetHidden(true)
-		CSPSWindowCPProfilesHeaderPoints:SetWidth(84)
-		CSPSWindowCPProfilesHeaderHotkey:SetWidth(0)
-	end
-	if cpProfType == 4 then
-		CSPSWindowCPProfilesHeaderName:SetWidth(200)
-		CSPSWindowCPProfilesHeaderRole:SetHidden(false)
-		CSPSWindowCPProfilesHeaderSource:SetHidden(false)
-		CSPSWindowCPProfilesRoleFilter:SetHidden(false)
-		CSPSWindowCPProfilesLblStrictOrder:SetHidden(false)
-		CSPSWindowCPProfilesChkStrictOrder:SetHidden(false)
-		if not CSPSWindowCPProfilesRoleFilter.comboBox then CSPS.cpFilterCombo() end
-	else
-		CSPSWindowCPProfilesHeaderName:SetWidth(342)
-		CSPSWindowCPProfilesHeaderRole:SetHidden(true)
-		CSPSWindowCPProfilesHeaderSource:SetHidden(true)
-		CSPSWindowCPProfilesRoleFilter:SetHidden(true)
-		CSPSWindowCPProfilesLblStrictOrder:SetHidden(true)
-		CSPSWindowCPProfilesChkStrictOrder:SetHidden(true)
-	end
-	local cppTypes = {"CustomAcc", "CustomChar", "ImportFromText", "Presets", "BarsOnly"}
-	for i, v in pairs(cppTypes) do
-		local myBtn = CSPSWindowCPProfiles:GetNamedChild(v)
-		local myBG = myBtn:GetNamedChild("BG")
-		if i == cpProfType or (i < 3 and cpProfType == i + 5) then myBG:SetCenterColor(CSPS.cp2Colors[cpProfDis][1]/255, CSPS.cp2Colors[cpProfDis][2]/255, CSPS.cp2Colors[cpProfDis][3]/255, 0.4) else myBG:SetCenterColor(0.0314, 0.0314, 0.0314) end
-		if cpProfDis == 4 and i > 2 then
-			myBtn:SetHidden(true)
-			myBtn:SetWidth(0)
-		else
-			myBtn:SetHidden(false)
-			myBtn:SetWidth(100)
-		end
-	end
-	CSPSWindowCPProfilesCPProfilePlus:SetHandler("OnClicked", function() CSPS.cp2ProfilePlus(cpProfType) end)
-	if not CSPS.cppList then
-		CSPS.cppList = CSPScppList:New(CSPSWindowCPProfiles)
-	else
-		CSPS.cppList:RefreshData()
-	end
-	CSPS.cppList:FilterScrollList()
-	CSPS.cppList:SortScrollList( )
-end
-
-function CSPS.CPListRowMouseExit( control )
-	CSPS.cppList:Row_OnMouseExit(control)
-	if control.data then ZO_Tooltips_HideTextTooltip() end
-end
-
-function CSPS.CPListRowMouseEnter(control)
-	CSPS.cppList:Row_OnMouseEnter(control)
-	if control.data and control.data.type == 4 then
-		InitializeTooltip(InformationTooltip, control, LEFT)	
-		InformationTooltip:AddLine(control.data.name, "ZoFontWinH2")
-		ZO_Tooltip_AddDivider(InformationTooltip)
-		if control.data.addInfo then
-			InformationTooltip:AddLine(control.data.addInfo, "ZoFontGame") 
-			ZO_Tooltip_AddDivider(InformationTooltip)
-		end
-		InformationTooltip:AddLine(zo_strformat(GS(CSPS_Tooltip_CPPUpdate), control.data.updated[1], control.data.updated[2], control.data.updated[3]), "ZoFontGame")
-		if control.data.website then InformationTooltip:AddLine(zo_strformat(GS(CSPS_Tooltip_CPPWebsite), control.data.website), "ZoFontGame") end
-	end
-end
-
-local function loadDynamicCP(myList, mySlotted, myBase, discipline)
-	if myList == nil then return end
-	local i = 1
-	local remainingPoints = GetNumSpentChampionPoints(GetChampionDisciplineId(discipline)) + GetNumUnspentChampionPoints(GetChampionDisciplineId(discipline))
-	local slottableSkills = {}
-	local strictOrder = CSPS.savedVariables.settings.strictOrder
-	if mySlotted ~= nil then
-		for _, v in pairs(mySlotted) do
-			slottableSkills[v] = true
-		end
-	end
-	CSPS.cp2ResetTable(discipline)
-	while i <= #myList and remainingPoints > 0 do
-		if CSPS.cp2Table[myList[i][1]][1] then
-			if remainingPoints >= myList[i][2] - CSPS.cp2Table[myList[i][1]][2] then
-				remainingPoints = remainingPoints + CSPS.cp2Table[myList[i][1]][2]
-				CSPS.cp2Table[myList[i][1]][2] = myList[i][2] 
-				if CSPS.cp2Table[myList[i][1]][2] > GetChampionSkillMaxPoints(myList[i][1]) then CSPS.cp2Table[myList[i][1]][2] = GetChampionSkillMaxPoints(myList[i][1]) end
-				CSPS.cp2UpdateUnlock(discipline)
-				remainingPoints = remainingPoints -  CSPS.cp2Table[myList[i][1]][2]
-			else
-				if DoesChampionSkillHaveJumpPoints(myList[i][1]) then
-					local myJumpPoint = 0
-					for j, w in ipairs({GetChampionSkillJumpPoints(myList[i][1])}) do
-						if w <= remainingPoints + CSPS.cp2Table[myList[i][1]][2] then myJumpPoint = w else break end
-					end
-					if myJumpPoint > CSPS.cp2Table[myList[i][1]][2] then
-						remainingPoints = remainingPoints + CSPS.cp2Table[myList[i][1]][2]
-						CSPS.cp2Table[myList[i][1]][2] = myJumpPoint
-						CSPS.cp2UpdateUnlock(discipline)
-						remainingPoints = remainingPoints - myJumpPoint
-					end
-				else
-					CSPS.cp2Table[myList[i][1]][2] = CSPS.cp2Table[myList[i][1]][2] + remainingPoints
-					remainingPoints = 0
-					if CSPS.cp2Table[myList[i][1]][2] > GetChampionSkillMaxPoints(myList[i][1]) then
-						remainingPoints = CSPS.cp2Table[myList[i][1]][2] - GetChampionSkillMaxPoints(myList[i][1])
-						CSPS.cp2Table[myList[i][1]][2] = GetChampionSkillMaxPoints(myList[i][1])
-					end
-				end
-				if strictOrder then break end
-			end
-		end
-		i = i +1
-	end
-	if remainingPoints > 0 then
-		for i, v in pairs(myBase) do
-			if GetChampionSkillMaxPoints(v) >= CSPS.cp2Table[v][2] then
-				CSPS.cp2Table[v][2] = CSPS.cp2Table[v][2] + remainingPoints
-				if CSPS.cp2Table[v][2] > GetChampionSkillMaxPoints(v) then
-					remainingPoints = CSPS.cp2Table[v][2] - GetChampionSkillMaxPoints(v)
-					 CSPS.cp2Table[v][2] = GetChampionSkillMaxPoints(v)
-				else
-					remainingPoints = 0
-				end
-			end
-		end
-	end
-	CSPS.cp2HbTable[discipline] = {}
-	for i, v in pairs(mySlotted) do
-		table.insert(CSPS.cp2HbTable[discipline], v)
-	end
-	CSPS.cp2ReCheckHotbar(discipline)
-	CSPS.cp2HbIcons(discipline)		
-	CSPS.cp2UpdateHbMarks()
-	CSPS.unsavedChanges = true
-	changedCP = true
-	CSPS.showElement("apply", true)
-	CSPS.showElement("save", true)
-	CSPS.toggleCP(discipline, true)
-	CSPS.cp2UpdateSum(discipline)
-	CSPS.cp2UpdateSumClusters()
-	 CSPS.refreshTree()
-	CSPS.showElement("cpProfiles", false)
-end
-
-local function loadCPProfile(myType, myId, discipline)
-	local myProfile = {}
-	if myType == 1 then
-		myProfile = CSPS.savedVariables.cpProfiles[myId]
-	elseif myType == 2 then
-		myProfile = CSPS.currentCharData.cpProfiles[myId]
-	elseif myType == 5 then
-		myProfile = CSPS.currentCharData.cpHbProfiles[myId]
-	end
-	local cp2Comp = myProfile.cpComp or "" 
-	local hbComp = myProfile.hbComp or "" 
-	if myType ~= 5 then
-		if myProfile.points == "(dynamic)" then
-			local myAuxList = {SplitString(";", cp2Comp)}
-			local myList = {}
-			for i, v in ipairs(myAuxList) do
-				local oneId, oneValue = SplitString("-", v)
-				table.insert(myList, {tonumber(oneId), tonumber(oneValue)})
-			end
-			hbComp = {SplitString(",", hbComp)}
-			for i, v in pairs(hbComp) do
-				hbComp[i] = tonumber(v)
-			end
-			loadDynamicCP(myList, hbComp, {}, discipline)
-			return
-		end
-		CSPS.cp2Extract(cp2Comp, discipline) 
-	end
-	CSPS.cp2HbTable[discipline] = CSPS.cp2SingleBarExtract(hbComp)
-	CSPS.cp2UpdateUnlock(discipline)
-	CSPS.cp2ReCheckHotbar(discipline)
-	CSPS.cp2HbIcons(discipline)
-	CSPS.cp2UpdateHbMarks()
-	CSPS.toggleCP(discipline, true)
-	CSPS.unsavedChanges = true
-	changedCP = true
-	CSPS.showElement("apply", true)
-	CSPS.showElement("save", true)
-	 CSPS.refreshTree()
-	CSPS.showElement("cpProfiles", false)
-end
-
-local function loadCPPreset(myType, myId, discipline)
-	local myPreset = {}
-	if myType == 4 then 
-		myPreset = CSPSCPPresets[myId]
-	else
-		return
-	end
-	if myPreset.points == "(dynamic)" then loadDynamicCP(myPreset.preset, myPreset.slotted, myPreset.basestatsToFill, myPreset.discipline) end
-	local myMessage = ""
-	if myPreset.switch then
-		myMessage = zo_strformat(GS(CSPS_MSG_SwitchCP), cpColHex[myPreset.discipline], GetChampionSkillName(myPreset.switch))
-	end
-	if myPreset.situational and #myPreset.situational > 0 then
-		local mySituationals = {}
-		for i, v in pairs (myPreset.situational) do
-			table.insert(mySituationals, zo_strformat("'<<C:1>>'", GetChampionSkillName(v)))
-		end
-		mySituationals = table.concat(mySituationals, "\n")
-		if myMessage ~= "" then
-			myMessage = string.format("%s\n\n%s\n|c%s%s|r", myMessage, GS(CSPS_MSG_SituationalCP), cpColHex[myPreset.discipline], mySituationals)
-		else
-			myMessage = string.format("%s\n|c%s%s|r", GS(CSPS_MSG_SituationalCP), cpColHex[myPreset.discipline], mySituationals)
-		end	
-	end
-	if myMessage ~= "" then
-		ZO_Dialogs_ShowDialog(CSPS.name.."_OkDiag", {},  {mainTextParams = {myMessage}, titleParams = {GS(CSPS_MyWindowTitle)}})
-	end
-end
-
-function CSPS.showPresetProfileContent(control, myType, myId, discipline)
-	if not myId or not myType or not discipline then return end
-	local myList = {}
-	local myName = ""
-	if myType == 4 then
-		myName = CSPSCPPresets[myId].name
-		myList = CSPSCPPresets[myId].preset
-	elseif myType == 1 or myType == 2 then
-		local myProfile = myType == 1 and CSPS.savedVariables.cpProfiles[myId] or CSPS.currentCharData.cpProfiles[myId]
-		local cp2Comp = myProfile.cpComp or ""
-		if cp2Comp == "" then return end
-		myName = myProfile.name
-		local auxList = {SplitString(";", cp2Comp)}
-		for i, v in pairs(auxList) do
-			local oneId, oneValue = SplitString("-", v)
-			table.insert(myList, {tonumber(oneId), tonumber(oneValue)})
-		end
-	else
-		return
-	end
-	
-	InitializeTooltip(InformationTooltip, control, LEFT)
-
-	InformationTooltip:AddLine(myName , "ZoFontWinH2")
-	ZO_Tooltip_AddDivider(InformationTooltip)
-	local myTooltip = {}
-	for i, v in pairs(myList) do
-		table.insert(myTooltip, zo_strformat("|c<<1>><<C:2>>|r|cffffff(<<3>>)|r", cpColHex[discipline], GetChampionSkillName(v[1]), v[2]))
-	end
-	myTooltip = table.concat(myTooltip, ", ")
-	InformationTooltip:AddLine(myTooltip)
-end
-
-function CSPS.showQuickSlotProfileTT(control, myType, myId)
-	local theName = getCPProfileName(myId, myType)
-	local qsProfile = {}
-	if myType == 6 then
-		qsProfile = {SplitString(",", CSPS.savedVariables.qsProfiles[myId].hbComp)}
-	elseif myType == 7 then
-		qsProfile = {SplitString(",", CSPS.currentCharData.qsProfiles[myId].hbComp)}
-	else 
-		return
-	end
-	local reRouteQS = {3, 2, 1, 8, 7, 6, 5, 4}
-	local myTooltip = {}
-	for i=1, 8 do
-		local theLink = qsProfile[reRouteQS[i]] or "-"
-		table.insert(myTooltip, string.format("%s) %s", i, theLink))
-	end
-	InitializeTooltip(InformationTooltip, control, LEFT)
-	InformationTooltip:AddLine(theName , "ZoFontWinH2")
-	ZO_Tooltip_AddDivider(InformationTooltip)
-	myTooltip = table.concat(myTooltip, "\n")
-	InformationTooltip:AddLine(myTooltip)
-end
-
-local function loadQuickSlots(myType, myId)
-	if qsCooldown then 
-		d(string.format("Cooldown: %ss", qsCooldown)) 
-		CENTER_SCREEN_ANNOUNCE:AddMessage(0, CSA_CATEGORY_LARGE_TEXT, SOUNDS.ITEM_ON_COOLDOWN, "COOLDOWN", string.format("%s (%s s)", GS(SI_GAMEPAD_CONSOLE_WAIT_FOR_NAME_VALIDATION_TEXT), qsCooldown), nil, nil, nil, nil, 2000)
-		--PlaySound(SOUNDS.ITEM_ON_COOLDOWN)
-		return 
-	end
-	local qsProfile = {}
-	if myType == 6 then
-		qsProfile = {SplitString(",", CSPS.savedVariables.qsProfiles[myId].hbComp)}
-	elseif myType == 7 then
-		qsProfile = {SplitString(",", CSPS.currentCharData.qsProfiles[myId].hbComp)}
-	else 
-		return
-	end
-	for i, v in pairs(qsProfile) do
-		local theSlot = ACTION_BAR_FIRST_UTILITY_BAR_SLOT + i
-		
-		if v=="-" then
-			if CallSecureProtected("ClearSlot", theSlot) == false then d(string.format("%s - %s %s", GS(SI_PROMPT_TITLE_ERROR), GS(SI_BINDING_NAME_GAMEPAD_ASSIGN_QUICKSLOT), theSlot)) end
-			--d("Empty "..theSlot)
-			--d(CallSecureProtected("ClearSlot", theSlot))
-		else			
-			local collectibleId = GetCollectibleIdFromLink(v)
-			local myItemId = GetItemLinkItemId(v)
-			local _, _, myItemId2 = string.find(v, ":(%d+)|")
-			myItemId2 = tonumber(myItemId2) or "no quali"
-			if myItemId then
-				if collectibleId then
-					if CallSecureProtected("SelectSlotSimpleAction", ACTION_TYPE_COLLECTIBLE, collectibleId, theSlot) == false then d(string.format("%s - %s %s: %s", GS(SI_PROMPT_TITLE_ERROR), GS(SI_BINDING_NAME_GAMEPAD_ASSIGN_QUICKSLOT), theSlot, v)) end
-					--d("Collectible in slot "..theSlot..": "..v)
-					--d(CallSecureProtected("SelectSlotSimpleAction", ACTION_TYPE_COLLECTIBLE, collectibleId, theSlot))
-				else
-					local foundIt = false
-					local firstItemFound = false
-					for slotId=0, GetBagSize(BAG_BACKPACK)-1 do
-						if IsValidItemForSlot(BAG_BACKPACK, slotId, ACTION_BAR_FIRST_UTILITY_BAR_SLOT+1) then
-							local oneItem = GetItemLink(BAG_BACKPACK, slotId)
-							local oneItemId = GetItemId(BAG_BACKPACK, slotId)
-							if oneItemId == myItemId then
-								if not foundIt then firstItemFound = slotId end
-								local _, _, oneItemId2 = string.find(oneItem, ":(%d+)|")
-								oneItemId2 = tonumber(oneItemId2) 
-								if oneItemId2 == myItemId2 then
-									if not foundIt then 
-										if CallSecureProtected("SelectSlotItem", BAG_BACKPACK, slotId, theSlot)  == false then d(string.format("%s - %s %s: %s", GS(SI_PROMPT_TITLE_ERROR), GS(SI_BINDING_NAME_GAMEPAD_ASSIGN_QUICKSLOT), theSlot, v)) end
-										--d("Slotting exact match in slot "..theSlot..": "..oneItem)
-										--d(CallSecureProtected("SelectSlotItem", BAG_BACKPACK, slotId, theSlot))
-									end
-									foundIt = true
-									break
-								end
-							end
-						end
-					end
-					if not foundIt then
-						if firstItemFound then
-							if CallSecureProtected("SelectSlotItem", BAG_BACKPACK, firstItemFound, theSlot)  == false then d(string.format("%s - %s %s: %s", GS(SI_PROMPT_TITLE_ERROR), GS(SI_BINDING_NAME_GAMEPAD_ASSIGN_QUICKSLOT), theSlot, v)) end 
-							--d("Slotting fitting item in slot "..theSlot..": "..GetItemLink(BAG_BACKPACK, firstItemFound))
-							--d(CallSecureProtected("SelectSlotItem", BAG_BACKPACK, firstItemFound, theSlot))
-						else
-							--d("Nothing found for slot "..theSlot..": "..v)
-							CallSecureProtected("ClearSlot", theSlot)
-						end
-					end
-					
-		
-				end		
-			else
-				d(string.format("%s - %s %s: %s", GS(SI_PROMPT_TITLE_ERROR), GS(SI_BINDING_NAME_GAMEPAD_ASSIGN_QUICKSLOT), theSlot, v))
-				CallSecureProtected("ClearSlot", theSlot)
-			end
-			
-		end
-	end
-	PlaySound(SOUNDS.CHAMPION_RESPEC_ACCEPT)
-	qsCooldown = 5
-	--zo_callLater(function() qsCooldown = false end, 4200)
-	EVENT_MANAGER:RegisterForUpdate(CSPS.name.."QsCooldown", 1000, function() 
-		qsCooldown = qsCooldown - 1
-		if qsCooldown == 0 then
-			qsCooldown = false
-			EVENT_MANAGER:UnregisterForUpdate(CSPS.name.."QsCooldown")
-		end
-	end)
-end
-
-function CSPS.CPListRowMouseUp( control, button, upInside )
-	if upInside then
-		if button == 1 then
-			if control.data.type == 1 or control.data.type == 2 or control.data.type == 5 then
-				loadCPProfile(control.data.type, control.data.myId, control.data.discipline)
-			elseif control.data.discipline == 4 then
-				loadQuickSlots(control.data.type, control.data.myId)
-			else
-				loadCPPreset(control.data.type, control.data.myId, control.data.discipline)
-			end
-		elseif control.data.discipline ~= 4 then
-			CSPS.showPresetProfileContent(control, control.data.type, control.data.myId, control.data.discipline)
+			d(cpColors[CSPS.cp2Disci[v]]:Colorize(zo_strformat(" - <<C:1>>", GetChampionSkillName(v))))
 		end
 	end
 end
@@ -2057,7 +985,7 @@ local function tryToSlot(myDiscipline)
 	if #unslottedSkills > 0 then
 		d(string.format("[CSPS] %s", GS(CSPS_MSG_Unslotted)))
 		for  i,v in pairs(unslottedSkills) do
-			d(zo_strformat(" - |c<<1>><<C:2>>|r", cpColHex[CSPS.cp2Disci[v]], GetChampionSkillName(v)))
+			d(cpColors[CSPS.cp2Disci[v]]:Colorize(zo_strformat(" - <<C:1>>", GetChampionSkillName(v))))
 		end
 	end	
 end
@@ -2098,9 +1026,9 @@ local function updateCPMapProg()
 		CSPSWindowCPImportMapNote:SetText(GS(CSPS_CPImp_Note))
 		CSPS.inCpRemapMode = true
 		if cpSkillToMap ~= nil then
-			CSPSWindowCPImportMapNew:SetText(zo_strformat(GS(CSPS_CPImp_New), cpColHex[cpDisciToMap], mappingIndex, #unmappedSkills + #mappingUnclear, mapMe, GetChampionSkillName(cpSkillToMap)))
+			CSPSWindowCPImportMapNew:SetText(zo_strformat(GS(CSPS_CPImp_New), cpColors[cpDisciToMap]:ToHex(), mappingIndex, #unmappedSkills + #mappingUnclear, mapMe, GetChampionSkillName(cpSkillToMap)))
 		else
-			CSPSWindowCPImportMapNew:SetText(zo_strformat(GS(CSPS_CPImp_New), cpColHex[cpDisciToMap],mappingIndex, #unmappedSkills + #mappingUnclear,  mapMe, "?"))
+			CSPSWindowCPImportMapNew:SetText(zo_strformat(GS(CSPS_CPImp_New), cpColors[cpDisciToMap]:ToHex(), mappingIndex, #unmappedSkills + #mappingUnclear,  mapMe, "?"))
 		end		
 	else
 		CSPS.inCpRemapMode = false
@@ -2414,13 +1342,7 @@ function CSPS.importTextCP(myDiscipline, convertMe, sumUp, createDynamicProfile,
 		local myRole =  GetSelectedLFGRole()
 		local myName = GS(CSPS_Txt_NewProfile2)
 		if myRole ~= 3 then 
-			local myMagStam = CSPS.isMagOrStam()
-			if myMagStam > 0 and myRole == 1 then
-				local magStamAbbr = {"Mag", "Stam"}
-				myName = string.format("%s (%s/%s-%s)", myName, classAbbr[GetUnitClassId("player")], magStamAbbr[myMagStam], roleAbbr[myRole]) 
-			else
-				myName = string.format("%s (%s/%s)", myName, classAbbr[GetUnitClassId("player")], roleAbbr[myRole]) 
-			end
+			myName = CSPS.getProfileNameAbbr(myName)
 		end
 		if myRole == 1 and  CSPS.isMagOrStam() > 0 then myRole = 4 + CSPS.isMagOrStam() end
 		if myRole == 3 then myRole = 7 end
@@ -2494,8 +1416,8 @@ function CSPS.importTextCP(myDiscipline, convertMe, sumUp, createDynamicProfile,
 			
 			newProfileBringToTop = true
 			if CSPS.cppList then CSPS.cppList:RefreshData()	end
-			if CSPSWindowCPProfiles:IsHidden() == true or cpProfDis ~= myDiscipline then 
-				cpProfType = accountWide and 1 or 2
+			if CSPSWindowCPProfiles:IsHidden() == true or CSPS.cpProfDis ~= myDiscipline then 
+				CSPS.cpProfType = accountWide and 1 or 2
 				CSPS.cpProfile(myDiscipline) 
 			end
 			for i, v in pairs(CSPS.savedVariables.cpProfiles) do
@@ -2613,7 +1535,7 @@ function CSPS.showFastestCPWays(myCpId)
 	for i=1, 4 do
 		if sortedPaths[i] == nil then break end
 		local v = sortedPaths[i]
-		table.insert(allPaths, zo_strformat(GS(CSPS_MSG_CPPathOpt), cpColHex[CSPS.cp2Disci[myCpId]], i, v.points))
+		table.insert(allPaths, zo_strformat(GS(CSPS_MSG_CPPathOpt), cpColors[CSPS.cp2Disci[myCpId]]:ToHex(), i, v.points))
 		local myPathNames = {}
 		for j=1, #v.steps do
 			table.insert(myPathNames, zo_strformat("<<C:1>>", GetChampionSkillName(v.steps[#v.steps + 1 - j])))
