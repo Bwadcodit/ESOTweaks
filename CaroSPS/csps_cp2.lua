@@ -270,8 +270,10 @@ end
 function CSPS.cp2UpdateHbMarks()
 	CSPS.cp2InHb = {}
 	for i=1, 3 do
-		for j=1,4 do
-			if CSPS.cp2HbTable[i][j] ~= nil then CSPS.cp2InHb[CSPS.cp2HbTable[i][j]] = true end
+		if CSPS.cp2HbTable[i] then -- TWEAK HERE: add this line
+			for j=1,4 do
+				if CSPS.cp2HbTable[i][j] ~= nil then CSPS.cp2InHb[CSPS.cp2HbTable[i][j]] = true end
+			end
 		end
 	end
 end
@@ -1563,7 +1565,7 @@ end
 --------------TWEAK-------------
 --[
 function CSPS.tweakApplyFull()
-
+--[[
 	local function tweakCPHash()
 		local hash = ""
 		for disc = 1, 3 do
@@ -1577,20 +1579,23 @@ function CSPS.tweakApplyFull()
 
 	local function tweakLoadCpPresets(presetIDRed, presetIDBlue, presetIDGreen)
 		local hash = tweakCPHash()
-		for _, presetId in ipairs({presetIDRed, presetIDBlue, presetIDGreen}) do
-			myPreset = CSPSCPPresets[presetId]
-			if myPreset == nil then return end
-			loadDynamicCP(myPreset.preset, myPreset.slotted, myPreset.basestatsToFill, myPreset.discipline)
+		for presetIndex, presetId in ipairs({presetIDRed, presetIDBlue, presetIDGreen}) do
+			CSPS.loadCPPreset(4, presetId, presetIndex, true)
+			--local myPreset = CSPSCPPresets[presetId]
+			--if myPreset == nil then return end
+			--loadDynamicCP(myPreset.preset, myPreset.slotted, myPreset.basestatsToFill, myPreset.discipline)
 		end
 		if hash ~= tweakCPHash() then
 			d("CPs updated on profile [" .. tostring(CSPS.profiles[CSPS.currentProfile].name) .. "], remember to save.")
 		else
 			CSPS.loadBuild()
-			changedCP = false
+			changedCP = false -- both because author forgot to refactor
+			CSPS.changedCP = false
 		end
 	end
 
 	local function tweakPreApplyCP()
+		if not CSPS or not CSPS.profiles or not CSPS.currentProfile or #CSPS.profiles < CSPS.currentProfile or not CSPS.profiles[CSPS.currentProfile] then return end
 		local currentProfileName = CSPS.profiles[CSPS.currentProfile].name
 		if currentProfileName == nil or currentProfileName == "" then return end
 		local currentProfileKey = currentProfileName:sub(1,1)
@@ -1598,25 +1603,25 @@ function CSPS.tweakApplyFull()
 		if CSPS.attrPoints[3] > CSPS.attrPoints[2] then isMag = false end
 
 		if currentProfileKey == "0" then
-			if isMag then 
+			if isMag then
 				tweakLoadCpPresets(4, 10, 15)
 			else
 				tweakLoadCpPresets(7, 13, 15)
 			end
 		elseif currentProfileKey == "1" then
-			if isMag then 
+			if isMag then
 				tweakLoadCpPresets(4, 10, 19)
 			else
 				tweakLoadCpPresets(7, 13, 19)
 			end
 		elseif currentProfileKey == "2" then
-			if isMag then 
+			if isMag then
 				tweakLoadCpPresets(3, 11, 20)
 			else
 				tweakLoadCpPresets(6, 14, 20)
 			end
 		elseif currentProfileKey == "3" then
-			if isMag then 
+			if isMag then
 				tweakLoadCpPresets(3, 10, 20)
 			else
 				tweakLoadCpPresets(6, 13, 20)
@@ -1626,27 +1631,33 @@ function CSPS.tweakApplyFull()
 		elseif currentProfileKey == "5" then
 			tweakLoadCpPresets(2, 9, 20)
 		elseif currentProfileKey == "6" then
-			if isMag then 
+			if isMag then
 				tweakLoadCpPresets(5, 12, 20)
 			else
 				d("CSPS:tweakPreApplyCP() - There is no stam PvP build yet :(")
 			end
 		end
 	end
-
+]]
 	local function tweakApplyFullGo()
-		CSPS.applyBuildGo()
-		CSPS.applyAttrGo()
-		CSPS.cp2ApplyConfirm()
+		CSPS.dialogHook = true
+		CSPS.applySkills()
+		--CSPS.applySkillsGo()
+		CSPS.applyAttr()
+		--CSPS.applyAttrGo() doesnt exist anymore
+		CSPS.cp2ApplyGo()
+		--CSPS.cp2ApplyConfirm()
 
 		if CSPS.profileXPIndex > 0 then
 			local profileIndex = CSPS.currentProfile
 			CSPS.selectProfile(CSPS.profileXPIndex)
 			CSPS.loadBuild()
-			CSPS.applyBuildGo()
+			CSPS.applySkills()
+			--CSPS.applySkillsGo()
 			CSPS.selectProfile(profileIndex)
 			CSPS.loadBuild()
 		end
+		CSPS.dialogHook = false
 
 		if AG then
 			--if AG_Panel:IsHidden() then AG.ShowMain() end
@@ -1671,7 +1682,7 @@ function CSPS.tweakApplyFull()
 		CSPS.isShown()
 	end
 
-	tweakPreApplyCP()
+	--tweakPreApplyCP()
 	if GetAttributeUnspentPoints() ~= 64 then return end
 	for i=1,3 do 
 		if GetNumSpentChampionPoints(GetChampionDisciplineId(i)) ~= 0 then return end
@@ -1690,5 +1701,22 @@ function CSPS.tweakApplyFull()
 		{returnFunc = function() tweakApplyFullGo() end},  
 		{mainTextParams = {zo_strformat("Apply Full Profile?")}, titleParams = {GS(CSPS_MyWindowTitle)}})
 end
+
+local function dialogHook(name, data, textParams, isGamepad)
+	if CSPS.dialogHook then
+		--d("dialogHook: "..tostring(name))
+		--if textParams then
+		--	d("dialogHook: "..tostring(textParams.titleParams[1]))
+		--	d("dialogHook: "..tostring(textParams.mainTextParams[1]))
+		--end
+		if data.returnFunc ~= nil and type(data.returnFunc) == "function" then
+			data.returnFunc()
+			return true
+		end
+	end
+end
+
+ZO_PreHook("ZO_Dialogs_ShowDialog", dialogHook)
+
 --]]
 --------------------------------
