@@ -14,9 +14,9 @@ function IIfA:GetCurrentSceneName()
 	end
 
 	if tostring(ret) == "65553" then ret = "hud" end
-	if ret == "inventory" and QUICKSLOT_FRAGMENT:IsHidden() == false then
-		ret = ret .. "_quickslots"
-	end
+	-- if ret == "inventory" and QUICKSLOT_FRAGMENT:IsHidden() == false then
+	-- 	ret = ret .. "_quickslots"
+	-- end
 
 	--IIfA:DebugOut("Get Current Scene Name: '<<1>>', '<<2>>'", SCENE_MANAGER:GetCurrentScene().name, ret)
 
@@ -52,9 +52,9 @@ function IIfA:RegisterForSceneChanges()
 	WALLET_FRAGMENT:RegisterCallback("StateChange", function(...)
 	   	IIfA:ProcessInventoryTabChange("", ...)
 	end)
-	QUICKSLOT_FRAGMENT:RegisterCallback("StateChange", function(...)
-	   	IIfA:ProcessInventoryTabChange("_quickslots", ...)
-	end)
+	-- QUICKSLOT_FRAGMENT:RegisterCallback("StateChange", function(...)
+	--    	IIfA:ProcessInventoryTabChange("_quickslots", ...)
+	-- end)
 
 end
 
@@ -91,9 +91,9 @@ function IIfA:ProcessSceneChange(sceneName, oldState, newState)
 	if SCENE_SHOWN == newState then
 		sceneName = IIfA:GetCurrentSceneName()
 		if sceneName == "inventory" then
-			if not QUICKSLOT_FRAGMENT:IsHidden() then
-				sceneName = sceneName .. "_quickslots"
-			end
+			-- if not QUICKSLOT_FRAGMENT:IsHidden() then
+			-- 	sceneName = sceneName .. "_quickslots"
+			-- end
 		end
 		local settings = IIfA:GetSceneSettings(sceneName)
 		self:RePositionFrame(settings)
