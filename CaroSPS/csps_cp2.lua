@@ -75,7 +75,9 @@ CSPS.customCpIcons = {
 	[5] = "esoui/art/icons/ability_scrying_05a.dds", 						-- Endless Endurance
 	[4] = "esoui/art/icons/ability_scrying_05d.dds",	 					-- Untamed Aggression
 	[3] = "esoui/art/icons/ability_scrying_05b.dds", 						-- Arcane Supremacy
-	[265] = "esoui/art/icons/ability_templar_022.dds",						--Ironclad
+	[265] = "esoui/art/icons/ability_templar_022.dds",						-- Ironclad
+	[276] = "esoui/art/icons/ability_sorcerer_008.dds",						-- Force of Nature 
+	[277] = "esoui/art/icons/ability_sorcerer_028.dds",						-- Exploiter  
 
 	[62] = "esoui/art/icons/ability_armor_009.dds", 						-- Rousing Speed
 	[57] = "esoui/art/icons/ability_thievesguild_passive_005.dds",			-- Survival Instincts 
@@ -1094,8 +1096,8 @@ end
 
 function CSPS.cleanUpText()
 	local myText = CSPSWindowImportExportTextEdit:GetText()
-	myText = string.gsub(myText, "(%d+%-%d+)", "") 
-	myText = string.gsub(myText, "[^a-z0-9A-Z%s]", "") 
+	myText = string.gsub(myText, "(%d+%-%d+)", "") -- remove CP ranges ("CP 100-180")
+	myText = string.gsub(myText, "[^a-z0-9A-Z%s]", "") -- remove special characters
 	CSPSWindowImportExportTextEdit:SetText(myText)
 end
 
@@ -1551,15 +1553,6 @@ function CSPS.checkCpOnClose()
 	if not changedCP then return end
 	d(string.format("[CSPS] %s", GS(CSPS_MSG_ApplyClosing)))
 	
-end
-
--- switch CP when entering a zone
-
-function CSPS.onPlayerActivated() 
-	local zoneId = GetUnitWorldPosition("player")
-	if zoneId == CSPS.lastZoneID then return end
-	CSPS.lastZoneID = zoneId
-	CSPS.locationBinding(zoneId)
 end
 
 --------------TWEAK-------------
