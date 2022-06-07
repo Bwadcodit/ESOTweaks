@@ -66,7 +66,7 @@ local function executeBankingItemTransfers()
     if not PAB.isBankItemTransferBlocked then
         -- block other item transfers
         PAB.isBankItemTransferBlocked = true
-        if AutoCategory then AutoCategory.EnterHardBulkMode() end
+        if AutoCategory then AutoCategory.EnterBulkMode() end
         -- update/hide the Keybind Strip
         PAB.KeybindStrip.updateBankKeybindStrip()
 
