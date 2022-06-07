@@ -529,24 +529,46 @@ local sfSetIds = {
 	[616] = 9951, --Dark Convergence 
 	[617] = 9952, --Plaguebreak 
 	[618] = 9953, --Hrothgar's Chill 
-	[619] = 12574, --Maligalig\'s Maelstrom / Maligaligs Mahlstrom   
-	[620] = 12575, --Gryphon\'s Reprisal / Vergeltung des Greifen  
-	[621] = 12576, --Glacial Guardian / Gletscherwächter   
-	[622] = 12577, --Turning Tide / Gezeitenwechsel   
-	[623] = 12578, --Storm-Cursed\’s Revenge / Rache des Sturmverfluchten 
-	[624] = 12579, --Spriggan\’s Vigor / Elan des Zweiglings   
+	[619] = 12574, --Maligalig\'s Maelstrom 
+	[620] = 12575, --Gryphon\'s Reprisal 
+	[621] = 12576, --Glacial Guardian 
+	[622] = 12577, --Turning Tide 
+	[623] = 12578, --Storm-Curseds Revenge 
+	[624] = 12579, --Spriggans Vigor
 	[625] = 12044, --Markyn Ring of Majesty 
-	[626] = 12045, --Belharza's Band 
+	[626] = 12045, --Belharzas Band 
 	[627] = 12046, --Spaulder of Ruin
 	
-	[629] = 12583,--Rallying Cry / Schlachtruf   
-	[630] = 12584, --Hew and Sunder  / Kappspalter  
-	[631] = 12585, --Enervating Aura  / Enervierende Aura  
-	[632] = 12586,--Kargaeda / Kargaeda   
-	[633] = 12587, --Nazaray  / Nazaray    
-	[634] = 12588,--Nunatak / Nunatak
-	[635] = 12589,--Lady Malydga / Fürstin Malygda 
-	[636] = 12590,--Baron Thirsk / Baron Thirsk   
+	[629] = 12583,--Rallying Cry 
+	[630] = 12584, --Hew and Sunder 
+	[631] = 12585, --Enervating Aura  
+	[632] = 12586,--Kargaeda
+	[633] = 12587, --Nazaray  
+	[634] = 12588,--Nunatak
+	[635] = 12589,--Lady Malydga
+	[636] = 12590,--Baron Thirsk
+	
+	[640] = 0, --Orders Wrath 
+	[641] = 0, --Serpents Disdain
+	[642] = 0, --Druids Braid 
+	[643] = 0, --Blessing of High Isle 
+	[644] = 0, --Steadfasts Mettle
+	[645] = 0, --Systres Scowl 
+	[646] = 0, --Whorl of the Depths 
+	[647] = 0, --Coral Riptide
+	[648] = 0, --Pearlescent Ward 
+	[649] = 0, --Pillagers Profit 
+	[650] = 0, --Perfected Pillagers Profit 
+	[651] = 0, --Perfected Pearlescent Ward
+	[652] = 0, --Perfected Coral Riptide 
+	[653] = 0, --Perfected Whorl of the Depths 
+	[654] = 0, --Moras Whispers
+	[655] = 0, --Dov-rha Sabatons 
+	[656] = 0, --Lefthanders War Girdle 
+	[657] = 0, --Sea-Serpents Coil 
+	[658] = 0, --Oakensoul Ring 
+
+	
 }
 
 local sfTraits = {

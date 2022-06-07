@@ -244,14 +244,11 @@ function importSkills(auxTable)
 				skEntry.rank = isPassive and skillData[2] or 1
 				skEntry.purchased = true
 				skEntry.morph = not isPassive and skillData[1] or nil
-				skEntry:setPoints()
 			end
-			skillTable[skillType][skillLineIndex]:sumUpSkills()
 		end
-		skillTable[skillType]:sumUpSkills()
 	end
 	CSPS.unsavedChanges = true
-	CSPS.refreshSkillPointSum()	
+	CSPS.refreshSkillSumsAndErrors()
 end
 
 local function importLinkSF()
@@ -461,7 +458,7 @@ function CSPS.transferProfile(cpPSub)
 		CSPS.hbLinkToSkills(CSPS.hbTables)
 		CSPS.hbPopulate()
 		CSPS.attrExtract(attrComp)
-		CSPS.refreshSkillPointSum()
+		CSPS.refreshSkillSumsAndErrors()
 	end
 	
 	if cpPSub ~= 2 then

@@ -2,7 +2,7 @@
 	<Layer name="SI_KEYBINDINGS_LAYER_GENERAL">
 		<Category name="|c9e0911Caro's|r Skill Point Saver">
 			<Action name="CSPS_SHOW">
-				<Down>CSPS.isShown()</Down>
+				<Down>CSPSWindow:SetHidden(not CSPSWindow:IsHidden())</Down>
 			</Action>
 			<Action name="CSPS_CPHK1">
 				<Down>CSPS.groupApply(1)</Down>

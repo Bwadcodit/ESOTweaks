@@ -129,6 +129,11 @@ local enchantIds = false
 local enchantNames = false
 local enchantGlyphs = false
 	
+
+local myCPLevel = math.min(GetUnitChampionPoints("player") or 0, 160)
+myCPLevel = math.floor(myCPLevel/10)*10
+local myLevel = GetUnitLevel("player")	
+	
 local function tableContains(myTable, myEntry)
 	for i, v in pairs(myTable) do
 		if v == myEntry then return true end
@@ -180,12 +185,9 @@ end
 
 CSPS.buildItemLink = buildItemLink
 
-local function checkItemLevel(itemLink)
+local function checkItemLevel(itemLink, noText)
 	local warnLevel = false
 	local ignoreLevel = GetItemLinkItemId(itemLink) == 44904
-	local myCPLevel = math.min(GetUnitChampionPoints("player"), 160)
-	myCPLevel = math.floor(myCPLevel/10)*10
-	local myLevel = GetUnitLevel("player")
 	
 	local reqCP = GetItemLinkRequiredChampionPoints(itemLink)
 	local reqLevel = GetItemLinkRequiredLevel(itemLink)
@@ -200,6 +202,8 @@ local function checkItemLevel(itemLink)
 			warnLevel = true 
 		end
 	end
+	
+	if noText then return warnLevel end
 	
 	local levelText = reqCP and reqCP > 0 and string.format("|t28:28:esoui/art/champion/champion_icon_32.dds|t %s", reqCP) or reqLevel
 	levelText = string.format("%s: %s", GS(SI_ITEM_FORMAT_STR_LEVEL), levelText)
@@ -814,32 +818,58 @@ end
 
 CSPS.checkItemForSlot = checkItemForSlot
 
-local function findSetItem(mySlot)
+local function findSetItem(mySlot, findNew)
 	if not mySlot then return false, false, false, false, false end
 	local bagIds = {BAG_BACKPACK, BAG_BANK,  BAG_SUBSCRIBER_BANK }
 	local fitsExactly, couldFit = {}, {}
+	theGear[mySlot].fitsExactly = theGear[mySlot].fitsExactly or {}
+	local lastFits = theGear[mySlot].fitsExactly
+	
 	for _, bagId in pairs(bagIds) do
 		fitsExactly[bagId] = {}
 		couldFit[bagId] = {}
+		local isBackpack = bagId == BAG_BACKPACK 
+		
+		local lastFitBag = lastFits and lastFits[isBackpack]
+		if not findNew and lastFitBag and lastFitBag.itemLink == GetItemLink(lastFitBag.bagId, lastFitBag.slotIndex, 1) then
+			fitsExactly[lastFitBag.bagId] = {lastFitBag}
+			return fitsExactly, couldFit
+		elseif not findNew then
+			lastFits[isBackpack] = false
+		end
+		
 		for slotIndex = 0, GetBagSize(bagId) do
 			local itemLink = GetItemLink(bagId, slotIndex, 1)
 			local equipType = GetItemLinkEquipType(itemLink)
 			if equipType and equipType ~= 0 and equipSlotToEquipType[mySlot][equipType] then
 				if equipType == EQUIP_TYPE_POISON then
 					local fit1, fit2 = checkPoisonForTable(itemLink, theGear[mySlot])
-					if fit1 and not checkItemLevel(itemLink) then
+					if fit1 and not checkItemLevel(itemLink, true) then
 						if fit2 then
 							table.insert(fitsExactly[bagId], {slotIndex = slotIndex, itemLink = itemLink})
+							if not findNew then 
+								lastFits[isBackpack] = {slotIndex = slotIndex, itemLink = itemLink, bagId = bagId}
+								return fitsExactly, couldFit
+							end
 						else
-							--- differences!!
+						
+							--- TODO    TODO    TODO ---
+							---  differences!!
+							---------------------------
+							
 							table.insert(couldFit[bagId], {slotIndex = slotIndex, itemLink = itemLink, differences = ""})
 						end
 					end
 				else
 					local setIdFits, enchantFits, qualityFits, typeFits, traitFits = checkItemForSlot(itemLink, mySlot)
-					if setIdFits and typeFits and not checkItemLevel(itemLink) then
+					if setIdFits and typeFits and not checkItemLevel(itemLink, true) then
 						if enchantFits and qualityFits and traitFits then
 							table.insert(fitsExactly[bagId], {slotIndex = slotIndex, itemLink = itemLink})
+							if not findNew then
+								lastFits[isBackpack] = {slotIndex = slotIndex, itemLink = itemLink, bagId = bagId}
+								return fitsExactly, couldFit
+							end
+							
 						else
 							local itemDifferences = {}
 							if not qualityFits then 
@@ -1173,35 +1203,6 @@ function CSPS.extractGearString(myGearString)
 	return theGear
 end
 
-function CSPS.gearToChat()
-	if not enchantIds then buildGlyphTables() end
-	for i,v in pairs(theGear) do
-		if v then
-			if type(v) == "table" then
-				local myText = {}
-				if v.setId then table.insert(myText, GetItemSetName(v.setId)) end
-				if v.type then 
-					if gearSlotsBody[i] then
-						table.insert(myText, GS("SI_ARMORTYPE", v.type))
-					elseif gearSlotsHands[i] then
-						table.insert(myText, GS("SI_WEAPONTYPE", v.type))
-					else
-						d("Error: "..i)
-					end
-				
-				end
-				
-				if v.trait then table.insert(myText, GS("SI_ITEMTRAITTYPE", v.trait)) end  
-				if v.quality then table.insert(myText, v.quality) end
-				if v.enchant then table.insert(myText, enchantNames[v.enchant]) end
-				d(table.concat(myText, " - "))
-			else
-				d(v)
-			end
-		end
-	end
-end
---SI_BANK_WITHDRAW
 local function NodeSetupGear(node, control, data, open, userRequested, enabled)
 	--Entries in data: Text, Value, entrColor
 	local mySlot = data.gearSlot
@@ -1342,12 +1343,21 @@ local function doesWornItemFitSlot(gearSlot)
 end
 
 local function equipAllFittingGear()
+	local alreadyEquipped = {}
 	for gearSlot, gearTable in pairs(theGear) do
 		if gearTable then
 			if not doesWornItemFitSlot(gearSlot) then
-				local fitsExactly, couldFit = findSetItem(gearSlot)
+				local fitsExactly, couldFit = findSetItem(gearSlot, true)
 				if #fitsExactly[BAG_BACKPACK] > 0 then
-					EquipItem(BAG_BACKPACK, fitsExactly[BAG_BACKPACK][1].slotIndex, gearSlot)
+					for _, fittingItem in pairs(fitsExactly[BAG_BACKPACK]) do
+						-- since we`re equipping all items at once if there is one item fitting two slots (possible for rings or weapons) we have to check
+						-- we have to iterate over the fitting items because they might still be there but already queed to equip
+						if not alreadyEquipped[fittingItem.slotIndex] then
+							EquipItem(BAG_BACKPACK, fittingItem.slotIndex, gearSlot)
+							alreadyEquipped[fittingItem.slotIndex] = true
+							break
+						end
+					end
 				end
 			end
 		end
@@ -1459,6 +1469,25 @@ function CSPS.setupGearTree()
 	end
 	local overNode = myTree:AddNode("CSPSLH", {name = GS(SI_GAMEPAD_DYEING_EQUIPMENT_HEADER), variant=7, fillContent=fillContent}) -- variant 3 = skill section = always active color
 
+	if myLevel < 50 then
+		EVENT_MANAGER:RegisterForEvent(CSPS.name.."LevelUp", EVENT_LEVEL_UPDATE,
+			function(_, unitTag, level) 
+				if unitTag ~= "player" then return end
+				d(myLevel)
+				myLevel = level
+				d(myLevel)
+			end)
+	end
+	if myCPLevel < 160 then
+		EVENT_MANAGER:RegisterForEvent(CSPS.name.."CPLevelUp", EVENT_CHAMPION_POINT_UPDATE,
+			function(_, unitTag, _, currentChampionPoints) 
+				if unitTag ~= "player" then return end
+				d(myCPLevel)
+				myCPLevel = math.min(currentChampionPoints, 160)
+				myCPLevel = math.floor(myCPLevel/10)*10
+			end)
+	end
+	
 	myTree:RefreshVisible()
 end
 

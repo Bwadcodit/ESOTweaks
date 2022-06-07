@@ -75,7 +75,7 @@ local function NodeSetup(node, control, data, open, userRequested, enabled)
 	local i, j, k, mySkill = unpack(data)
 
 	--Entries: [1]Name [2]Texture [3] Rank [4]Progression [5]Purchased [6]Morph [7] Points [8] Auxlistindex [9] MaxRank/Morph [10] Errorcode
-	
+		
 	local myCtrIcon = control:GetNamedChild("Icon")
 	local myCtrText = control:GetNamedChild("Text")
 	local myCtrPoints = control:GetNamedChild("Points")
@@ -171,7 +171,7 @@ function CSPS.NodeSectionSetup(node, control, data, open, userRequested, enabled
 	if data.variant == TREE_SECTION_SKILLTYPES or data.variant == TREE_SECTION_SKILLLINES then -- Skill type/line
 		local myData = data.variant == TREE_SECTION_SKILLTYPES and data.typeData or data.lineData
 		myText = string.format("%s (%s)", myText, myData.points)
-						
+
 		myCtrText:SetColor(getErrorSumColor(myData):UnpackRGBA())
 		
 		if node:IsOpen() and not data.fillContent then 

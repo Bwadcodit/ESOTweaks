@@ -63,7 +63,6 @@ local GS = GetString
 local sdm = SKILLS_DATA_MANAGER
 
 local skillTable = CSPS.skillTable
-local initOpen = false
 local skillTypes = {SKILL_TYPE_CLASS, SKILL_TYPE_WEAPON, SKILL_TYPE_ARMOR, SKILL_TYPE_WORLD, SKILL_TYPE_GUILD, SKILL_TYPE_AVA, SKILL_TYPE_RACIAL, SKILL_TYPE_TRADESKILL}
 
 local ec = CSPS.ec
@@ -447,9 +446,6 @@ function CSPS.populateSkills(morphs, upgrades, keepOld)
 			theSkill.purchased = true
 			theSkill.morph = isActive and (rankOrMorph or 0) or nil
 			theSkill.hb = {}
-			
-			-- Add the skill points
-			theSkill:setPoints()
 		end	
 	end
 	
@@ -459,13 +455,7 @@ function CSPS.populateSkills(morphs, upgrades, keepOld)
 	for passInd, mV in pairs(upgrades) do
 		fillSkill(passInd, mV, false)
 	end
-	for skillType, typeData in ipairs(skillTable) do
-		for skillLineIndex, lineData in ipairs(typeData) do
-			lineData:sumUpSkills()
-		end
-		typeData:sumUpSkills()
-	end
-	CSPS.refreshSkillPointSum()
+	CSPS.refreshSkillSumsAndErrors()
 end
 
 function CSPS.attrExtract(attrComp)
@@ -598,19 +588,6 @@ function CSPS.carotest42(args)
 	d('[CSPS] Congratulations, you found my internal function for testing purposes. Have a good day and remember to always bring a towel! (Irniben)')
 end
 
-function CSPS.isShown()
-	CSPS.showElement("load") -- Show, if theres data to load
-	if CSPSWindow:IsHidden() and not initOpen then
-		CSPS.showBuild()
-		initOpen = true
-	end
-	CSPSWindow:SetHidden(not CSPSWindow:IsHidden())
-	CSPS.toggleMouse(not CSPSWindow:IsHidden())
-	if CSPSWindow:IsHidden() then
-		CSPS.checkCpOnClose()
-	end
-end
-
  SLASH_COMMANDS["/carotest42"] = CSPS.carotest42
- SLASH_COMMANDS["/csps"] = CSPS.isShown
+ SLASH_COMMANDS["/csps"] = function() CSPSWindow:SetHidden(not CSPSWindow:IsHidden()) end
  EVENT_MANAGER:RegisterForEvent(CSPS.name.."OnAddOnLoaded", EVENT_ADD_ON_LOADED, CSPS.OnAddOnLoaded)

@@ -207,7 +207,7 @@
 			<Dimensions x="230" y="24" />
 			<FontColors normalColor="E8DFAF" mouseOverColor="FFAA33"/>
 		</Button>
-		<Texture name="CSPSSkBarIconPres" color="242424" mouseEnabled="true" virtual="true">
+		<Texture name="CSPSSkBarIconPres" color="242424" layer="1" mouseEnabled="true" virtual="true">
 			<Dimensions x="28" y="28" />
 			<OnReceiveDrag>CSPS.onHbIconReceive(self.i, self.j)</OnReceiveDrag>
 			<OnMouseUp>

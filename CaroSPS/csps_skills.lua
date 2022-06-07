@@ -3,6 +3,7 @@ local GS = GetString
 local sdm = SKILLS_DATA_MANAGER
 local ec = CSPS.ec
 local skillForHB = false
+local tryingToApplySkills = false
 
 local skillTypes = {SKILL_TYPE_CLASS, SKILL_TYPE_WEAPON, SKILL_TYPE_ARMOR, SKILL_TYPE_WORLD, SKILL_TYPE_GUILD, SKILL_TYPE_AVA, SKILL_TYPE_RACIAL, SKILL_TYPE_TRADESKILL}
 
@@ -57,6 +58,10 @@ function CSPS.hbSkillRemove(myBar, icon)
 	CSPS.showElement("save", true)
 end
 
+local function refreshSkillPointSum()
+	skillTable:sumUpSkills()
+	CSPSWindowIncludeSkLabel:SetText(string.format("%s (%s/%s)", GetString(SI_CHARACTER_MENU_SKILLS), skillTable.pointsToSpend, GetAvailableSkillPoints()))
+end
 
 -- plus and minus functions for skills from the list
 
@@ -82,7 +87,7 @@ function CSPS.minusClickSkill(theSkill, shift)
 	theSkill.lineData:sumUpSkills()
 	theSkill.typeData:sumUpSkills()
 	
-	CSPS.refreshSkillPointSum()
+	refreshSkillPointSum()
 	CSPS.hbPopulate()
 	 CSPS.refreshTree()
 	CSPS.showElement("apply", true)
@@ -112,7 +117,7 @@ function CSPS.removeSkillLine(skTyp, skLin)
 		end
 	end
 	typeData:sumUpSkills()
-	CSPS.refreshSkillPointSum()
+	refreshSkillPointSum()
 	CSPS.refreshTree()
 end
 
@@ -131,7 +136,7 @@ function CSPS.plusClickSkillLine(skillType, skillLineIndex, shift)
 		end
 	end
 	typeData:sumUpSkills()
-	CSPS.refreshSkillPointSum()
+	refreshSkillPointSum()
 	CSPS.refreshTree()
 end
 
@@ -152,7 +157,7 @@ function CSPS.plusClickSkill(theSkill, shift)
 	theSkill.lineData:sumUpSkills()
 	theSkill.typeData:sumUpSkills()
 
-	CSPS.refreshSkillPointSum()
+	refreshSkillPointSum()
 	CSPS.refreshTree()
 	CSPS.showElement("apply", true)
 	CSPS.showElement("save", true)
@@ -325,7 +330,7 @@ function CSPS.createSkillTable()
 		end
 		skillTypeData:sumUpSkills()
 	end
-	CSPS.refreshSkillPointSum()
+	refreshSkillPointSum()
 end
 
 function CSPS.resetSkills()
@@ -341,7 +346,7 @@ function CSPS.resetSkills()
 		end
 		skillTypeData:sumUpSkills()
 	end			
-	CSPS.refreshSkillPointSum()
+	refreshSkillPointSum()
 end
 
 function CSPS.readCurrentSkills()
@@ -359,7 +364,7 @@ function CSPS.readCurrentSkills()
 		end
 		skillTypeData:sumUpSkills()
 	end			
-	CSPS.refreshSkillPointSum()
+	refreshSkillPointSum()
 end
 
 function CSPS.hbLinkToSkills(hbTables)
@@ -372,9 +377,17 @@ function CSPS.hbLinkToSkills(hbTables)
 	end
 end
 
-function CSPS.refreshSkillPointSum()
-	skillTable:sumUpSkills()
-	CSPSWindowIncludeSkLabel:SetText(string.format("%s (%s/%s)", GetString(SI_CHARACTER_MENU_SKILLS), skillTable.pointsToSpend, GetAvailableSkillPoints()))
+function CSPS.refreshSkillSumsAndErrors()
+	for skillType, typeData in ipairs(skillTable) do
+		for skillLineIndex, lineData in ipairs(typeData) do
+			for skillIndex, skillData in ipairs(lineData) do
+				skillData:setPoints()
+			end
+			lineData:sumUpSkills()
+		end
+		typeData:sumUpSkills()
+	end
+	refreshSkillPointSum()
 end
 
 local function applySkillsGo()
@@ -399,15 +412,16 @@ local function applySkillsGo()
 			end	
 		end
 	end	
-	zo_callLater(function() CSPS.refreshSkillPointSum()  CSPS.refreshTree() end, 500)	
+	tryingToApplySkills = true
+	zo_callLater(function() tryingToApplySkills = false CSPS.refreshSkillSumsAndErrors()  CSPS.refreshTree() end, 500)	
 end
 
 function CSPS.applySkills()
 	if not CSPS.tabEx then return end
-	CSPS.refreshSkillPointSum()
+	refreshSkillPointSum()
 	local sumConflicts = 0
 	for i, v in pairs(skillTable.errorSums) do
-		sumConflicts = i > 1 and sumConflicts + 1 or 0
+		if i ~= ec.correct then sumConflicts = sumConflicts + v end
 	end
 	local myParameters =	{
 		GetAvailableSkillPoints(), 
@@ -492,3 +506,17 @@ function CSPS.hbPopulate()
 		end
 	end
 end
+
+EVENT_MANAGER:RegisterForEvent(CSPS.name.."SkillsUpdate", EVENT_SKILL_POINTS_CHANGED, 
+	function(_, _, _, _, _, reason) 
+		if #skillTable > 0 and not tryingToApplySkills then 
+			local reasons = {[SKILL_POINT_CHANGE_REASON_PURCHASE] = true, [SKILL_POINT_CHANGE_REASON_SKILL_RESET] = true, [SKILL_POINT_CHANGE_REASON_SKILL_RESPEC] = true}
+			d("Reason: "..reason)
+			if reasons[reason] then
+				CSPS.refreshSkillSumsAndErrors() 
+				if not CSPSWindow:IsHidden() then CSPS.refreshTree() end
+			else
+				refreshSkillPointSum()
+			end
+		end 
+	end)

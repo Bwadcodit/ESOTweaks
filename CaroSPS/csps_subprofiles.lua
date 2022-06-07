@@ -509,6 +509,7 @@ function CSPS.cpProfile(i)
 		CSPSWindowCPProfiles:SetHeight(0)
 		return
 	end
+	i = i or CSPS.cpProfDis or 2
 	if i < 4 and not CSPS.tabEx then  
 		CSPS.cp2ReadCurrent()
 		CSPS.createTable() -- Create the treeview if no treeview exists yet
@@ -520,7 +521,7 @@ function CSPS.cpProfile(i)
 	CSPSWindowManageBars:SetHidden(true)
 	CSPSWindowOptions:SetHidden(true)
 	CSPSWindowMain:SetHidden(false)
-	CSPS.cpProfDis = i or CSPS.cpProfDis or 2
+	CSPS.cpProfDis = i
 	CSPS.cpProfileType()
 	if CSPS.cpProfDis == 4 then
 		CSPSWindowCPProfilesTitle:SetText(GS(SI_COLLECTIONS_BOOK_QUICKSLOT_KEYBIND))
@@ -542,8 +543,8 @@ end
 local function compressQuickslots()
 	local myBar = {}	
 	local myPoints = 0
-	for i=ACTION_BAR_FIRST_UTILITY_BAR_SLOT + 1, ACTION_BAR_FIRST_UTILITY_BAR_SLOT + ACTION_BAR_UTILITY_BAR_SIZE do
-		local itemLink = GetSlotItemLink(i)
+	for i=1, ACTION_BAR_UTILITY_BAR_SIZE do
+		local itemLink = GetSlotItemLink(i, HOTBAR_CATEGORY_QUICKSLOT_WHEEL)
 		itemLink = itemLink or ""
 		if itemLink == "" then itemLink = "-" else myPoints = myPoints + 1 end
 		table.insert(myBar, itemLink)
@@ -1027,10 +1028,10 @@ local function loadQuickSlots(myType, myId)
 		return
 	end
 	for i, v in pairs(qsProfile) do
-		local theSlot = ACTION_BAR_FIRST_UTILITY_BAR_SLOT + i
+		local theSlot = i
 		
 		if v=="-" then
-			if CallSecureProtected("ClearSlot", theSlot) == false then d(string.format("%s - %s %s", GS(SI_PROMPT_TITLE_ERROR), GS(SI_BINDING_NAME_GAMEPAD_ASSIGN_QUICKSLOT), theSlot)) end
+			if CallSecureProtected("ClearSlot", theSlot, HOTBAR_CATEGORY_QUICKSLOT_WHEEL) == false then d(string.format("%s - %s %s", GS(SI_PROMPT_TITLE_ERROR), GS(SI_BINDING_NAME_GAMEPAD_ASSIGN_QUICKSLOT), theSlot)) end
 			--d("Empty "..theSlot)
 			--d(CallSecureProtected("ClearSlot", theSlot))
 		else			
@@ -1040,14 +1041,14 @@ local function loadQuickSlots(myType, myId)
 			myItemId2 = tonumber(myItemId2) or "no quali"
 			if myItemId then
 				if collectibleId then
-					if CallSecureProtected("SelectSlotSimpleAction", ACTION_TYPE_COLLECTIBLE, collectibleId, theSlot) == false then d(string.format("%s - %s %s: %s", GS(SI_PROMPT_TITLE_ERROR), GS(SI_BINDING_NAME_GAMEPAD_ASSIGN_QUICKSLOT), theSlot, v)) end
+					if CallSecureProtected("SelectSlotSimpleAction", ACTION_TYPE_COLLECTIBLE, collectibleId, theSlot, HOTBAR_CATEGORY_QUICKSLOT_WHEEL) == false then d(string.format("%s - %s %s: %s", GS(SI_PROMPT_TITLE_ERROR), GS(SI_BINDING_NAME_GAMEPAD_ASSIGN_QUICKSLOT), theSlot, v)) end
 					--d("Collectible in slot "..theSlot..": "..v)
 					--d(CallSecureProtected("SelectSlotSimpleAction", ACTION_TYPE_COLLECTIBLE, collectibleId, theSlot))
 				else
 					local foundIt = false
 					local firstItemFound = false
 					for slotId=0, GetBagSize(BAG_BACKPACK)-1 do
-						if IsValidItemForSlot(BAG_BACKPACK, slotId, ACTION_BAR_FIRST_UTILITY_BAR_SLOT+1) then
+						if IsValidItemForSlot(BAG_BACKPACK, slotId, 1, HOTBAR_CATEGORY_QUICKSLOT_WHEEL) then
 							local oneItem = GetItemLink(BAG_BACKPACK, slotId)
 							local oneItemId = GetItemId(BAG_BACKPACK, slotId)
 							if oneItemId == myItemId then
@@ -1056,7 +1057,7 @@ local function loadQuickSlots(myType, myId)
 								oneItemId2 = tonumber(oneItemId2) 
 								if oneItemId2 == myItemId2 then
 									if not foundIt then 
-										if CallSecureProtected("SelectSlotItem", BAG_BACKPACK, slotId, theSlot)  == false then d(string.format("%s - %s %s: %s", GS(SI_PROMPT_TITLE_ERROR), GS(SI_BINDING_NAME_GAMEPAD_ASSIGN_QUICKSLOT), theSlot, v)) end
+										if CallSecureProtected("SelectSlotItem", BAG_BACKPACK, slotId, theSlot, HOTBAR_CATEGORY_QUICKSLOT_WHEEL)  == false then d(string.format("%s - %s %s: %s", GS(SI_PROMPT_TITLE_ERROR), GS(SI_BINDING_NAME_GAMEPAD_ASSIGN_QUICKSLOT), theSlot, v)) end
 										--d("Slotting exact match in slot "..theSlot..": "..oneItem)
 										--d(CallSecureProtected("SelectSlotItem", BAG_BACKPACK, slotId, theSlot))
 									end
@@ -1068,12 +1069,12 @@ local function loadQuickSlots(myType, myId)
 					end
 					if not foundIt then
 						if firstItemFound then
-							if CallSecureProtected("SelectSlotItem", BAG_BACKPACK, firstItemFound, theSlot)  == false then d(string.format("%s - %s %s: %s", GS(SI_PROMPT_TITLE_ERROR), GS(SI_BINDING_NAME_GAMEPAD_ASSIGN_QUICKSLOT), theSlot, v)) end 
+							if CallSecureProtected("SelectSlotItem", BAG_BACKPACK, firstItemFound, theSlot, HOTBAR_CATEGORY_QUICKSLOT_WHEEL)  == false then d(string.format("%s - %s %s: %s", GS(SI_PROMPT_TITLE_ERROR), GS(SI_BINDING_NAME_GAMEPAD_ASSIGN_QUICKSLOT), theSlot, v)) end 
 							--d("Slotting fitting item in slot "..theSlot..": "..GetItemLink(BAG_BACKPACK, firstItemFound))
 							--d(CallSecureProtected("SelectSlotItem", BAG_BACKPACK, firstItemFound, theSlot))
 						else
 							--d("Nothing found for slot "..theSlot..": "..v)
-							CallSecureProtected("ClearSlot", theSlot)
+							CallSecureProtected("ClearSlot", theSlot, HOTBAR_CATEGORY_QUICKSLOT_WHEEL)
 						end
 					end
 					
@@ -1081,7 +1082,7 @@ local function loadQuickSlots(myType, myId)
 				end		
 			else
 				d(string.format("%s - %s %s: %s", GS(SI_PROMPT_TITLE_ERROR), GS(SI_BINDING_NAME_GAMEPAD_ASSIGN_QUICKSLOT), theSlot, v))
-				CallSecureProtected("ClearSlot", theSlot)
+				CallSecureProtected("ClearSlot", theSlot, HOTBAR_CATEGORY_QUICKSLOT_WHEEL)
 			end
 			
 		end

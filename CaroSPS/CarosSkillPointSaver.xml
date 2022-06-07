@@ -371,7 +371,7 @@
 						<OnMouseEnter>ZO_Tooltips_ShowTextTooltip(self, RIGHT,  GetString(CSPS_Tooltiptext_ATTR))</OnMouseEnter>
 						<OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>
 					</Button>	
-					<Texture name="$(parent)CPCheck2" textureFile="esoui/art/buttons/checkbox_unchecked.dds" color="5CBDE7" mouseEnabled="true" hidden="true">
+					<Texture name="$(parent)CPCheck2" layer="1" textureFile="esoui/art/buttons/checkbox_unchecked.dds" color="5CBDE7" mouseEnabled="true" hidden="true">
 						<Dimensions y="17" x="17" />
 						<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$(parent)BtnApplyAttr" offsetX="15" offsetY="0"  />
 						<OnMouseUp>
@@ -380,7 +380,7 @@
 						<OnMouseEnter>ZO_Tooltips_ShowTextTooltip(self, RIGHT, GetString(CSPS_Tooltiptext_CP1))</OnMouseEnter>
 						<OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>
 					</Texture>
-					<Texture name="$(parent)CPCheck3" textureFile="esoui/art/buttons/checkbox_checked.dds" color="DE6531" mouseEnabled="true" hidden="true">
+					<Texture name="$(parent)CPCheck3" layer="1" textureFile="esoui/art/buttons/checkbox_checked.dds" color="DE6531" mouseEnabled="true" hidden="true">
 						<Dimensions y="17" x="17" />
 						<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$(parent)CPCheck2" offsetX="4"  />
 						<OnMouseUp>
@@ -389,7 +389,7 @@
 						<OnMouseEnter>ZO_Tooltips_ShowTextTooltip(self, RIGHT, GetString(CSPS_Tooltiptext_CP2))</OnMouseEnter>
 						<OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>
 					</Texture>
-					<Texture name="$(parent)CPCheck1" textureFile="esoui/art/buttons/checkbox_checked.dds" color="A6D852" mouseEnabled="true" hidden="true">
+					<Texture name="$(parent)CPCheck1" layer="1" textureFile="esoui/art/buttons/checkbox_checked.dds" color="A6D852" mouseEnabled="true" hidden="true">
 						<Dimensions y="17" x="17" />
 						<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$(parent)CPCheck3" offsetX="4"  />
 						<OnMouseUp>

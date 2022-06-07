@@ -4,6 +4,7 @@ local uncheckedT = "esoui/art/buttons/checkbox_unchecked.dds"
 local helpSections = {}
 local helpOversections = {}
 local impExpChoices = {}
+local initOpen = false
 
 local function initCSPSHelp()
 	local helpOversectionsCtr = CSPSWindowHelpSection:GetNamedChild("Oversections")
@@ -712,6 +713,14 @@ function CSPS.toggleCPReverseImport(arg)
 end
 
 function CSPS.OnWindowShow()
+	CSPS.showElement("load") -- Show, if theres data to load
+	
+	if not initOpen then
+		CSPS.showBuild()
+		initOpen = true
+	end
+	CSPS.toggleMouse(true)
+	
 	CSPS.refreshTree()
 	if CSPS.doGear then	
 		local waitingForGearChange = false
@@ -721,10 +730,12 @@ function CSPS.OnWindowShow()
 				waitingForGearChange = true
 				zo_callLater(function() waitingForGearChange = false CSPS.refreshTree() end, 420)
 			end)
-		--EVENT_MANAGER:AddFilterForEvent(CSPS.name.."GearChange", EVENT_INVENTORY_SINGLE_SLOT_UPDATE, REGISTER_FILTER_BAG_ID, BAG_WORN)
 	end
 end
 
 function CSPS.OnWindowHide()
+	CSPS.checkCpOnClose()
+	CSPS.toggleMouse(true)
+	
 	EVENT_MANAGER:UnregisterForEvent(CSPS.name.."GearChange", EVENT_INVENTORY_SINGLE_SLOT_UPDATE)
 end
