@@ -1672,7 +1672,7 @@ function CSPS.tweakApplyFull()
 				end
 			end
 		end
-		CSPS.isShown()
+		CSPSWindow:SetHidden(true)
 	end
 
 	--tweakPreApplyCP()
