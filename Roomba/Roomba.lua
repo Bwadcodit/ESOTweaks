@@ -144,6 +144,7 @@ local function StopStackingProcess()
     inBagCollection = {}
     currentReturnIndex = nil
     restackInProgress = false
+    if AutoCategory then AutoCategory.ExitBulkMode() end --TWEAK HERE
     keyBindIndex = 1
     waitingRetries = 1
     
@@ -575,6 +576,7 @@ function addon.RestackGuildbank()
         
         -- Flag for other addons
         restackInProgress = true
+        if AutoCategory then AutoCategory.EnterBulkMode() end --TWEAK HERE
         
         -- Show progress Bar, etc.
         UI:SetHidden(false)
