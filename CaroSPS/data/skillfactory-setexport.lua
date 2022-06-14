@@ -548,25 +548,25 @@ local sfSetIds = {
 	[635] = 12589,--Lady Malydga
 	[636] = 12590,--Baron Thirsk
 	
-	[640] = 0, --Orders Wrath 
-	[641] = 0, --Serpents Disdain
-	[642] = 0, --Druids Braid 
-	[643] = 0, --Blessing of High Isle 
-	[644] = 0, --Steadfasts Mettle
-	[645] = 0, --Systres Scowl 
-	[646] = 0, --Whorl of the Depths 
-	[647] = 0, --Coral Riptide
-	[648] = 0, --Pearlescent Ward 
-	[649] = 0, --Pillagers Profit 
-	[650] = 0, --Perfected Pillagers Profit 
-	[651] = 0, --Perfected Pearlescent Ward
-	[652] = 0, --Perfected Coral Riptide 
-	[653] = 0, --Perfected Whorl of the Depths 
-	[654] = 0, --Moras Whispers
-	[655] = 0, --Dov-rha Sabatons 
-	[656] = 0, --Lefthanders War Girdle 
-	[657] = 0, --Sea-Serpents Coil 
-	[658] = 0, --Oakensoul Ring 
+	[640] = 13570, --Orders Wrath 
+	[641] = 13697, --Serpents Disdain
+	[642] = 13696, --Druids Braid 
+	[643] = 13695, --Blessing of High Isle 
+	[644] = 13686, --Steadfasts Mettle
+	[645] = 13659, --Systres Scowl 
+	[646] = 13653, --Whorl of the Depths 
+	[647] = 13614, --Coral Riptide
+	[648] = 13613, --Pearlescent Ward 
+	[649] = 13612, --Pillagers Profit 
+	[650] = 13611, --Perfected Pillagers Profit 
+	[651] = 13610, --Perfected Pearlescent Ward
+	[652] = 13609, --Perfected Coral Riptide 
+	[653] = 13608, --Perfected Whorl of the Depths 
+	[654] = 13607, --Moras Whispers
+	[655] = 13606, --Dov-rha Sabatons 
+	[656] = 13605, --Lefthanders War Girdle 
+	[657] = 13604, --Sea-Serpents Coil 
+	[658] = 13603, --Oakensoul Ring 
 
 	
 }

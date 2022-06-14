@@ -511,7 +511,7 @@ EVENT_MANAGER:RegisterForEvent(CSPS.name.."SkillsUpdate", EVENT_SKILL_POINTS_CHA
 	function(_, _, _, _, _, reason) 
 		if #skillTable > 0 and not tryingToApplySkills then 
 			local reasons = {[SKILL_POINT_CHANGE_REASON_PURCHASE] = true, [SKILL_POINT_CHANGE_REASON_SKILL_RESET] = true, [SKILL_POINT_CHANGE_REASON_SKILL_RESPEC] = true}
-			d("Reason: "..reason)
+			--d("Reason: "..reason)
 			if reasons[reason] then
 				CSPS.refreshSkillSumsAndErrors() 
 				if not CSPSWindow:IsHidden() then CSPS.refreshTree() end
