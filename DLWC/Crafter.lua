@@ -415,7 +415,7 @@ function crafting(info,quest, craftItems)
 						end
 					elseif CRAFTING_TYPE_WOODWORKING == GetCraftingInteractionType() and conditions["pattern"][i] == 2 then
 						if conditions["max"][i] == 1 then
-							needed = needed + 2
+							needed = needed + 1
 						elseif conditions["max"][i] == 2 then
 							needed = needed + 1
 						end
