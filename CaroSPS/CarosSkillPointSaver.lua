@@ -560,7 +560,7 @@ function CSPS.attrSum()
 	return GetAttributeSpentPoints(1) + GetAttributeSpentPoints(2) + GetAttributeSpentPoints(3) + GetAttributeUnspentPoints()
 end
 
-function CSPS.applyAttr()
+function CSPS.applyAttr(skipDiag)
 	if not CSPS.tabEx then return end
 	local attr1 = CSPS.attrPoints[1] -  GetAttributeSpentPoints(1)
 	local attr2 = CSPS.attrPoints[2] -  GetAttributeSpentPoints(2)
@@ -574,11 +574,15 @@ function CSPS.applyAttr()
 		ZO_Dialogs_ShowDialog(CSPS.name.."_OkDiag", {},  {mainTextParams = {GS(CSPS_MSG_ConfirmAttr2)}, titleParams = {GS(CSPS_MSG_ConfirmAttrTitle)}})
 		return 
 	end
-	ZO_Dialogs_ShowDialog(CSPS.name.."_OkCancelDiag", 
-		{returnFunc = function() 
-			PurchaseAttributes(attr1, attr2, attr3)
-		end},  
-		{mainTextParams = {zo_strformat(GS(CSPS_MSG_ConfirmAttr), attr1+attr2+attr3, GetAttributeUnspentPoints())}, titleParams = {GS(CSPS_MSG_ConfirmAttrTitle)}})
+	if not skipDiag then
+		ZO_Dialogs_ShowDialog(CSPS.name.."_OkCancelDiag", 
+			{returnFunc = function() 
+				PurchaseAttributes(attr1, attr2, attr3)
+			end},  
+			{mainTextParams = {zo_strformat(GS(CSPS_MSG_ConfirmAttr), attr1+attr2+attr3, GetAttributeUnspentPoints())}, titleParams = {GS(CSPS_MSG_ConfirmAttrTitle)}})
+	else
+		PurchaseAttributes(attr1, attr2, attr3)
+	end
 end
 
 

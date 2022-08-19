@@ -51,7 +51,7 @@ local genericJewelry = {
 
 function CSPS.getGenericItemId(weaponType, armorType, gearSlot)
 	if weaponType then return genericWeapons[weaponType] end
-	if armorType then return genericArmor[armorType][gearSlot] end
+	if armorType then return genericArmor[armorType ~= ARMORTYPE_NONE and armorType or ARMORTYPE_LIGHT][gearSlot] end
 	if gearSlot == EQUIP_SLOT_NECK then return genericJewelry[EQUIP_TYPE_NECK] end
 	if gearSlot == EQUIP_SLOT_RING1 or gearSlot == EQUIP_SLOT_RING2 then return genericJewelry[EQUIP_TYPE_NECK] end
 end

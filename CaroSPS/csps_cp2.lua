@@ -744,7 +744,7 @@ local function cp2RespecNeeded()
 	return respecNeeded, enoughPoints, pointsNeeded
 end
 
-function CSPS.cp2ApplyGo()
+function CSPS.cp2ApplyGo(skipDiag)
 	if CSPS.cp2Table == nil or CSPS.cp2Table == {} then return end
 	-- Do I have enough points, do I need to respec, do I need points at all?
 	local respecNeeded, enoughPoints, pointsNeeded = cp2RespecNeeded()
@@ -766,11 +766,14 @@ function CSPS.cp2ApplyGo()
 	table.insert(myDisciplines, " ")
 	table.insert(myDisciplines, GS(CSPS_MSG_CpPurchNow)) 
 	myDisciplines = table.concat(myDisciplines, "\n")
-	
-	ZO_Dialogs_ShowDialog(CSPS.name.."_OkCancelDiag", 
-		{returnFunc = function() CSPS.cp2ApplyConfirm(respecNeeded) end},  
-		{mainTextParams = {myDisciplines}, titleParams = {GS(CSPS_MSG_CpPurchTitle)}})
-	
+
+	if not skipDiag or myCost > 0 then
+		ZO_Dialogs_ShowDialog(CSPS.name.."_OkCancelDiag", 
+			{returnFunc = function() CSPS.cp2ApplyConfirm(respecNeeded) end},  
+			{mainTextParams = {myDisciplines}, titleParams = {GS(CSPS_MSG_CpPurchTitle)}})
+	else
+		CSPS.cp2ApplyConfirm(respecNeeded) 
+	end
 end
 
 

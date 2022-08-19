@@ -191,14 +191,15 @@ local function checkItemLevel(itemLink, noText)
 	
 	local reqCP = GetItemLinkRequiredChampionPoints(itemLink)
 	local reqLevel = GetItemLinkRequiredLevel(itemLink)
+	local auxCPLevel = myCPLevel
 	
 	if GetItemLinkItemType(itemLink) == ITEMTYPE_POISON then
 		if GetItemLinkDisplayQuality(itemLink) == ITEM_QUALITY_LEGENDARY then ignoreLevel = true end
-		if myCPLevel > 150 then myCPLevel = 150 end
+		if auxCPLevel > 150 then auxCPLevel = 150 end
 	end
 	
 	if not ignoreLevel then
-		if reqCP ~= myCPLevel or myCPLevel ~= 0 and math.abs(reqLevel - myLevel) >= 10 then 
+		if reqCP ~= auxCPLevel or auxCPLevel == 0 and math.abs(reqLevel - myLevel) >= 10 then 
 			warnLevel = true 
 		end
 	end
@@ -211,11 +212,13 @@ local function checkItemLevel(itemLink, noText)
 end
 
 local function getSetItemInfo(setId, gearSlot, itemType,  traitType, itemQuality)
-	local setType = GetItemSetType(setId)
+
 	itemQuality = itemQuality or ITEM_QUALITY_LEGENDARY
 
-	if setType ~= ITEM_SET_TYPE_CRAFTED then
-		local numPieces = GetNumItemSetCollectionPieces(setId)
+	local numPieces = GetNumItemSetCollectionPieces(setId)
+	
+	if numPieces > 0 then
+		local setType = GetItemSetType(setId)
 		for i=1, numPieces do
 			if numPieces == 1  and setType ~= ITEM_SET_TYPE_WEAPON then itemQuality = ITEM_QUALITY_LEGENDARY end -- mythic items 
 			-- no green items that aren't open world sets
@@ -231,6 +234,11 @@ local function getSetItemInfo(setId, gearSlot, itemType,  traitType, itemQuality
 				return icon, itemLink, pieceId, setSlot
 			end
 		end
+	elseif setId == 0 then
+		local itemId = CSPS.getGenericItemId(gearSlotsHands[gearSlot] and itemType, gearSlotsBody[gearSlot] and itemType, gearSlot)
+		local itemLink = buildItemLink(itemId, itemQuality, false, true, traitType)
+		local icon = GetItemLinkInfo(itemLink)
+		return icon, itemLink, nil, nil
 	else
 		local allSetItemIds = LibSets and LibSets.GetSetItemIds(setId)
 		if not allSetItemIds then return "---", "---" end
@@ -893,6 +901,8 @@ local function findSetItem(mySlot, findNew)
 	return fitsExactly, couldFit
 end
 
+CSPS.findSetItem = findSetItem
+
 local function showPoisonTooltip(control, gearSlot, firstId, secondId)
 	if not firstId then return end
 	local itemLink = string.format(poisonItemLink, firstId, secondId or 0)
@@ -1364,6 +1374,8 @@ local function equipAllFittingGear()
 	end
 end
 
+CSPS.equipAllFittingGear = equipAllFittingGear
+
 local function retrieveAllFittingGear()
 
 	if GetInteractionType() ~= INTERACTION_BANK then return false end
@@ -1473,16 +1485,13 @@ function CSPS.setupGearTree()
 		EVENT_MANAGER:RegisterForEvent(CSPS.name.."LevelUp", EVENT_LEVEL_UPDATE,
 			function(_, unitTag, level) 
 				if unitTag ~= "player" then return end
-				d(myLevel)
 				myLevel = level
-				d(myLevel)
 			end)
 	end
 	if myCPLevel < 160 then
 		EVENT_MANAGER:RegisterForEvent(CSPS.name.."CPLevelUp", EVENT_CHAMPION_POINT_UPDATE,
 			function(_, unitTag, _, currentChampionPoints) 
 				if unitTag ~= "player" then return end
-				d(myCPLevel)
 				myCPLevel = math.min(currentChampionPoints, 160)
 				myCPLevel = math.floor(myCPLevel/10)*10
 			end)

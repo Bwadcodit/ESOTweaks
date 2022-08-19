@@ -1,6 +1,6 @@
 <GuiXml>
 	<Controls>
-		<TopLevelControl name="CSPSWindow" mouseEnabled="true" movable="true" clampedToScreen="true" hidden="true" > 
+		<TopLevelControl name="CSPSWindow" mouseEnabled="true" movable="true" clampedToScreen="true" hidden="true" tier="1"> 
             <Dimensions x="605" y="780" /> 
             <Anchor point="CENTER" />
             <OnUpdate></OnUpdate>

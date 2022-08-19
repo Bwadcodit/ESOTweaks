@@ -416,7 +416,7 @@ local function applySkillsGo()
 	zo_callLater(function() tryingToApplySkills = false CSPS.refreshSkillSumsAndErrors()  CSPS.refreshTree() end, 500)	
 end
 
-function CSPS.applySkills()
+function CSPS.applySkills(skipDiag)
 	if not CSPS.tabEx then return end
 	refreshSkillPointSum()
 	local sumConflicts = 0
@@ -432,16 +432,19 @@ function CSPS.applySkills()
 		skillTable.errorSums[ec.rankHigher],
 		skillTable.errorSums[ec.rankLocked] + skillTable.errorSums[ec.morphLocked],
 	}
-	
-	ZO_Dialogs_ShowDialog(CSPS.name.."_OkCancelDiag", 
-			{
-				returnFunc = function() applySkillsGo() end,
-			},
-			{
-				mainTextParams = {string.format(GS(CSPS_MSG_ConfirmApply), unpack(myParameters))}, 
-				titleParams = {GS(CSPS_MyWindowTitle)}
-			}
-		)
+	if not skipDiag or sumConflicts > 0 then
+		ZO_Dialogs_ShowDialog(CSPS.name.."_OkCancelDiag", 
+				{
+					returnFunc = function() applySkillsGo() end,
+				},
+				{
+					mainTextParams = {string.format(GS(CSPS_MSG_ConfirmApply), unpack(myParameters))}, 
+					titleParams = {GS(CSPS_MyWindowTitle)}
+				}
+			)
+	else
+		applySkillsGo()
+	end
 end
 
 

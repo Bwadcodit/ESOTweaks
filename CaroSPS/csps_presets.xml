@@ -151,7 +151,7 @@
 				    <Anchor point="TOPLEFT" relativeTo="$(parent)" relativePoint="TOPLEFT" offsetY="2" />
 					<OnMouseUp>self:GetParent():GetHandler("OnMouseUp")(self, button, upInside)</OnMouseUp>
 					<OnMouseEnter>if self:GetParent().tooltipFunction then self:GetParent().tooltipFunction() end</OnMouseEnter>
-					<OnMouseExit></OnMouseExit>	
+					<OnMouseExit>if self:GetParent().tooltipExitFunction then self:GetParent().tooltipExitFunction() end</OnMouseExit>	
 				</Texture>	
 				
 				<Texture name="$(parent)Indicator">
