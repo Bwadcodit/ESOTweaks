@@ -567,8 +567,19 @@ local sfSetIds = {
 	[656] = 13605, --Lefthanders War Girdle 
 	[657] = 13604, --Sea-Serpents Coil 
 	[658] = 13603, --Oakensoul Ring 
-
 	
+	[660] = 0, --Deeproot Zeal
+	[661] = 0, --Stones Accord 
+	[662] = 0, --Rage of the Ursauk 
+	[663] = 0, --Pangrit Denmother 
+	[664] = 0, --Grave Inevitability
+	[665] = 0, --Phylacterys Grasp 
+	[666] = 0, --Archdruid Devyric 
+	[667] = 0, --Euphotic Gatekeeper 
+	[668] = 0, --Langour of Peryite 
+	[669] = 0, --Nocturnals Ploy 
+	[670] = 0, --Maras Balm 
+
 }
 
 local sfTraits = {
