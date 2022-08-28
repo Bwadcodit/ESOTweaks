@@ -567,18 +567,18 @@ local sfSetIds = {
 	[656] = 13605, --Lefthanders War Girdle 
 	[657] = 13604, --Sea-Serpents Coil 
 	[658] = 13603, --Oakensoul Ring 
-	
-	[660] = 0, --Deeproot Zeal
-	[661] = 0, --Stones Accord 
-	[662] = 0, --Rage of the Ursauk 
-	[663] = 0, --Pangrit Denmother 
-	[664] = 0, --Grave Inevitability
-	[665] = 0, --Phylacterys Grasp 
-	[666] = 0, --Archdruid Devyric 
-	[667] = 0, --Euphotic Gatekeeper 
-	[668] = 0, --Langour of Peryite 
-	[669] = 0, --Nocturnals Ploy 
-	[670] = 0, --Maras Balm 
+		
+	[660] = 14824, --Deeproot Zeal
+	[661] = 14825, --Stones Accord 
+	[662] = 14826, --Rage of the Ursauk 
+	[663] = 14827, --Pangrit Denmother 
+	[664] = 14828, --Grave Inevitability
+	[665] = 14829, --Phylacterys Grasp 
+	[666] = 14830, --Archdruid Devyric 
+	[667] = 14831, --Euphotic Gatekeeper 
+	[668] = 14832, --Langour of Peryite 
+	[669] = 14833, --Nocturnals Ploy 
+	[670] = 14834, --Maras Balm 
 
 }
 
