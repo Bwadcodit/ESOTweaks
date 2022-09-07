@@ -5,14 +5,15 @@
 
 Roomba = {
     name = "Roomba",
-    author = "Wobin, CrazyDutchGuy, Ayantir & silvereyes",
-    version = "17.0.9",
+    author = "|c3CB371@Masteroshi430|r, Wobin, CrazyDutchGuy, Ayantir & silvereyes",
+    version = "2022.07.12",
     website = "http://www.esoui.com/downloads/info402-Roomba.html",
     debugMode = false,
 }
 
 local db
 local defaults = {
+    liteMode = false,
     RoombaAtGBank = true,
     RoombaPosition = KEYBIND_STRIP_ALIGN_LEFT,
 }
@@ -96,8 +97,75 @@ local function ScanInStackableBag(bagToScan)
 
 end
 
+
+-- Roomba Lite : Scan only what we sent to guild bank 
+local function registerThisItem()
+
+        -- 5 slots Needed to Work
+    if not CheckInventorySpaceAndWarn(5) then return end
+
+    if not DoesGuildHavePrivilege(currentBank, GUILD_PRIVILEGE_BANK_DEPOSIT) then return end
+        -- If no permission, don't do
+    if not DoesPlayerHaveGuildPermission(currentBank, GUILD_PERMISSION_BANK_DEPOSIT) or not DoesPlayerHaveGuildPermission(currentBank, GUILD_PERMISSION_BANK_WITHDRAW) then return end	
+	
+
+    local lookUp = {}
+    local duplitemp = {}
+    duplicates = {}
+    
+	local gslot = liteModeGslot or 0
+	if gslot == 0 then return end
+	local bagToScan = SHARED_INVENTORY:GenerateFullSlotData(nil, BAG_GUILDBANK)
+	
+	local ThatItemInstanceId = GetItemInstanceId(BAG_GUILDBANK, gslot)
+	liteModeThatItemInstanceId = ThatItemInstanceId 
+	
+	
+    -- We only need to store slots with items
+    for index, slot in pairs(bagToScan) do
+	   
+        if slot.itemInstanceId == ThatItemInstanceId then
+			-- Stack at max?
+			local stack, maxStack = GetSlotStackSize(slot.bagId, slot.slotIndex)
+			
+			-- Stack is not at max
+			if stack ~= maxStack then
+				
+				-- itemId
+				local itemInstanceId = slot.itemInstanceId
+				
+				-- We already find this item before
+				if lookUp[itemInstanceId] then
+					-- Already marked as duplicate?
+					if not duplitemp[itemInstanceId] then
+						-- Duplicate
+						duplitemp[itemInstanceId] = lookUp[itemInstanceId]
+					end
+				else
+					-- New item found
+					lookUp[itemInstanceId] = {}
+				end
+				
+				-- Now group all items by id
+				table.insert(lookUp[itemInstanceId], {slotId = slot.slotIndex, stack = stack, texture = slot.iconFile, name = slot.name, itemInstanceId = slot.itemInstanceId})
+				
+			end
+			
+        end
+    end
+    
+    for _, data in pairs(duplitemp) do
+        table.insert(duplicates, data)
+    end
+	
+	addon.BeginStackingProcess()
+end
+
+
 -- Bank is ready! Find those duplicates! Runs when EVENT_GUILD_BANK_ITEMS_READY + 1s
 local function RoombaReady()
+
+    if db.liteMode then return end -- roomba lite
     
     -- Are we in the process of checking the bank? Need to protect due to Keybinding
     if (not checkingBank) then return end
@@ -158,18 +226,20 @@ local function StopGBRestackAndRestartScan()
     
     -- Unregister
     EVENT_MANAGER:UnregisterForEvent(self.name, EVENT_GUILD_BANK_TRANSFER_ERROR)
-    EVENT_MANAGER:UnregisterForEvent(self.name, EVENT_GUILD_BANK_ITEM_ADDED)
+    if not db.liteMode then EVENT_MANAGER:UnregisterForEvent(self.name, EVENT_GUILD_BANK_ITEM_ADDED) end -- roomba lite
     EVENT_MANAGER:UnregisterForEvent(self.name, EVENT_INVENTORY_SINGLE_SLOT_UPDATE)
     
     -- Kick off the next transaction
     StopStackingProcess()
+	
         
     -- Now rescan and show/hide roomba button
     UI:GetNamedChild("Description"):SetText("Complete")
     UI:SetHidden(true)
-    
+
+	
     -- Perform another scan if an addon played with GuildBank while we restacking
-    RoombaReady()
+	RoombaReady()
 
 end
 
@@ -178,7 +248,6 @@ end
 -- Called by itself
 -- Called by OnGuildBankItemAdded (EVENT_GUILD_BANK_ITEM_ADDED)
 local function ReturnItemsToBank(_, errorCode)
-    
     local self = addon
     Debug("ReturnItemsToBank(_, " .. tostring(errorCode) .. ")")
     
@@ -410,24 +479,36 @@ end
 
 -- Triggers when EVENT_GUILD_BANK_ITEM_ADDED
 local function OnGuildBankItemAdded(_, gslot)
-    
     local self = addon
     Debug("OnGuildBankItemAdded(_, " .. tostring(gslot) .. ")")
+
     
     -- Roomba is restacking the guild bank
     -- Is the item added our last move ?
     -- Get its instanceID
     local id = GetItemInstanceId(BAG_GUILDBANK, gslot)
+	
+	local LRR = lastRestackResult[itemIndex] or 0 -- roomba lite
+	if LRR ~= 0 then LRR = lastRestackResult[itemIndex][slotIndex] or 0 end
+	if LRR ~= 0 then LRR = lastRestackResult[itemIndex][slotIndex].itemInstanceId or 0 end
     
     -- Protection
-    if id ~= lastRestackResult[itemIndex][slotIndex].itemInstanceId then return end
+    if id ~= LRR then 
+ 	
+		
+		if db.liteMode then -- roomba Lite
+		    liteModeGslot = gslot
+		    registerThisItem() 
+
+		end
+	return 
+	end
     
     --If we're here that's because it's our Roomba item which was sent in GuildBank
     -- Let's move the next stack
     -- Let's try next try of the same item. Is there another stack to move?
     
     if next(lastRestackResult[itemIndex], slotIndex) then
-        
         -- yes, try to move it
         qtyToMoveToGuildBank = qtyToMoveToGuildBank - lastRestackResult[itemIndex][slotIndex].stack
         slotIndex = slotIndex + 1
@@ -445,12 +526,11 @@ local function OnGuildBankItemAdded(_, gslot)
         zo_callLater(ReturnItemsToBank, DELAY)
         
     else
-    
+
         -- Nothing else to move for this item, let's do the rest
         qtyToMoveToGuildBank = 0
         Debug("RestackGuildbank()")
         self.RestackGuildbank()
-        
     end
     
 end
@@ -612,7 +692,7 @@ function addon.RestackGuildbank()
         TransferFromGuildBank(cSlot.slotId)
         
     else
-        StopGBRestackAndRestartScan()
+         StopGBRestackAndRestartScan() 
     end
     
 end
@@ -721,6 +801,8 @@ local function OnOpenGuildBank()
         EVENT_MANAGER:RegisterForEvent(self.name, EVENT_GUILD_BANK_ITEMS_READY, OnGuildBankReady)
         -- Clear the flag when swapping banks
         EVENT_MANAGER:RegisterForEvent(self.name, EVENT_GUILD_BANK_SELECTED, SelectGuildBank)
+		
+		if db.liteMode then EVENT_MANAGER:RegisterForEvent(self.name, EVENT_GUILD_BANK_ITEM_ADDED, OnGuildBankItemAdded) end -- roomba Lite
     end
 end
 
@@ -831,6 +913,14 @@ local function InitialiseSettings()
             default = defaults.RoombaAtGBank,
         },
         {
+            type = "checkbox",
+            name = GetString(ROOMBA_LITEMODE),
+            tooltip = GetString(ROOMBA_LITEMODE_TOOLTIP),
+            getFunc = function() return db.liteMode end,
+            setFunc = function(newValue) db.liteMode = newValue end,
+            default = defaults.liteMode,
+        },
+        {
             type = "dropdown",
             name = GetString(ROOMBA_POSITION),
             tooltip = GetString(ROOMBA_POSITION_TOOLTIP),
@@ -929,7 +1019,7 @@ local function OnAddonLoaded(_, addOnName)
         if IsInGamepadPreferredMode() then
             defaults.RoombaPosition = KEYBIND_STRIP_ALIGN_CENTER
         end
-        
+		
         ZO_CreateStringId("SI_BINDING_NAME_RUN_ROOMBA", descriptorName)
         
         InitializeSpeedRow(RoombaWindow)
@@ -945,6 +1035,8 @@ local function OnAddonLoaded(_, addOnName)
         
         -- Set the function to run when guild bank is closed
         EVENT_MANAGER:RegisterForEvent(self.name, EVENT_CLOSE_GUILD_BANK, OnCloseGuildBank)
+		
+		
     end
     
 end
