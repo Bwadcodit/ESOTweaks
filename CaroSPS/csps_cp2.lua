@@ -1588,11 +1588,12 @@ function CSPS.tweakApplyFull()
 				if profileAG.sortKey == profileNum then
 					AG.LoadProfile(i)
 					if (profileNum == "3") then
-						if GetUnitName("player") == "Azeell" then
-							AG.LoadSet(5)
-						else
-							AG.LoadSet(4)
-						end
+						AG.LoadSet(4)
+						-- if GetUnitName("player") == "Azeell" then
+						-- 	AG.LoadSet(5)
+						-- else
+						-- 	AG.LoadSet(4)
+						-- end
 					else
 						AG.LoadSet(1)
 					end
