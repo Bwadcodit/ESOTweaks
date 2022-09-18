@@ -1001,13 +1001,15 @@ local function showSetItemTooltip(control, setId, gearSlot, itemType,  traitType
 		local _, traitDescription = GetItemLinkTraitInfo(itemLink) 
 		r,g,b =  trueFalseColors[traitFits]:UnpackRGB()
 		local traitName = zo_strformat("<<Z:1>>", GS("SI_ITEMTRAITTYPE", traitType))
-		traitName = string.format("%s\n%s", traitName, traitDescription)
+		if traitType > 0 then traitName = string.format("%s\n%s", traitName, traitDescription) end
 		InformationTooltip:AddLine(traitName, "ZoFontGame", r, g, b, CENTER, MODIFY_TEXT_TYPE_NONE, TEXT_ALIGN_CENTER, true)
 	end
 	
 	r,g,b =  trueFalseColors[enchantFits]:UnpackRGB()
 	local _, enchantHeader, enchantDescription = GetItemLinkEnchantInfo(itemLink)
-	InformationTooltip:AddLine(string.format("%s\n%s", string.upper(enchantHeader), enchantDescription), "ZoFontGame", r, g, b, CENTER, MODIFY_TEXT_TYPE_NONE, TEXT_ALIGN_CENTER, true) 
+	local enchantText = string.format("%s\n%s", string.upper(enchantHeader), enchantDescription)
+	if enchantHeader == "" then	enchantText = string.upper(GS(SI_ENCHANTMENTSEARCHCATEGORYTYPE0)) end
+	InformationTooltip:AddLine(enchantText, "ZoFontGame", r, g, b, CENTER, MODIFY_TEXT_TYPE_NONE, TEXT_ALIGN_CENTER, true) 
 
 	local hasSet, _, numBonuses, _, _, linkSetId = GetItemLinkSetInfo(itemLink)
 	
