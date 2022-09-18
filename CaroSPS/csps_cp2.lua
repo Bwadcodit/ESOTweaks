@@ -691,6 +691,8 @@ function CSPS.cp2HbExtract(cp2HbComp, disciFilter)
 		for i=1, 3 do
 			if not disciFilter or not disciFilter[i] then
 				cp2HbTable[i] = CSPS.cp2SingleBarExtract(auxHb[i])
+			else
+				cp2HbTable[i] = {}
 			end
 		end
 	end
