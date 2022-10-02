@@ -31,6 +31,17 @@ local cpSlT = {
 }
 
 
+local werewolfNode = false
+local werewolfParentNode = false
+
+local function refreshWerewolfMode(allowWerewolfMode)
+	if not werewolfNode or not werewolfParentNode then return end
+	local oldWerewolfMode = CSPS.werewolfMode
+	CSPS.werewolfMode = allowWerewolfMode and werewolfNode:IsOpen() and werewolfParentNode:IsOpen() and not werewolfNode.data.fillContent
+	if CSPS.werewolfMode == oldWerewolfMode then return end
+	CSPS.hbPopulate()
+end
+
 function CSPS.onToggleSektion(buttonControl, button)
 	if button == MOUSE_BUTTON_INDEX_LEFT then
 		local parentNode = buttonControl:GetParent().node
@@ -44,6 +55,8 @@ function CSPS.onToggleSektion(buttonControl, button)
 		parentNode:SetOpen(not parentNode:IsOpen(), USER_REQUESTED_OPEN)
 		if buttonControl.cpSection then
 			CSPSWindowCP2Bar:SetHidden(not parentNode:IsOpen())
+		elseif buttonControl.isWerewolf then
+			refreshWerewolfMode(true)
 		end
 	end
 end
@@ -161,18 +174,29 @@ local function getErrorSumColor(data)
 	return colTbl.white
 end
 
+
 function CSPS.NodeSectionSetup(node, control, data, open, userRequested, enabled)
     local myText = data.name
 	local myCtrText = control:GetNamedChild("Name")
 	local myCtrBtnMinus = control:GetNamedChild("BtnMinus")
 	local myCtrBtnPlus = control:GetNamedChild("BtnPlus")
 	local btnToggle = GetControl(control, "Toggle")
-	
+		
 	if data.variant == TREE_SECTION_SKILLTYPES or data.variant == TREE_SECTION_SKILLLINES then -- Skill type/line
 		local myData = data.variant == TREE_SECTION_SKILLTYPES and data.typeData or data.lineData
 		myText = string.format("%s (%s)", myText, myData.points)
 
 		myCtrText:SetColor(getErrorSumColor(myData):UnpackRGBA())
+		
+		if myData.isWerewolf then 
+			btnToggle.isWerewolf = true 
+			werewolfNode = node
+		end
+		
+		if myData.isWerewolfParent then 
+			btnToggle.isWerewolf = true 
+			werewolfParentNode = node 
+		end
 		
 		if node:IsOpen() and not data.fillContent then 
 			myCtrBtnMinus:SetHidden(myData.points <= 0)
@@ -182,9 +206,11 @@ function CSPS.NodeSectionSetup(node, control, data, open, userRequested, enabled
 			myCtrBtnPlus:SetWidth(21)
 			myCtrBtnPlus:SetHandler("OnClicked", function(_,_,_,_,shift) CSPS.plusClickSkillLine(data.skillType, data.skillLineIndex, shift) end)
 			myCtrBtnPlus:SetHandler("OnMouseEnter", function() showSimpleTT(myCtrBtnPlus, CSPS_Tooltiptext_PlusSkLine) end)
+			if myData.isWerewolf then refreshWerewolfMode(true) end
 		else
 			myCtrBtnMinus:SetHidden(true)
 			myCtrBtnPlus:SetHidden(true)
+			if myData.isWerewolf then refreshWerewolfMode(false) end
 		end
 		
 	elseif data.variant == TREE_SECTION_SKILLS then -- Skills section
@@ -232,6 +258,10 @@ local function NodeSetupCP2Discipline(node, control, data, open, userRequested, 
 		ctrConnect:SetHandler("OnMouseUp", 
 			function(_, mouseButton, upInside) 
 				if upInside and mouseButton == MOUSE_BUTTON_INDEX_RIGHT then 
+					local theProfile = CSPS.currentProfile == 0 and CSPS.currentCharData or CSPS.profiles[CSPS.currentProfile]
+					theProfile.connections[data.i] = nil
+					myTree:RefreshVisible() 
+					CSPS.cppList:RefreshVisible()
 				end 
 			end) 
 	end	

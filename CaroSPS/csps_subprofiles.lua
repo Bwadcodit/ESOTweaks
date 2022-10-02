@@ -1109,6 +1109,7 @@ local function connectToProfile(myType, myId, discipline)
 		myProfile.connections[discipline] = string.format("%s-%s", myType, myId)
 	end
 	CSPS.cppList:RefreshVisible()
+	CSPS.refreshTree()
 end
 
 local function loadSkillProfile(myType, myId)

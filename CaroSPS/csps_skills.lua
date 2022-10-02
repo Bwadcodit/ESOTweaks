@@ -13,6 +13,9 @@ function CSPS.onSkillDrag(i, j, k)
 end
 
 function CSPS.onHbIconDrag(myBar, icon)
+
+	if CSPS.werewolfMode then myBar = 3 end
+	
 	local thisSkill = CSPS.hbTables[myBar][icon]
 	if thisSkill ~= nil then
 		local i = thisSkill[1]
@@ -27,9 +30,19 @@ function CSPS.onHbIconReceive(myBar, icon)
 	if not skillForHB then return end 
 	if icon == 6 and skillForHB[4] == false then return end
 	if icon < 6 and skillForHB[4] == true then return end
+	
 	local i = skillForHB[1]
 	local j = skillForHB[2]
 	local k = skillForHB[3]
+	
+	if IsWerewolfSkillLineById(GetSkillLineId(i, j)) then
+		-- if not CSPS.werewolfMode then return end -- can slot werewolf skills on any bar
+	else
+		if CSPS.werewolfMode then return end
+	end
+	
+	if CSPS.werewolfMode then myBar = 3 end
+	
 	CSPS.hbSkillRemove(myBar, icon)
 	local indOld = skillTable[i][j][k].hb[myBar]
 	if 	indOld ~= nil then
@@ -45,6 +58,7 @@ function CSPS.onHbIconReceive(myBar, icon)
 end
 
 function CSPS.hbSkillRemove(myBar, icon)
+	if CSPS.werewolfMode then myBar = 3 end
 	if CSPS.hbTables[myBar][icon] ~= nil then
 		local i = CSPS.hbTables[myBar][icon][1] 
 		local j = CSPS.hbTables[myBar][icon][2] 
@@ -70,8 +84,9 @@ function CSPS.minusClickSkill(theSkill, shift)
 		theSkill.morph = theSkill.morph or 0
 		if shift or theSkill.morph == 0 then -- delete if not morphed
 			theSkill.purchased = false
-			if theSkill.hb[1] ~= nil then CSPS.hbSkillRemove(1, theSkill.hb[1]) end
-			if theSkill.hb[2] ~= nil then CSPS.hbSkillRemove(2, theSkill.hb[2])	end
+			for myBar = 1, 3 do
+				if theSkill.hb[myBar] ~= nil then CSPS.hbSkillRemove(myBar, theSkill.hb[myBar]) end
+			end
 		else
 			theSkill.morph = theSkill.morph - 1 -- if morphed change/remove morph
 		end
@@ -111,6 +126,11 @@ function CSPS.removeSkillLine(skTyp, skLin)
 				if skillData.purchased then
 					skillData.purchased = false
 					skillData:setPoints()
+					if not skillData.purchased then
+						for myBar = 1, 3 do
+							if skillData.hb[myBar] ~= nil then CSPS.hbSkillRemove(myBar, skillData.hb[myBar]) end
+						end	
+					end
 				end
 			end
 			skillLine:sumUpSkills()
@@ -290,7 +310,14 @@ function CSPS.createSkillTable()
 			
 			local zoSkillLineData = sdm:GetSkillLineDataByIndices(skillType, skillLineIndex)
 			skillTypeData[skillLineIndex] = {name = zoSkillLineData:GetFormattedName(), type = skillType, sumUpSkills = sumUpSkills, zo_data = zoSkillLineData, points = 0}
+			
 			local skillLineData = skillTypeData[skillLineIndex]
+			
+			if IsWerewolfSkillLineById(GetSkillLineId(skillType, skillLineIndex)) then 
+				skillLineData["isWerewolf"] = true 
+				skillTypeData["isWerewolfParent"] = true
+			end
+			
 			for skillIndex = 1, GetNumSkillAbilities(skillType, skillLineIndex) do
 				local zoSkillData = zoSkillLineData:GetSkillDataByIndex(skillIndex)
 				
@@ -449,6 +476,7 @@ end
 
 
 function CSPS.hbEmpty(barIndex)
+	CSPS.hbTables[barIndex] = CSPS.hbTables[barIndex] or {}
 	for j=1, 6 do
 		if CSPS.hbTables[barIndex][j] ~= nil then
 			
@@ -463,7 +491,7 @@ end
 
 
 function CSPS.hbRead()
-	local hotBarCats = {HOTBAR_CATEGORY_PRIMARY, HOTBAR_CATEGORY_BACKUP,} -- HOTBAR_CATEGORY_WEREWOLF,
+	local hotBarCats = {HOTBAR_CATEGORY_PRIMARY, HOTBAR_CATEGORY_BACKUP, HOTBAR_CATEGORY_WEREWOLF}
 	
     for barIndex, barCategory in pairs(hotBarCats) do
 		CSPS.hbEmpty(barIndex)
@@ -484,19 +512,21 @@ end
 
 function CSPS.hbApply()
 	for i,v in pairs(CSPS.hbTables) do
+		local hbCat = i < 3 and i-1 or HOTBAR_CATEGORY_WEREWOLF
+		local hbManager = ACTION_BAR_ASSIGNMENT_MANAGER:GetHotbar(hbCat)
 		for j, w in pairs(v) do
-			local hbManager = ACTION_BAR_ASSIGNMENT_MANAGER:GetHotbar(i-1)
-			hbManager:AssignSkillToSlot(j+2, sdm:GetSkillDataByIndices(w[1], w[2],w[3]))
+			local theSkillData = sdm:GetSkillDataByIndices(w[1], w[2],w[3])
+			if theSkillData:IsPurchased() then hbManager:AssignSkillToSlot(j+2, theSkillData) end
 		end
 	end
 end
 
 function CSPS.hbPopulate()
-	for ind1= 1, 2 do
-		local ctrBar = CSPSWindowFooter:GetNamedChild(string.format("Bar%s", ind1))
+	local function populateSingleBar(indBar, indCtr)
+		local ctrBar = CSPSWindowFooter:GetNamedChild(string.format("Bar%s", indCtr))
 		for ind2=1,6 do
 			local ctrSkill = ctrBar:GetNamedChild(string.format("Icon%s", ind2))
-			local ijk = CSPS.hbTables[ind1][ind2]
+			local ijk = CSPS.hbTables[indBar][ind2]
 			if ijk ~= nil then
 				local i, j, k = unpack(ijk)
 				local skillEntry = skillTable[i][j][k]
@@ -508,6 +538,16 @@ function CSPS.hbPopulate()
 			end
 		end
 	end
+	if CSPS.werewolfMode then
+		CSPSWindowFooterBar2:SetHidden(true)
+		populateSingleBar(3, 1)
+	else
+		CSPSWindowFooterBar2:SetHidden(false)
+		for ind1= 1, 2 do
+			populateSingleBar(ind1, ind1)
+		end
+	end
+
 end
 
 EVENT_MANAGER:RegisterForEvent(CSPS.name.."SkillsUpdate", EVENT_SKILL_POINTS_CHANGED, 

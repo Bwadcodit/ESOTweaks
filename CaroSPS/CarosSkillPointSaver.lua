@@ -44,7 +44,7 @@ CSPS = {
 	cpImportReverse = false,
 	cpCustomBar = false,
 	useCustomIcons = false,
-	hbTables = {{},{}},
+	hbTables = {{},{}, {}},
 	attrPoints = {0, 0, 0},
 	unlockedCP = true,
 	kaiserFranz = 1,
@@ -323,17 +323,19 @@ end
 function CSPS.hbCompress(hbTables)
 	local hbComp = ""
 	local auxHb = {}
-	for i=1,2 do
-		local auxHb1 = {}
-		for j=1,6 do
-			if hbTables[i][j] ~= nil then 
-				-- auxHb1[j] = table.concat(hbTables[i][j], "-")
-				auxHb1[j] = GetSpecificSkillAbilityInfo(hbTables[i][j][1], hbTables[i][j][2], hbTables[i][j][3], 0, 1)
-			else
-				auxHb1[j] = "-"
+	for i=1,3 do
+		if #hbTables[i] > 0 then
+			local auxHb1 = {}
+			for j=1,6 do
+				if hbTables[i][j] ~= nil then 
+					-- auxHb1[j] = table.concat(hbTables[i][j], "-")
+					auxHb1[j] = GetSpecificSkillAbilityInfo(hbTables[i][j][1], hbTables[i][j][2], hbTables[i][j][3], 0, 1)
+				else
+					auxHb1[j] = "-"
+				end
 			end
+			auxHb[i] = table.concat(auxHb1, ",")
 		end
-		auxHb[i] = table.concat(auxHb1, ",")
 	end
 	hbComp = table.concat(auxHb, ";")
 	return hbComp
@@ -470,21 +472,23 @@ function CSPS.hbExtract(hbComp, classId)
 	if hbComp ~= "" then
 		local auxHb = {SplitString(";", hbComp)}
 		hbTables = {}
-		for hbIndex=1, 2 do
+		for hbIndex=1,3 do
 			hbTables[hbIndex] = {}
-			local auxHb1 = {SplitString(",", auxHb[hbIndex])}
-			for hbPosition, aSkill in pairs(auxHb1) do
-				if aSkill == "" or aSkill == "-" then 
-					hbTables[hbIndex][hbPosition] = nil
-				else
-					local skTyp, skLin, skId
-					if string.find(aSkill, "-") then
-						skTyp, skLin, skId = CSPS.extractOldHbSkill(aSkill)
+			if auxHb[hbIndex] then
+				local auxHb1 = {SplitString(",", auxHb[hbIndex])}
+				for hbPosition, aSkill in pairs(auxHb1) do
+					if aSkill == "" or aSkill == "-" then 
+						hbTables[hbIndex][hbPosition] = nil
 					else
-						local myAbId = tonumber(aSkill)
-						skTyp, skLin, skId = GetSpecificSkillAbilityKeysByAbilityId(aSkill)
+						local skTyp, skLin, skId
+						if string.find(aSkill, "-") then
+							skTyp, skLin, skId = CSPS.extractOldHbSkill(aSkill)
+						else
+							local myAbId = tonumber(aSkill)
+							skTyp, skLin, skId = GetSpecificSkillAbilityKeysByAbilityId(aSkill)
+						end
+						if skTyp ~=1 or skLin < 4 or classId then hbTables[hbIndex][hbPosition] = {skTyp, skLin, skId} end
 					end
-					if skTyp ~=1 or skLin < 4 or classId then hbTables[hbIndex][hbPosition] = {skTyp, skLin, skId} end
 				end
 			end
 		end
