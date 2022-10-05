@@ -324,7 +324,7 @@ function CSPS.hbCompress(hbTables)
 	local hbComp = ""
 	local auxHb = {}
 	for i=1,3 do
-		if #hbTables[i] > 0 then
+		if hbTables[i] and #hbTables[i] > 0 then
 			local auxHb1 = {}
 			for j=1,6 do
 				if hbTables[i][j] ~= nil then 
@@ -467,7 +467,7 @@ function CSPS.attrExtract(attrComp)
 end
 
 function CSPS.hbExtract(hbComp, classId)
-	local hbTables = {{},{}}
+	local hbTables = {{},{},{}}
 	hbComp = hbComp or ""
 	if hbComp ~= "" then
 		local auxHb = {SplitString(";", hbComp)}
