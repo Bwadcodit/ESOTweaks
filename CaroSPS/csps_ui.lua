@@ -265,68 +265,44 @@ local function autoShowCSPS(oldState, newState)
 	end
 end
 
-function CSPS.toggleCPAutoOpen(arg)
-	if arg ~= nil then CSPS.cpAutoOpen = arg else CSPS.cpAutoOpen = not CSPS.cpAutoOpen end
-	CSPS.savedVariables.settings.cpAutoOpen = CSPS.cpAutoOpen
+function CSPS.toggleCPAutoOpen()
+	CSPS.cpAutoOpen = CSPS.savedVariables.settings.cpAutoOpen
 	CHAMPION_PERKS_SCENE:RegisterCallback("StateChange", autoShowCSPS)
-	if CSPS.cpAutoOpen  then 
-		CSPSWindowOptionsChkCPAutoOpen:SetTexture(checkedT)
-	else
-		CSPSWindowOptionsChkCPAutoOpen:SetTexture(uncheckedT)
-	end
 end 
 
-function CSPS.toggleCPCustomIcons(arg)
-	if arg ~= nil then CSPS.useCustomIcons = arg else CSPS.useCustomIcons = not CSPS.useCustomIcons end
-	CSPS.savedVariables.settings.useCustomIcons = CSPS.useCustomIcons
-	if CSPS.useCustomIcons  then 
-		CSPSWindowOptionsChkCPCustomIcons:SetTexture(checkedT)
-	else
-		CSPSWindowOptionsChkCPCustomIcons:SetTexture(uncheckedT)
-	end
+function CSPS.toggleArmoryAutoOpen()
+	CSPS.armoryAutoOpen = CSPS.savedVariables.settings.armoryAutoOpen
+	if not CSPS.armoryAutoOpen then return end
+	SCENE_MANAGER:GetScene("armoryKeyboard"):RegisterCallback("StateChange", 
+		function(oldState, newState)
+			if not CSPS.armoryAutoOpen then return end
+			if newState == SCENE_SHOWING then
+				CSPSWindow:SetHidden(false)
+			elseif newState == SCENE_HIDDEN then
+				CSPSWindow:SetHidden(true) 
+				CSPS.checkCpOnClose()
+			end
+		end
+	)
+end 
+
+
+function CSPS.toggleCPCustomIcons()
+	CSPS.useCustomIcons = CSPS.savedVariables.settings.useCustomIcons
 	for i=1, 3 do
 		CSPS.cp2HbIcons(i)
 	end
 	if CSPS.cpCustomBar then CSPS.showCpBar() end
 end 
 
-function CSPS.toggleCPCustomBar(arg)
-	if arg ~= nil then 
-		if CSPS.cpCustomBar == arg or arg == false then 
-			CSPS.cpCustomBar = false
-		elseif arg == true then
-			CSPS.cpCustomBar = 1
-		else
-			CSPS.cpCustomBar = arg 
-		end
-	else 
-		if CSPS.cpCustomBar == false then CSPS.cpCustomBar = 1 else CSPS.cpCustomBar = false end
-	end
-	CSPS.savedVariables.settings.cpCustomBar = CSPS.cpCustomBar
+function CSPS.toggleCPCustomBar()
+	CSPS.cpCustomBar = CSPS.savedVariables.settings.cpCustomBar
 	if CSPS.cpCustomBar then 
-		CSPSWindowOptionsChkCPCustomBar:SetTexture(checkedT)
-		for i=1, 3 do
-			local myBG = CSPSWindowOptions:GetNamedChild(string.format("OptCPBar%sBG", i))
-			if myBG then
-				if i == CSPS.cpCustomBar then
-					local r,g,b = CSPS.colors.green:UnpackRGB()
-					myBG:SetCenterColor(r,g,b, 0.4)
-				else
-					myBG:SetCenterColor(0.0314, 0.0314, 0.0314)
-				end
-			end
-		end
 		CSPS.HbRearrange()
 		if CSPS.cpFragment == nil then CSPS.cpFragment = ZO_SimpleSceneFragment:New( CSPSCpHotbar ) end
 		SCENE_MANAGER:GetScene('hud'):AddFragment( CSPS.cpFragment  )
 		SCENE_MANAGER:GetScene('hudui'):AddFragment( CSPS.cpFragment  )
-
 	else
-		CSPSWindowOptionsChkCPCustomBar:SetTexture(uncheckedT)
-		for i=1, 3 do
-			local myBG = CSPSWindowOptions:GetNamedChild(string.format("OptCPBar%sBG", i))
-			if myBG then myBG:SetCenterColor(0.0314, 0.0314, 0.0314) end
-		end
 		if CSPS.cpFragment ~= nil then
 			SCENE_MANAGER:GetScene('hud'):RemoveFragment( CSPS.cpFragment )
 			SCENE_MANAGER:GetScene('hudui'):RemoveFragment( CSPS.cpFragment )	
@@ -526,12 +502,12 @@ function CSPS.UpdateProfileCombo()
 	end
 	
 	local profileText = GS(CSPS_Txt_StandardProfile)
-	profileText = CSPS.currentCharData.lastSaved and string.format("%s (%s)", profileText, os.date("%x", CSPS.currentCharData.lastSaved)) or profileText
+	profileText = CSPS.currentCharData.lastSaved and not CSPS.savedVariables.settings.suppressLastModified and string.format("%s (%s)", profileText, os.date("%x", CSPS.currentCharData.lastSaved)) or profileText
 	myComboBox:AddItem(myComboBox:CreateItemEntry(profileText, function() OnItemSelect(0) end))
 	
 	for i, v in pairs(CSPS.profiles) do
 		local profileText = v.name
-		profileText = v.lastSaved and string.format("%s (%s)", profileText, os.date("%x", v.lastSaved)) or profileText
+		profileText = v.lastSaved and not CSPS.savedVariables.settings.suppressLastModified and string.format("%s (%s)", profileText, os.date("%x", v.lastSaved)) or profileText
 		myComboBox:AddItem(myComboBox:CreateItemEntry(profileText, function() OnItemSelect(i) end))
 	end
 	
