@@ -345,7 +345,7 @@
 						</Button>
 					</Controls>
 				</Backdrop>
-				<Control name="$(grandparent)Include">
+				<Control name="$(grandparent)Include" resizeToFitDescendents="true">
 				   <Dimensions y="24" />
 				   <Anchor point="TOPLEFT" relativePoint="BOTTOMLEFT" relativeTo="$(grandparent)CPProfiles" offsetX="7" offsetY="8" />
 				   <Controls>	
@@ -440,6 +440,15 @@
                     </Controls>
                 </Control>
 				
+				
+				<Button name="$(grandparent)BtnApplyAll" hidden="true">
+					<Dimensions y="32" x="32" />
+					<Anchor point="RIGHT" relativePoint="LEFT" relativeTo="$(grandparent)MundusComboBox" offsetX="-15"/>
+						<Textures normal="ESOUI/art/buttons/accept_up.dds" pressed="ESOUI/art/buttons/accept_down.dds" mouseOver="ESOUI/art/buttons/accept_over.dds" />
+					<OnClicked>CSPS.btnApplyAll()</OnClicked>
+					<OnMouseEnter>CSPS.showApplyAllTooltip(self)</OnMouseEnter>
+					<OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>
+				</Button>	
 				
 				<Control name="$(grandparent)Footer">
 					<Anchor point="BOTTOMLEFT" relativePoint="BOTTOMLEFT" relativeTo="$(parent)" offsetX="5" offsetY="-5" />
@@ -840,7 +849,7 @@
 				
 				<Backdrop hidden="true" name="$(parent)Options" centerColor="080808" edgeColor="424242" tier="2" >
 					<Anchor point="TOPRIGHT" relativePoint="BOTTOMRIGHT" relativeTo="$(parent)OptionalButton" />
-					<Dimensions x="240" y="248" /> <!-- 10 + 24 + 10 + 24 + 10 + 24 + 10 + 24 + 10 + 24+10+24+10+24+10-->
+					<Dimensions x="240" y="146" /> <!-- 10 + 24 + 10 + 24 + 10 + 24 + 10 + 24 + 10 -->
 					<Edge edgeSize="1" />
 					<Controls>
 						<Button name="$(parent)BtnImpExp" inherits="CSPSOptBtnPreset" text="Import/Export">
@@ -861,57 +870,10 @@
 							<Anchor point="RIGHT" relativePoint="LEFT" relativeTo="$(parent)BtnHotbar" offsetX="-7"  />
 							<OnMouseUp>	if upInside == true then CSPS.toggleHotbar() end </OnMouseUp>
 						</Texture>	
-						<Button name="$(parent)BtnCPAutoOpen" inherits="CSPSOptBtnPreset" text="CSPS_CPAutoOpen">
-							<Anchor point="TOPRIGHT" relativeTo="$(parent)BtnHotbar" relativePoint="BOTTOMRIGHT" offsetY="10" />
-							<OnClicked>CSPS.toggleCPAutoOpen()</OnClicked>
-							<OnMouseEnter>ZO_Tooltips_ShowTextTooltip(self, RIGHT, GetString(CSPS_Tooltip_CPAutoOpen))</OnMouseEnter>
-							<OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>
-							<Dimensions x="200" />
+						<Button name="$(parent)BtnExtendetOptions" inherits="CSPSOptBtnPreset" text="CSPS_Tooltiptext_Optional">
+							<Anchor point="TOPRIGHT" relativeTo="$(parent)BtnHotbar" relativePoint="BOTTOMRIGHT"  offsetY="10" />
+							<OnClicked>CSPS.openLAM()</OnClicked>
 						</Button>
-						<Texture name="$(parent)ChkCPAutoOpen" textureFile="esoui/art/buttons/checkbox_checked.dds" mouseEnabled="true" >
-							<Dimensions y="17" x="17" />
-							<Anchor point="RIGHT" relativePoint="LEFT" relativeTo="$(parent)BtnCPAutoOpen" offsetX="-7"  />
-							<OnMouseUp>	if upInside == true then CSPS.toggleCPAutoOpen() end </OnMouseUp>
-						</Texture>	
-						<Button name="$(parent)BtnCPCustomIcons" inherits="CSPSOptBtnPreset" text="CSPS_CPCustomIcons">
-							<Anchor point="TOPRIGHT" relativeTo="$(parent)BtnCPAutoOpen" relativePoint="BOTTOMRIGHT" offsetY="10" />
-							<OnClicked>CSPS.toggleCPCustomIcons()</OnClicked>
-							<OnMouseEnter>ZO_Tooltips_ShowTextTooltip(self, RIGHT, GetString(CSPS_Tooltip_CPCustomIcons))</OnMouseEnter>
-							<OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>
-							<Dimensions x="200" />
-						</Button>
-						<Texture name="$(parent)ChkCPCustomIcons" textureFile="esoui/art/buttons/checkbox_checked.dds" mouseEnabled="true" >
-							<Dimensions y="17" x="17" />
-							<Anchor point="RIGHT" relativePoint="LEFT" relativeTo="$(parent)BtnCPCustomIcons" offsetX="-7"  />
-							<OnMouseUp>	if upInside == true then CSPS.toggleCPCustomIcons() end </OnMouseUp>
-						</Texture>							
-						<Button name="$(parent)BtnCPCustomBar" inherits="CSPSOptBtnPreset" text="CSPS_CPCustomBar">
-							<Anchor point="TOPRIGHT" relativeTo="$(parent)BtnCPCustomIcons" relativePoint="BOTTOMRIGHT" offsetY="10" />
-							<OnClicked>CSPS.toggleCPCustomBar()</OnClicked>
-							<OnMouseEnter>ZO_Tooltips_ShowTextTooltip(self, RIGHT, GetString(CSPS_Tooltip_CPCustomBar))</OnMouseEnter>
-							<OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>
-							<Dimensions x="200" />
-						</Button>
-						<Texture name="$(parent)ChkCPCustomBar" textureFile="esoui/art/buttons/checkbox_checked.dds" mouseEnabled="true" >
-							<Dimensions y="17" x="17" />
-							<Anchor point="RIGHT" relativePoint="LEFT" relativeTo="$(parent)BtnCPCustomBar" offsetX="-7"  />
-							<OnMouseUp>	if upInside == true then CSPS.toggleCPCustomBar() end </OnMouseUp>
-						</Texture>
-						<Button text="1x4" name="$(parent)OptCPBar3" inherits="CSPScppBtnPreset">
-							<Anchor point="TOPRIGHT" relativeTo="$(parent)BtnCPCustomBar" relativePoint="BOTTOMRIGHT"  offsetY="10" />
-							<Dimensions x="55" y="24" />
-							<OnClicked>CSPS.toggleCPCustomBar(3)</OnClicked>
-						</Button>		
-						<Button text="3x4" name="$(parent)OptCPBar2" inherits="CSPScppBtnPreset">
-							<Anchor point="RIGHT" relativeTo="$(parent)OptCPBar3" relativePoint="LEFT"  offsetX="-8" />
-							<Dimensions x="55" y="24" />
-							<OnClicked>CSPS.toggleCPCustomBar(2)</OnClicked>
-						</Button>	
-						<Button text="1x12" name="$(parent)OptCPBar1" inherits="CSPScppBtnPreset">
-							<Anchor point="RIGHT" relativeTo="$(parent)OptCPBar2" relativePoint="LEFT"  offsetX="-8" />
-							<Dimensions x="55" y="24" />
-							<OnClicked>CSPS.toggleCPCustomBar(1)</OnClicked>
-						</Button>						
 					</Controls>
 				</Backdrop>
 				<Backdrop hidden="true" name="$(parent)ManageBars" tier="1" centerColor="080808" edgeColor="424242">

@@ -160,12 +160,14 @@ function CSPS:Initialize()
 	CSPS.bindings = CSPS.currentCharData.bindings or {}
 	CSPS.currentCharData.cpHbProfiles = CSPS.currentCharData.cpHbProfiles  or {}
 	
+	local mySettings = CSPS.savedVariables.settings
+	
 	CSPSWindowImportExportTextEdit:SetMaxInputChars(3000)
-	local formatImpExp = CSPS.savedVariables.settings.formatImpExp or "sf"
+	local formatImpExp = mySettings.formatImpExp or "sf"
 	CSPS.toggleImpExpSource(formatImpExp, true)
 	
-	CSPS.cpImportCap =  CSPS.savedVariables.settings.cpImportCap or false
-	CSPS.cpImportReverse = CSPS.savedVariables.settings.cpImportReverse or false
+	CSPS.cpImportCap =  mySettings.cpImportCap or false
+	CSPS.cpImportReverse = mySettings.cpImportReverse or false
 	
 	CSPS.toggleCPCapImport(CSPS.cpImportCap)
 	CSPS.toggleCPReverseImport(CSPS.cpImportReverse)
@@ -198,20 +200,19 @@ function CSPS:Initialize()
 		end
 	end
 	
-	local strictOrder = CSPS.savedVariables.settings.strictOrder or false
+	local strictOrder = mySettings.strictOrder or false
 	CSPS.toggleStrictOrder(strictOrder)
-	--local cpRemindMe = CSPS.savedVariables.settings.cpReminder or false
-	local cpAutoOpen = CSPS.savedVariables.settings.cpAutoOpen or false
-	CSPS.toggleCPAutoOpen(cpAutoOpen)
-	CSPS.toggleCP(0, CSPS.savedVariables.settings.applyCP and CSPS.unlockedCP)
-	CSPS.toggleHotbar(CSPS.savedVariables.settings.showHotbar)	
-	local cpCustomBar = CSPS.savedVariables.settings.cpCustomBar or false
+	--local cpRemindMe = mySettings.cpReminder or false
+	CSPS.toggleCPAutoOpen()
+	CSPS.toggleCP(0, mySettings.applyCP and CSPS.unlockedCP)
+	CSPS.toggleHotbar(mySettings.showHotbar)	
+	local cpCustomBar = mySettings.cpCustomBar or false
 	CSPS.toggleCPCustomBar(cpCustomBar)
-	local useCustomIcons = CSPS.savedVariables.settings.useCustomIcons or false
-	CSPS.toggleCPCustomIcons(useCustomIcons)
+	CSPS.toggleCPCustomIcons()
+	CSPSWindowBtnApplyAll:SetHidden(not mySettings.showApplyAll)
 	
-	--local showOldCP = CSPS.savedVariables.settings.showOldCP
-	
+	CSPS.setupLam()
+		
 	EVENT_MANAGER:RegisterForEvent(CSPS.name.."OnCpPurchase", EVENT_CHAMPION_PURCHASE_RESULT, CSPS.onCPChange)
 	EVENT_MANAGER:RegisterForEvent(CSPS.name.."OnPlayerActivated", EVENT_PLAYER_ACTIVATED, function() CSPS.onPlayerActivated() end)
 	EVENT_MANAGER:UnregisterForEvent(CSPS.name.."OnAddOnLoaded", EVENT_ADD_ON_LOADED)
@@ -265,11 +266,11 @@ function CSPS.saveBuildGo()
 	local cp2HbComp = ""
 	cp2Comp = CSPS.cp2Compress(CSPS.cp2Table) 
 	cp2HbComp = CSPS.cp2HbCompress(CSPS.cp2HbTable)
-	local gearComp = nil
+	local gearComp, gearCompUnique = nil
 	if CSPS.doGear then
-		gearComp = CSPS.buildGearString()
+		gearComp, gearCompUnique = CSPS.buildGearString(CSPS.savedVariables.settings.saveSpecificGear)
 	end
-	
+		
 	-- local myKeys = generateKeys()
 	local profileToSave = {}
 	if CSPS.currentProfile == 0 then
@@ -286,6 +287,7 @@ function CSPS.saveBuildGo()
 	profileToSave.cp2hbwerte = cp2HbComp
 	profileToSave.mundus = CSPS.currentMundus
 	profileToSave.gearComp = gearComp
+	profileToSave.gearCompUnique = gearCompUnique
 	profileToSave.lastSaved = os.time()
 	
 	CSPS.currentCharData.profiles = CSPS.profiles
@@ -324,17 +326,20 @@ function CSPS.hbCompress(hbTables)
 	local hbComp = ""
 	local auxHb = {}
 	for i=1,3 do
-		if hbTables[i] and #hbTables[i] > 0 then
+		if hbTables[i] then
 			local auxHb1 = {}
+			local anySkillsInBar = false
 			for j=1,6 do
 				if hbTables[i][j] ~= nil then 
 					-- auxHb1[j] = table.concat(hbTables[i][j], "-")
 					auxHb1[j] = GetSpecificSkillAbilityInfo(hbTables[i][j][1], hbTables[i][j][2], hbTables[i][j][3], 0, 1)
+					anySkillsInBar = true
 				else
 					auxHb1[j] = "-"
 				end
 			end
 			auxHb[i] = table.concat(auxHb1, ",")
+			if i == 3 and not anySkillsInBar then auxHb[i] = nil end
 		end
 	end
 	hbComp = table.concat(auxHb, ";")
@@ -511,6 +516,7 @@ function CSPS.loadBuild()
 	local attrComp = myProfile.attribute
 	local hbComp = myProfile.hbwerte
 	local gearComp = myProfile.gearComp or ""
+	local gearCompUnique = myProfile.gearCompUnique
 	CSPS.setMundus(myProfile.mundus)
 	CSPS.tableExtract(skillTableClean.prog, skillTableClean.pass)
 	
@@ -552,7 +558,7 @@ function CSPS.loadBuild()
 	CSPS.cp2UpdateHbMarks()
 	
 	if CSPS.doGear then
-		CSPS.extractGearString(gearComp)
+		CSPS.extractGearString(gearComp, gearCompUnique)
 	end
 
 	CSPS.refreshTree() 

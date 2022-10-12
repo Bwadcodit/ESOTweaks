@@ -75,7 +75,7 @@ local L = {}
 	L.CSPS_Tooltip_AddBind2 = "If you add this condition, everytime you load the selected alpha gear set, the current group will be automatically applied."
 	L.CSPS_Tooltip_AddBind3 = "If you add this condition, everytime you enter the selected location, the current group will be automatically applied."
 	
-	L.CSPS_Tooltip_CPAutoOpen = "Check this box, if the addon should be shown everytime you enter the champion point window."
+	L.CSPS_Tooltip_CPAutoOpen = "Check this box, if the addon should be shown every time you enter the champion point window."
 	
 	L.CSPS_Tooltiptext_DeleteBinding = "Remove binding"
 	
@@ -225,6 +225,17 @@ local L = {}
 	L.CSPS_CPAutoOpen = "Open with CP window"
 	L.CSPS_CPCustomBar = "Separate CP bar"
 	L.CSPS_CPCustomIcons = "Custom CP icons"
+	L.CSPS_CPCustomBarLayout = "Layout"
+	L.CSPS_ArmoryAutoOpen = "Open with armory"
+	L.CSPS_Tooltip_ArmoryAutoOpen = "Check this box, if the addon should be shown every time you use the armory."
+	L.CSPS_SaveSpecificGear = "Save specific gear items"
+	L.CSPS_Tooltip_SaveSpecificGear = "Saves the specific item you are wearing instead of the item data. Saved Variables will need a little more space and it will be overwritten for items you are editing inside the addon. This function will make sure to equip the exact same item you were wearing when saving your build. Try to use this option if you encounter problems finding your saved gear."
+	L.CSPS_BtnApplyAll = "Apply everything"
+	L.CSPS_ShowBtnApplyAll = "Display 'apply everything' button"
+	L.CSPS_ShowDateInProfileName = "Show last modified in profile name"
+	L.CSPS_AcceptedLevelDifference = "Accepted level difference"
+	L.CSPS_AcceptedLevelDifferenceTooltip = "CSPS will only find and equip gear if the difference between your char's and the item's level is less than the selected value."
+	L.CSPS_RequiresLibSets = "This function requires LibSets to be installed and activated."
 	
 	-- Presets
 	L.CSPS_MSG_SwitchCP = "Invest points into |c<<1>>'<<2>>'|r instead of one of the other slottables whenever you might profit from it."

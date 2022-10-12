@@ -198,8 +198,10 @@ local function checkItemLevel(itemLink, noText)
 		if auxCPLevel > 150 then auxCPLevel = 150 end
 	end
 	
+	local maxLevelDiff = CSPS.savedVariables.settings.maxLevelDiff or 10
+	
 	if not ignoreLevel then
-		if reqCP ~= auxCPLevel or auxCPLevel == 0 and math.abs(reqLevel - myLevel) >= 10 then 
+		if math.abs(reqCP - auxCPLevel) >= maxLevelDiff or auxCPLevel == 0 and math.abs(reqLevel - myLevel) >= maxLevelDiff then 
 			warnLevel = true 
 		end
 	end
@@ -770,8 +772,9 @@ end
 
 
 
-function CSPS.buildGearString()
+function CSPS.buildGearString(saveUnique)
 	local myGearString = {}
+	local myGearStringUnique = {}
 	for _, gearSlot in pairs(gearSlots) do
 		local slotTable = theGear[gearSlot]
 		if gearSlotsPoison[gearSlot] then
@@ -783,7 +786,6 @@ function CSPS.buildGearString()
 		elseif type(slotTable) == "table" and slotTable.mara then
 			table.insert(myGearString, "mara:44904")
 		else
-		
 			table.insert(myGearString, slotTable and
 				-- setId, type, trait, quality, enchantId
 				string.format("%d:%d:%d:%d:%d", 
@@ -792,10 +794,15 @@ function CSPS.buildGearString()
 					slotTable.trait or 0,
 					slotTable.quality or 0,
 					slotTable.enchant or 0) or 0)
+			if saveUnique then 
+				table.insert(myGearStringUnique, slotTable and slotTable.itemUniqueID or 0)
+			end
 		end
 	end
+	myGearStringUnique = saveUnique and table.concat(myGearStringUnique, ";") or nil
 	myGearString = table.concat(myGearString, ";")
-	return myGearString
+	
+	return myGearString, myGearStringUnique
 end
 
 local function checkPoisonForTable(itemLink, myTable)
@@ -830,6 +837,8 @@ local function findSetItem(mySlot, findNew)
 	if not mySlot then return false, false, false, false, false end
 	local bagIds = {BAG_BACKPACK, BAG_BANK,  BAG_SUBSCRIBER_BANK }
 	local fitsExactly, couldFit = {}, {}
+	local uniqueIdToFind = theGear[mySlot].itemUniqueID or false
+		
 	theGear[mySlot].fitsExactly = theGear[mySlot].fitsExactly or {}
 	local lastFits = theGear[mySlot].fitsExactly
 	
@@ -848,6 +857,13 @@ local function findSetItem(mySlot, findNew)
 		
 		for slotIndex = 0, GetBagSize(bagId) do
 			local itemLink = GetItemLink(bagId, slotIndex, 1)
+			if uniqueIdToFind then
+				local itemUniqueID = Id64ToString(GetItemUniqueId(bagId, slotIndex))
+				if itemUniqueID == uniqueIdToFind then
+					fitsExactly = {[bagId] = {{slotIndex = slotIndex, itemLink = itemLink}}}
+					return fitsExactly, couldFite
+				end
+			end
 			local equipType = GetItemLinkEquipType(itemLink)
 			if equipType and equipType ~= 0 and equipSlotToEquipType[mySlot][equipType] then
 				if equipType == EQUIP_TYPE_POISON then
@@ -875,7 +891,7 @@ local function findSetItem(mySlot, findNew)
 							table.insert(fitsExactly[bagId], {slotIndex = slotIndex, itemLink = itemLink})
 							if not findNew then
 								lastFits[isBackpack] = {slotIndex = slotIndex, itemLink = itemLink, bagId = bagId}
-								return fitsExactly, couldFit
+								if not uniqueIdToFind then return fitsExactly, couldFit end
 							end
 							
 						else
@@ -1172,19 +1188,21 @@ end
 
 CSPS.showSetItemTooltip = showSetItemTooltip
 
-function CSPS.extractGearString(myGearString)
+function CSPS.extractGearString(myGearString, myGearStringUnique)
 	if not myGearString or myGearString == "" then
 		for i, gearSlot in pairs(gearSlots) do
 			theGear[gearSlot] = false	
 		end
 		return theGear
 	end
+	local singleUniqueStrings = myGearStringUnique and {SplitString(";", myGearStringUnique)} or {}
 	local singleGearStrings = {SplitString(";", myGearString)}
 	for i, gearSlot in pairs(gearSlots) do
 		if singleGearStrings[i] == "0" then
 			theGear[gearSlot] = false		
 		else
 			local singleSlotTable = {SplitString(":", singleGearStrings[i])}
+			local itemUniqueID = singleUniqueStrings[i] ~= "0" and singleUniqueStrings[i]
 			if gearSlotsPoison[gearSlot] then
 				theGear[gearSlot] = {
 					firstId = tonumber(singleSlotTable[1]) or 0,
@@ -1194,7 +1212,8 @@ function CSPS.extractGearString(myGearString)
 				theGear[gearSlot] = {
 					setId = 44904,
 					mara = true,
-					link = buildItemLink(44904)
+					link = buildItemLink(44904),
+					itemUniqueID = itemUniqueID,
 				}
 			else
 				theGear[gearSlot] = {
@@ -1203,6 +1222,7 @@ function CSPS.extractGearString(myGearString)
 					trait = tonumber(singleSlotTable[3]),
 					quality = tonumber(singleSlotTable[4]),
 					enchant = tonumber(singleSlotTable[5]),
+					itemUniqueID = itemUniqueID,
 				}
 				local gearItem = theGear[gearSlot]
 				local _, itemLink = getSetItemInfo(gearItem.setId, gearSlot, gearItem.type,  gearItem.trait, gearItem.quality)
@@ -1508,9 +1528,11 @@ function CSPS.getCurrentGear()
 	for _, gearSlot in ipairs(gearSlots) do
 		theGear[gearSlot] = false
 		local itemLink = GetItemLink(BAG_WORN, gearSlot, LINK_STYLE_DEFAULT)
+		local itemUniqueID = Id64ToString(GetItemUniqueId(BAG_WORN, gearSlot))
+		itemUniqueID = itemUniqueID ~= 0 and itemUniqueID or false
 		local itemId = GetItemLinkItemId(itemLink)
 		if itemId == 44904 then 
-			theGear[gearSlot] = {mara = true, setId = 44904, link = itemLink}
+			theGear[gearSlot] = {mara = true, setId = 44904, link = itemLink, itemUniqueID = itemUniqueID}
 		elseif not gearSlotsPoison[gearSlot] and itemLink ~= "" then
 			theGear[gearSlot] = {}
 			local slotTable = theGear[gearSlot]
@@ -1522,6 +1544,7 @@ function CSPS.getCurrentGear()
 			slotTable.enchant = enchantId
 			slotTable.trait = GetItemLinkTraitInfo(itemLink)
 			slotTable.link = itemLink
+			slotTable.itemUniqueID = itemUniqueID
 			if gearSlotsBody[gearSlot] then
 				slotTable.type = GetItemLinkArmorType(itemLink)
 			elseif gearSlotsHands[gearSlot] then

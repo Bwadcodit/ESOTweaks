@@ -96,7 +96,7 @@ function CSPS.getConnectedProfileName(myConnection)
 end
 
 local function addConnectionToTooltip(myType, myId, discipline)
-	if discipline == 4 then return end
+	-- if discipline == 4 then return end
 	ZO_Tooltip_AddDivider(InformationTooltip)
 	local myProfile = CSPS.currentProfile == 0 and CSPS.currentCharData or CSPS.profiles[CSPS.currentProfile]
 	local myText = ""
@@ -348,7 +348,8 @@ function CSPScppList:SetupItemRow( control, data )
 	ctrPoints.normalColor = ZO_DEFAULT_TEXT
 	ctrPoints:SetText(data.points)
 	
-	if data.type == 1 or data.type == 2 or data.type == 4 then
+	local typesToShowConnectionsFor = {[1] = true, [2]= true, [4]= true, [6] = true, [7] = true}
+	if typesToShowConnectionsFor[data.type] then
 		local myProfile = CSPS.currentProfile == 0 and CSPS.currentCharData or CSPS.profiles[CSPS.currentProfile]
 		local showConnectionIcon = myProfile.connections and myProfile.connections[data.discipline] == string.format("%s-%s", data.type, data.myId)
 		GetControl(control, "Connection"):SetHidden(not showConnectionIcon)
@@ -1010,6 +1011,7 @@ function CSPS.showQuickSlotProfileTT(control, myType, myId)
 	ZO_Tooltip_AddDivider(InformationTooltip)
 	myTooltip = table.concat(myTooltip, "\n")
 	InformationTooltip:AddLine(myTooltip)
+	addConnectionToTooltip(myType, myId, 4)
 end
 
 local function loadQuickSlots(myType, myId)
@@ -1099,6 +1101,14 @@ local function loadQuickSlots(myType, myId)
 	end)
 end
 
+function CSPS.loadConnectedQuickSlots()
+	local myProfile = CSPS.currentProfile == 0 and CSPS.currentCharData or CSPS.profiles[CSPS.currentProfile]
+	if not myProfile.connections or not myProfile.connections[4] then return end
+	local myType, myId = SplitString(myProfile.connections[4])
+	myType = tonumber(myType)
+	myId = tonumber(myId)
+	 loadQuickSlots(myType, myId)
+end
 
 local function connectToProfile(myType, myId, discipline)
 	local myProfile = CSPS.currentProfile == 0 and CSPS.currentCharData or CSPS.profiles[CSPS.currentProfile]
@@ -1136,7 +1146,12 @@ function CSPS.CPListRowMouseUp( control, button, upInside, shift)
 				loadCPPreset(control.data.type, control.data.myId, control.data.discipline)
 			end
 		elseif control.data.discipline == 4 then
-			loadQuickSlots(control.data.type, control.data.myId)
+			if shift then 
+				connectToProfile(control.data.type, control.data.myId, control.data.discipline)
+			else
+				loadQuickSlots(control.data.type, control.data.myId)
+			end
+			
 		elseif control.data.discipline == 5 then	
 			loadSkillProfile(control.data.type, control.data.myId)
 		end

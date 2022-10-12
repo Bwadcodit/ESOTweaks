@@ -229,6 +229,7 @@ L.CSPS_CPPDescr_JoaTThieving = "Ce préréglage est optimisé pour être utilis�
 	L.CSPS_CPAutoOpen = "Ouvrir avec fenêtre PC"
 	L.CSPS_CPCustomBar = "Barre de PC séparée"
 	L.CSPS_CPCustomIcons = "Icônes PC personnalisées"
+	L.CSPS_CPCustomBarLayout = "Disposition"
 	
 	-- Presets
 	L.CSPS_MSG_SwitchCP = "Investissez des points dans |c<<1>>'<<2>>'|r au lieu de l'un des autres emplacements de barre de champion chaque fois que vous pourriez en profiter."

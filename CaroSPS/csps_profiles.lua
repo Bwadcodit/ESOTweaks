@@ -60,7 +60,48 @@ function CSPS.deleteProfileGo()
 	CSPS.UpdateProfileCombo()	
 end
 
-function CSPS.loadAndApplyByName(profileName, excludeSkills, excludeAttributes, excludeGreenCP, excludeBlueCP, excludeRedCP, excludeHotbar, excludeGear)
+
+local function applyAll(excludeSkills, excludeAttributes, excludeGreenCP, excludeBlueCP, excludeRedCP, excludeHotbar, excludeGear, excludeQuickslots)
+	
+	if not excludeSkills then CSPS.applySkills(true) end
+	if not excludeAttributes then CSPS.applyAttr() end
+	
+	if not (excludeGreenCP and excludeBlueCP and excludeRedCP) then
+		CSPS.toggleCP(1, not excludeGreenCP)
+		CSPS.toggleCP(2, not excludeBlueCP)
+		CSPS.toggleCP(3, not excludeRedCP)
+		
+		CSPS.cp2ApplyGo(true)
+	end
+	if not excludeHotbar then CSPS.hbApply() end
+	if not excludeGear then CSPS.equipAllFittingGear() end
+	if not excludeQuickslots then CSPS.loadConnectedQuickSlots() end
+end
+
+function CSPS.btnApplyAll()
+	local toExclude = CSPS.savedVariables.settings.applyAllExclude
+	applyAll(toExclude.skills, toExclude.attr, toExclude.cp, toExclude.cp, toExclude.cp, toExclude.hb, toExclude.gear, toExclude.qs)
+end
+
+function CSPS.showApplyAllTooltip(control)
+	InitializeTooltip(InformationTooltip, control, LEFT)
+	InformationTooltip:AddLine(GS(CSPS_BtnApplyAll) , "ZoFontWinH2")
+	ZO_Tooltip_AddDivider(InformationTooltip)
+	local toExclude = CSPS.savedVariables.settings.applyAllExclude
+	local toExcludeTexts = {
+		skills = GS(SI_CHARACTER_MENU_SKILLS), attr = GS(SI_CHARACTER_MENU_STATS), cp = GS(SI_STAT_GAMEPAD_CHAMPION_POINTS_LABEL), hb = GS(SI_INTERFACE_OPTIONS_ACTION_BAR), gear = GS(SI_GAMEPAD_DYEING_EQUIPMENT_HEADER), qs = GS(SI_HOTBARCATEGORY10)
+	}
+	local excludeOrder = {"skills", "attr", "cp", "hb", "gear", "qs"}
+	for i, v in pairs(excludeOrder) do
+		local r,g,b = CSPS.colors.orange:UnpackRGB()
+		if not toExclude[v] then			
+			r,g,b = CSPS.colors.green:UnpackRGB()
+		end
+		InformationTooltip:AddLine(toExcludeTexts[v], "ZoFontGame", r, g, b, CENTER, MODIFY_TEXT_TYPE_NONE, TEXT_ALIGN_CENTER, true)
+	end
+end
+
+function CSPS.loadAndApplyByName(profileName, excludeSkills, excludeAttributes, excludeGreenCP, excludeBlueCP, excludeRedCP, excludeHotbar, excludeGear, excludeQuickslots)
 	local indexToLoad = false
 	if profileName == GS(CSPS_Txt_StandardProfile) then
 		indexToLoad = 0
@@ -70,10 +111,11 @@ function CSPS.loadAndApplyByName(profileName, excludeSkills, excludeAttributes, 
 		end
 	end
 	if not indexToLoad then d("[CSPS] Profile not found.") return end
-	CSPS.loadAndApplyByIndex(indexToLoad, excludeSkills, excludeAttributes, excludeGreenCP, excludeBlueCP, excludeRedCP, excludeHotbar, excludeGear)
+	CSPS.loadAndApplyByIndex(indexToLoad, excludeSkills, excludeAttributes, excludeGreenCP, excludeBlueCP, excludeRedCP, excludeHotbar, excludeGear, excludeQuickslots)
 end
 
-function CSPS.loadAndApplyByIndex(indexToLoad, excludeSkills, excludeAttributes, excludeGreenCP, excludeBlueCP, excludeRedCP, excludeHotbar, excludeGear)
+
+function CSPS.loadAndApplyByIndex(indexToLoad, excludeSkills, excludeAttributes, excludeGreenCP, excludeBlueCP, excludeRedCP, excludeHotbar, excludeGear, excludeQuickslots)
 	if indexToLoad == 0 then
 		CSPSWindowBuildProfiles.comboBox:SetSelectedItem(GS(CSPS_Txt_StandardProfile))
 	else
@@ -81,17 +123,5 @@ function CSPS.loadAndApplyByIndex(indexToLoad, excludeSkills, excludeAttributes,
 	end 
 	CSPS.selectProfile(indexToLoad)
 	CSPS.loadBuild()
-	
-	if not excludeSkills then CSPS.applySkills(true) end
-	if not excludeAttributes then CSPS.applyAttr() end
-	
-	if not (excludeGreenCP and excludeBlueCP and not excludeRedCP) then
-		CSPS.toggleCP(1, not excludeGreenCP)
-		CSPS.toggleCP(2, not excludeBlueCP)
-		CSPS.toggleCP(3, not excludeRedCP)
-		
-		CSPS.cp2ApplyGo(true)
-	end
-	if not excludeHotbar then CSPS.hbApply() end
-	if not excludeGear then CSPS.equipAllFittingGear() end
+	applyAll(excludeSkills, excludeAttributes, excludeGreenCP, excludeBlueCP, excludeRedCP, excludeHotbar, excludeGear, excludeQuickslots)
 end

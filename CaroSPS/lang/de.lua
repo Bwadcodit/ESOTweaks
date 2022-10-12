@@ -221,7 +221,18 @@ local L = {}
 	L.CSPS_CPAutoOpen = "Öffne mit CP-Fenster"
 	L.CSPS_CPCustomBar = "Separate CP-Leiste"
 	L.CSPS_CPCustomIcons = "Eigene CP-Symbole"
-	
+	L.CSPS_CPCustomBarLayout = "Layout"
+	L.CSPS_ArmoryAutoOpen = "Am Arsenal öffnen"
+	L.CSPS_Tooltip_ArmoryAutoOpen = "Wähle aus, ob das Addon automatisch beim Benutzen des Arsenals geöffnet werden soll."
+	L.CSPS_SaveSpecificGear = "Speichere spezifische Ausrüstungsgegenstände"
+	L.CSPS_Tooltip_SaveSpecificGear = "Speichert den spezifischen getragenen Gegenstand und nicht nur die entsprechenden Daten. Die Speicherdaten benötigen minimal mehr Platz und der spezifische Gegenstand wird überschrieben, wenn du seine Eigenschaften im Addon bearbeitest. Diese Funktion wird sicherstellen, dass du beim Anwenden eines Profiles exakt denselben Gegenstand ausrüstest, wie beim Laden. Aktiviere sie, wenn Probleme beim Anwenden der Ausrüstung auftreten."
+	L.CSPS_BtnApplyAll = "Alles anwenden"
+	L.CSPS_ShowBtnApplyAll = "Zeige 'Alles anwenden'-Knopf"
+	L.CSPS_ShowDateInProfileName = "Zeige 'Zuletzt gespeichert' hinter den Profilnamen"
+	L.CSPS_AcceptedLevelDifference = "Akzeptierte Level-Differenz"
+	L.CSPS_AcceptedLevelDifferenceTooltip = "CSPS wird nur Ausrüstungsgegenstände finden und ausrüsten, deren Level nicht weiter unter dem deines Charakters liegt als der eingestellte Wert."
+	L.CSPS_RequiresLibSets = "Für diese Funktion muss LibSets installiert und aktiviert werden."
+
 	-- Presets
 	L.CSPS_MSG_SwitchCP = "Setze Punkte in |c<<1>>'<<2>>'|r anstelle einer der anderen ausrüstbaren Fertigkeiten, wann immer du davon profitierst."
 	L.CSPS_MSG_SituationalCP = "Je nach Situation empfiehlt es sich, eine oder mehrere ausrüstbare Fertigkeiten gegen eine der folgenden auszutauschen:"
