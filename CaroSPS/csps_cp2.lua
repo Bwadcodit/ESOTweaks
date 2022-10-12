@@ -1569,14 +1569,14 @@ function CSPS.tweakApplyFull()
 
 		CSPS.dialogHook = true
 
-		-- REF: CSPS.loadAndApplyByIndex(indexToLoad, excludeSkills, excludeAttributes, excludeGreenCP, excludeBlueCP, excludeRedCP, excludeHotbar, excludeGear)
-		CSPS.loadAndApplyByIndex(CSPS.currentProfile, false, false, false, false, false, true, true)
+		-- REF: CSPS.loadAndApplyByIndex(indexToLoad, excludeSkills, excludeAttributes, excludeGreenCP, excludeBlueCP, excludeRedCP, excludeHotbar, excludeGear, excludeQuickslots)
+		CSPS.loadAndApplyByIndex(CSPS.currentProfile, false, false, false, false, false, true, true, false)
 		if CSPS.profileXPIndex > 0 then
 			local profileIndex = CSPS.currentProfile
 			-- apply XP skills
-			CSPS.loadAndApplyByIndex(CSPS.profileXPIndex, false, true, true, true, true, true, true)
+			CSPS.loadAndApplyByIndex(CSPS.profileXPIndex, false, true, true, true, true, true, true, true)
 			-- re-load previous build
-			CSPS.loadAndApplyByIndex(profileIndex, true, true, true, true, true, true, true)
+			CSPS.loadAndApplyByIndex(profileIndex, true, true, true, true, true, true, true, true)
 		end
 		
 		CSPS.dialogHook = false
