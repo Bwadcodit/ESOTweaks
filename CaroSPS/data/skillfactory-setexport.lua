@@ -580,6 +580,16 @@ local sfSetIds = {
 	[669] = 14833, --Nocturnals Ploy 
 	[670] = 14834, --Maras Balm 
 
+	[671] = 0, --Back-Alley Gourmand 
+	[672] = 0, --Phoenix Moth Theurge
+	[673] = 0, --Bastion of Draoife 
+	[674] = 0, --Faun\'s Lark Cladding 
+	[675] = 0, --Stormweaver\'s Cavort 
+	[676] = 0, --Syrabane\'s Ward 
+	[677] = 0, --Chimera\'s Rebuke 
+	[678] = 0, --Old Growth Brewer 
+	[679] = 0, --Claw of the Forest Wraith
+
 }
 
 local sfTraits = {

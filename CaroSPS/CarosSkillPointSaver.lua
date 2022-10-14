@@ -204,6 +204,7 @@ function CSPS:Initialize()
 	CSPS.toggleStrictOrder(strictOrder)
 	--local cpRemindMe = mySettings.cpReminder or false
 	CSPS.toggleCPAutoOpen()
+	CSPS.toggleArmoryAutoOpen()
 	CSPS.toggleCP(0, mySettings.applyCP and CSPS.unlockedCP)
 	CSPS.toggleHotbar(mySettings.showHotbar)	
 	local cpCustomBar = mySettings.cpCustomBar or false

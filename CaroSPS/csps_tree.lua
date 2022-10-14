@@ -401,17 +401,20 @@ local function NodeSetupCP2Entry(node, control, data, open, userRequested, enabl
 		control.ctrBtnPlus:SetHidden(true)
 		control.ctrCircle:SetHidden(true)		
 	else
+		control.ctrIcon:SetDesaturation(0)
 		if CSPS.cp2InHb[myId] == true then
 			control.ctrIcon:SetDesaturation(0)
 			control.ctrIcon:SetColor(1,1,1)
 			control.ctrCircle:SetHidden(false)
 			control.ctrCircle:SetTexture(cpSlT[data.i])
 			if data.i == 1 then control.ctrCircle:SetColor(0.8235, 0.8235, 0) end	-- re-color the not-so-green circle for the green cp...
+		elseif data.skType > 1 and WouldChampionSkillNodeBeUnlocked(myId, myValue) then
+			control.ctrCircle:SetHidden(false)
+			control.ctrCircle:SetTexture("esoui/art/champion/actionbar/champion_bar_slot_frame.dds")
+			control.ctrCircle:SetColor(1,1,1)
 		else
-			control.ctrIcon:SetDesaturation(0)
 			control.ctrCircle:SetHidden(true)			
 		end
-		control.ctrIcon:SetDesaturation(0)
 		control.ctrName:SetColor(colTbl.white:UnpackRGBA())
 		if myValue < myCurrentValue then
 			control.ctrValue:SetColor(colTbl.orange:UnpackRGBA())
