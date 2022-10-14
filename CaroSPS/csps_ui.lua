@@ -261,7 +261,7 @@ local function autoShowCSPS(oldState, newState)
 		if CSPS.useCustomIcons then CSPS.showCpBar() end
 		if CSPS.cpAutoOpen then CSPSWindow:SetHidden(false) end
 	elseif newState == SCENE_HIDDEN then
-		if CSPS.cpAutoOpen then CSPSWindow:SetHidden(true) CSPS.checkCpOnClose() end
+		if CSPS.cpAutoOpen then CSPSWindow:SetHidden(true) end
 	end
 end
 
@@ -280,7 +280,6 @@ function CSPS.toggleArmoryAutoOpen()
 				CSPSWindow:SetHidden(false)
 			elseif newState == SCENE_HIDDEN then
 				CSPSWindow:SetHidden(true) 
-				CSPS.checkCpOnClose()
 			end
 		end
 	)
