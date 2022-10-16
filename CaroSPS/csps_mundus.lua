@@ -97,8 +97,21 @@ function CSPS.InitializeMundusMenu()
 
 	changeMundus(false, false, {mundusId =  getCurrentMundus()})
 	
+	local EM = EVENT_MANAGER
+	for mundusId, abilityId in pairs(mundusAbs) do
+		EM:RegisterForEvent("CSPS_MUNDUS_"..mundusId, EVENT_EFFECT_CHANGED, function() CSPS.setMundus() end)
+		EM:AddFilterForEvent("CSPS_MUNDUS_"..mundusId, EVENT_EFFECT_CHANGED, REGISTER_FILTER_ABILITY_ID, mundusId)
+		EM:AddFilterForEvent("CSPS_MUNDUS_"..mundusId, EVENT_EFFECT_CHANGED, REGISTER_FILTER_UNIT_TAG, "player")
+	end
+	
 end
 
 function CSPS.setMundus(mundusId)
+	mundusId = mundusId or currentMundusId
 	changeMundus(false, false, {mundusId = mundusId})
+end
+
+function CSPS.setCurrentMundus()
+	currentMundusId = getCurrentMundus()
+	CSPS.setMundus(currentMundusId)
 end

@@ -141,6 +141,10 @@ local function tableContains(myTable, myEntry)
 	return false
 end
 
+function CSPS.getGearSlotsHands()
+	return gearSlotsHands
+end
+
 local function buildGlyphTables()
 	enchantIds = {}
 	enchantNames = {}
@@ -187,16 +191,25 @@ CSPS.buildItemLink = buildItemLink
 
 local function checkItemLevel(itemLink, noText)
 	local warnLevel = false
-	local ignoreLevel = GetItemLinkItemId(itemLink) == 44904
+	local ignoreLevel = false
 	
-	local reqCP = GetItemLinkRequiredChampionPoints(itemLink)
-	local reqLevel = GetItemLinkRequiredLevel(itemLink)
+	if GetItemLinkItemId(itemLink) == 44904 then 
+		if noText then return false end
+		ignoreLevel = true
+	end
+	
 	local auxCPLevel = myCPLevel
 	
 	if GetItemLinkItemType(itemLink) == ITEMTYPE_POISON then
-		if GetItemLinkDisplayQuality(itemLink) == ITEM_QUALITY_LEGENDARY then ignoreLevel = true end
+		if GetItemLinkDisplayQuality(itemLink) == ITEM_QUALITY_LEGENDARY then 
+			if noText then return false end
+			ignoreLevel = true
+		end
 		if auxCPLevel > 150 then auxCPLevel = 150 end
 	end
+	
+	local reqCP = GetItemLinkRequiredChampionPoints(itemLink)
+	local reqLevel = GetItemLinkRequiredLevel(itemLink)
 	
 	local maxLevelDiff = CSPS.savedVariables.settings.maxLevelDiff or 10
 	
@@ -212,6 +225,8 @@ local function checkItemLevel(itemLink, noText)
 	levelText = string.format("%s: %s", GS(SI_ITEM_FORMAT_STR_LEVEL), levelText)
 	return warnLevel, levelText
 end
+
+CSPS.checkItemLevel = checkItemLevel
 
 local function getSetItemInfo(setId, gearSlot, itemType,  traitType, itemQuality)
 
@@ -861,7 +876,7 @@ local function findSetItem(mySlot, findNew)
 				local itemUniqueID = Id64ToString(GetItemUniqueId(bagId, slotIndex))
 				if itemUniqueID == uniqueIdToFind then
 					fitsExactly = {[bagId] = {{slotIndex = slotIndex, itemLink = itemLink}}}
-					return fitsExactly, couldFite
+					return fitsExactly, couldFit, true -- third parameter to indicated we found the unique item
 				end
 			end
 			local equipType = GetItemLinkEquipType(itemLink)
@@ -1062,11 +1077,12 @@ local function showSetItemTooltip(control, setId, gearSlot, itemType,  traitType
 	end
 	
 	if not (setIdFits and enchantFits and qualityFits and typeFits and traitFits) then 
-		local fitsExactly, couldFit = findSetItem(gearSlot)
+		local fitsExactly, couldFit, foundUnique = findSetItem(gearSlot)
 		if #fitsExactly[BAG_BACKPACK] > 0 then
 			ZO_Tooltip_AddDivider(InformationTooltip)
 			r, g, b = ZO_NORMAL_TEXT:UnpackRGB()
-			InformationTooltip:AddLine(string.format("|t26:26:esoui/art/tooltips/icon_bag.dds|t %s\n|t26:26:esoui/art/miscellaneous/icon_lmb.dds|t %s", fitsExactly[BAG_BACKPACK][1].itemLink, GS(SI_ITEM_ACTION_EQUIP)), "ZoFontGame", r, g, b, CENTER, MODIFY_TEXT_TYPE_NONE, TEXT_ALIGN_CENTER, true)
+			local iconUnique = foundUnique and " |t26:26:esoui/art/tooltips/icon_lock.dds|t" or ""
+			InformationTooltip:AddLine(string.format("|t26:26:esoui/art/tooltips/icon_bag.dds|t%s %s\n|t26:26:esoui/art/miscellaneous/icon_lmb.dds|t %s", iconUnique, fitsExactly[BAG_BACKPACK][1].itemLink, GS(SI_ITEM_ACTION_EQUIP)), "ZoFontGame", r, g, b, CENTER, MODIFY_TEXT_TYPE_NONE, TEXT_ALIGN_CENTER, true)
 			control:GetParent():SetHandler("OnMouseUp", function(_, mouseButton, upInside)
 				if upInside and mouseButton == 1 then
 					EquipItem(BAG_BACKPACK, fitsExactly[BAG_BACKPACK][1].slotIndex, gearSlot)
@@ -1189,34 +1205,35 @@ end
 CSPS.showSetItemTooltip = showSetItemTooltip
 
 function CSPS.extractGearString(myGearString, myGearStringUnique)
+	local myGear = {}
 	if not myGearString or myGearString == "" then
 		for i, gearSlot in pairs(gearSlots) do
-			theGear[gearSlot] = false	
+			myGear[gearSlot] = false	
 		end
-		return theGear
+		return myGear
 	end
 	local singleUniqueStrings = myGearStringUnique and {SplitString(";", myGearStringUnique)} or {}
 	local singleGearStrings = {SplitString(";", myGearString)}
 	for i, gearSlot in pairs(gearSlots) do
 		if singleGearStrings[i] == "0" then
-			theGear[gearSlot] = false		
+			myGear[gearSlot] = false		
 		else
 			local singleSlotTable = {SplitString(":", singleGearStrings[i])}
 			local itemUniqueID = singleUniqueStrings[i] ~= "0" and singleUniqueStrings[i]
 			if gearSlotsPoison[gearSlot] then
-				theGear[gearSlot] = {
+				myGear[gearSlot] = {
 					firstId = tonumber(singleSlotTable[1]) or 0,
 					secondId = tonumber(singleSlotTable[2]) or 0,
 				}
 			elseif singleSlotTable[1] == "mara" then
-				theGear[gearSlot] = {
+				myGear[gearSlot] = {
 					setId = 44904,
 					mara = true,
 					link = buildItemLink(44904),
 					itemUniqueID = itemUniqueID,
 				}
 			else
-				theGear[gearSlot] = {
+				myGear[gearSlot] = {
 					setId = tonumber(singleSlotTable[1]),
 					type = tonumber(singleSlotTable[2]),
 					trait = tonumber(singleSlotTable[3]),
@@ -1224,15 +1241,19 @@ function CSPS.extractGearString(myGearString, myGearStringUnique)
 					enchant = tonumber(singleSlotTable[5]),
 					itemUniqueID = itemUniqueID,
 				}
-				local gearItem = theGear[gearSlot]
+				local gearItem = myGear[gearSlot]
 				local _, itemLink = getSetItemInfo(gearItem.setId, gearSlot, gearItem.type,  gearItem.trait, gearItem.quality)
 				gearItem.link = itemLink
 				
-				if gearSlotsJewelry[gearSlot] then theGear[gearSlot].type = nil end
+				if gearSlotsJewelry[gearSlot] then myGear[gearSlot].type = nil end
 			end
 		end
 	end
-	return theGear
+	return myGear
+end
+
+function extractAndLoadGearString(myGearString, myGearStringUnique)
+	CSPS.extractGearString(myGearString, myGearStringUnique)
 end
 
 local function NodeSetupGear(node, control, data, open, userRequested, enabled)
@@ -1249,6 +1270,7 @@ local function NodeSetupGear(node, control, data, open, userRequested, enabled)
 	
 	if myTable then
 		local myItemFitIndicator = itemFitIndicators[3]		
+		local showIconUnique = false
 		
 		if gearSlotsPoison[mySlot] then
 			local itemLink = string.format(poisonItemLink, myTable.firstId or 0, myTable.secondId or 0)
@@ -1261,7 +1283,7 @@ local function NodeSetupGear(node, control, data, open, userRequested, enabled)
 			if fit1 then
 				myItemFitIndicator = itemFitIndicators[fit2 and 1 or 2]
 			else
-				local fitsExactly, couldFit = findSetItem(mySlot)
+				local fitsExactly, couldFit, fitsUnique = findSetItem(mySlot)
 				if #fitsExactly[BAG_BACKPACK] > 0 then
 					myItemFitIndicator = itemFitIndicators[4]
 				elseif #fitsExactly[BAG_BANK] > 0 or #fitsExactly[BAG_SUBSCRIBER_BANK] > 0 then
@@ -1321,7 +1343,8 @@ local function NodeSetupGear(node, control, data, open, userRequested, enabled)
 				control.ctrEnchantment:SetColor(ZO_NORMAL_TEXT:UnpackRGB())
 				control.ctrTrait:SetColor(ZO_NORMAL_TEXT:UnpackRGB())
 				
-				local fitsExactly, couldFit = findSetItem(mySlot)
+				local fitsExactly, couldFit, foundUnique = findSetItem(mySlot)
+				showIconUnique = foundUnique or false
 				if #fitsExactly[BAG_BACKPACK] > 0 then
 					myItemFitIndicator = itemFitIndicators[4]
 				elseif #fitsExactly[BAG_BANK] > 0 or #fitsExactly[BAG_SUBSCRIBER_BANK] > 0 then
@@ -1336,6 +1359,7 @@ local function NodeSetupGear(node, control, data, open, userRequested, enabled)
 		
 		control.ctrIndicator:SetTexture(myItemFitIndicator.texture)
 		control.ctrIndicator:SetColor(myItemFitIndicator.color:UnpackRGB())
+		control.ctrIndicator2:SetHidden(not showIconUnique)
 		
 		control.ctrIndicator:SetHidden(false)
 	else
@@ -1346,6 +1370,7 @@ local function NodeSetupGear(node, control, data, open, userRequested, enabled)
 		control.ctrTrait:SetHidden(true)
 		control.ctrEnchantment:SetHidden(true)		
 		control.ctrIndicator:SetHidden(true)
+		control.ctrIndicator2:SetHidden(true)
 	end			
 
 	if mySlot == EQUIP_SLOT_BACKUP_OFF and theGear[EQUIP_SLOT_BACKUP_MAIN] and theGear[EQUIP_SLOT_BACKUP_MAIN].type and isTwoHanded[theGear[EQUIP_SLOT_BACKUP_MAIN].type] or
@@ -1580,7 +1605,7 @@ function CSPS.setTheGear(newGear)
 	if not newGear or type(newGear) ~= "table" then return false end
 	theGear = newGear
 	for gearSlot, v in pairs(theGear) do
-		if not v.link then
+		if v and not v.link then
 			if gearSlotsPoison[gearSlot] then
 				if v.firstId then v.link = string.format(poisonItemLink, v.firstId, v.secondId or 0) else theGear[gearSlot] = nil end
 			else

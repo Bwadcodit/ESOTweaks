@@ -452,7 +452,8 @@ function CSPS.transferProfile(cpPSub)
 			
 		if CSPS.doGear then
 			local gearComp = myTable.gearComp or ""
-			CSPS.extractGearString(gearComp)
+			local gearCompUnique = myTable.gearCompUnique or ""
+			CSPS.setTheGear(CSPS.extractGearString(gearComp, gearCompUnique))
 		end
 		CSPS.hbTables = CSPS.hbExtract(hbComp)
 		CSPS.hbLinkToSkills(CSPS.hbTables)

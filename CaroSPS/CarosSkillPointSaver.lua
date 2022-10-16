@@ -212,6 +212,13 @@ function CSPS:Initialize()
 	CSPS.toggleCPCustomIcons()
 	CSPSWindowBtnApplyAll:SetHidden(not mySettings.showApplyAll)
 	
+	CSPS.setGearMarkerOption(CSPS.savedVariables.settings.showGearMarkers)
+	CSPS.setGearMarkerOptionData(CSPS.savedVariables.settings.showGearMarkerDataBased)
+	
+	if CSPS.doGear then 
+		CSPS.setupGearMarkers()
+	end
+	
 	CSPS.setupLam()
 		
 	EVENT_MANAGER:RegisterForEvent(CSPS.name.."OnCpPurchase", EVENT_CHAMPION_PURCHASE_RESULT, CSPS.onCPChange)
@@ -228,7 +235,7 @@ end
 
 -- display the current skills
 
-function CSPS.showBuild()
+function CSPS.showBuild(initOpen)
 	CSPS.showElement("apply", false)
 	CSPS.showElement("save", true)
 	CSPS.populateTable()
@@ -244,8 +251,9 @@ function CSPS.showBuild()
 	if CSPS.doGear then
 		CSPS.getCurrentGear()
 	end
+	
 	CSPS.refreshTree() 
-	CSPS.unsavedChanges = true
+	CSPS.unsavedChanges = not initOpen
 end
 
 function CSPS.saveBuild()
@@ -292,6 +300,10 @@ function CSPS.saveBuildGo()
 	profileToSave.lastSaved = os.time()
 	
 	CSPS.currentCharData.profiles = CSPS.profiles
+	
+	if CSPS.doGear then 
+		CSPS.buildGearMarkerTable()
+	end
 
 	CSPS.currentCharData.svApi = GetAPIVersion()
 	-- CSPS.currentCharData.myKeys = myKeys
@@ -559,7 +571,7 @@ function CSPS.loadBuild()
 	CSPS.cp2UpdateHbMarks()
 	
 	if CSPS.doGear then
-		CSPS.extractGearString(gearComp, gearCompUnique)
+		CSPS.setTheGear(CSPS.extractGearString(gearComp, gearCompUnique))
 	end
 
 	CSPS.refreshTree() 

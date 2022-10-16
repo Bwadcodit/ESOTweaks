@@ -236,6 +236,12 @@ local L = {}
 	L.CSPS_AcceptedLevelDifference = "Accepted level difference"
 	L.CSPS_AcceptedLevelDifferenceTooltip = "CSPS will only find and equip gear if the difference between your char's and the item's level is less than the selected value."
 	L.CSPS_RequiresLibSets = "This function requires LibSets to be installed and activated."
+	L.CSPS_ShowGearMarkers = "Show inventory markers"
+	L.CSPS_ShowGearMarkersTooltip = "Markers will only be shown for set items fitting your saved profiles. Save your current profile after you changed it to mark the corresponding set items."
+	L.CSPS_ShowGearMarkerDataBased = "Show markers for items fitting the data"
+	L.CSPS_ShowGearMarkerDataBasedTooltip = "If items are saved by their properties instead of their unique ID, the addon can mark items fitting the data. Otherwise it will only mark the items that were saved as 'specific'."
+	L.CSPS_SavedSpecific = "Saved in: %s"
+	L.CSPS_SavedData = "Fits to: %s"
 	
 	-- Presets
 	L.CSPS_MSG_SwitchCP = "Invest points into |c<<1>>'<<2>>'|r instead of one of the other slottables whenever you might profit from it."

@@ -143,6 +143,7 @@
 				self.ctrEnchantment = self:GetNamedChild("Enchantment")
 				self.ctrBtnEdit = self:GetNamedChild("BtnEdit")
 				self.ctrIndicator = self:GetNamedChild("Indicator")
+				self.ctrIndicator2 = self:GetNamedChild("Indicator2")
 			</OnInitialized>
 			<OnMouseUp></OnMouseUp>
 			<Controls>
@@ -157,6 +158,13 @@
 				<Texture name="$(parent)Indicator">
 					<Dimensions x="18" y="18" />
 				    <Anchor point="BOTTOM" relativeTo="$(parent)Icon" relativePoint="BOTTOMRIGHT" offsetY="0" />
+					<OnMouseEnter></OnMouseEnter>
+					<OnMouseExit></OnMouseExit>	
+				</Texture>	
+				
+				<Texture name="$(parent)Indicator2" hidden="true" textureFile="esoui/art/tooltips/icon_lock.dds">
+					<Dimensions x="12" y="12" />
+				    <Anchor point="TOP" relativeTo="$(parent)Icon" relativePoint="TOPRIGHT" offsetY="0" />
 					<OnMouseEnter></OnMouseEnter>
 					<OnMouseExit></OnMouseExit>	
 				</Texture>	

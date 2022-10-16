@@ -417,7 +417,7 @@ function CSPS.refreshSkillSumsAndErrors()
 	refreshSkillPointSum()
 end
 
-local function applySkillsGo()
+local function applySkillsGo(callAfterSkillChange)
 	for skillType, typeData in ipairs(skillTable) do
 		for skillLineIndex, lineData in ipairs(typeData) do
 			if lineData.zo_data:IsActive() then
@@ -440,10 +440,10 @@ local function applySkillsGo()
 		end
 	end	
 	tryingToApplySkills = true
-	zo_callLater(function() tryingToApplySkills = false CSPS.refreshSkillSumsAndErrors()  CSPS.refreshTree() end, 500)	
+	zo_callLater(function() tryingToApplySkills = false CSPS.refreshSkillSumsAndErrors()  CSPS.refreshTree() callAfterSkillChange() end, 500)	
 end
 
-function CSPS.applySkills(skipDiag)
+function CSPS.applySkills(skipDiag, callAfterSkillChange)
 	if not CSPS.tabEx then return end
 	refreshSkillPointSum()
 	local sumConflicts = 0
@@ -462,7 +462,7 @@ function CSPS.applySkills(skipDiag)
 	if not skipDiag or sumConflicts > 0 then
 		ZO_Dialogs_ShowDialog(CSPS.name.."_OkCancelDiag", 
 				{
-					returnFunc = function() applySkillsGo() end,
+					returnFunc = function() applySkillsGo(callAfterSkillChange) end,
 				},
 				{
 					mainTextParams = {string.format(GS(CSPS_MSG_ConfirmApply), unpack(myParameters))}, 
@@ -470,7 +470,7 @@ function CSPS.applySkills(skipDiag)
 				}
 			)
 	else
-		applySkillsGo()
+		applySkillsGo(callAfterSkillChange)
 	end
 end
 
@@ -557,7 +557,10 @@ EVENT_MANAGER:RegisterForEvent(CSPS.name.."SkillsUpdate", EVENT_SKILL_POINTS_CHA
 			--d("Reason: "..reason)
 			if reasons[reason] then
 				CSPS.refreshSkillSumsAndErrors() 
-				if not CSPSWindow:IsHidden() then CSPS.refreshTree() end
+				CSPS.setMundus() -- refresh mundus box in case of armory reset
+				if not CSPSWindow:IsHidden() then 
+					CSPS.refreshTree() 
+				end
 			else
 				refreshSkillPointSum()
 			end

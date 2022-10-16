@@ -63,8 +63,17 @@ end
 
 local function applyAll(excludeSkills, excludeAttributes, excludeGreenCP, excludeBlueCP, excludeRedCP, excludeHotbar, excludeGear, excludeQuickslots)
 	
-	if not excludeSkills then CSPS.applySkills(true) end
-	if not excludeAttributes then CSPS.applyAttr() end
+	if not excludeSkills then 
+		if not excludeHotbar then 
+			CSPS.applySkills(true, CSPS.hbApply)
+		else
+			CSPS.applySkills(true) 
+		end
+	elseif not excludeHotbar then 
+		CSPS.hbApply()
+	end
+	
+	if not excludeAttributes then CSPS.applyAttr(true) end
 	
 	if not (excludeGreenCP and excludeBlueCP and excludeRedCP) then
 		CSPS.toggleCP(1, not excludeGreenCP)
@@ -73,7 +82,7 @@ local function applyAll(excludeSkills, excludeAttributes, excludeGreenCP, exclud
 		
 		CSPS.cp2ApplyGo(true)
 	end
-	if not excludeHotbar then CSPS.hbApply() end
+	
 	if not excludeGear then CSPS.equipAllFittingGear() end
 	if not excludeQuickslots then CSPS.loadConnectedQuickSlots() end
 end

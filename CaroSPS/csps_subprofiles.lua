@@ -1104,7 +1104,7 @@ end
 function CSPS.loadConnectedQuickSlots()
 	local myProfile = CSPS.currentProfile == 0 and CSPS.currentCharData or CSPS.profiles[CSPS.currentProfile]
 	if not myProfile.connections or not myProfile.connections[4] then return end
-	local myType, myId = SplitString(myProfile.connections[4])
+	local myType, myId = SplitString("-", myProfile.connections[4])
 	myType = tonumber(myType)
 	myId = tonumber(myId)
 	 loadQuickSlots(myType, myId)

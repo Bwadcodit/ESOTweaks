@@ -113,6 +113,7 @@ function CSPS.setupLam()
 					CSPS.savedVariables.settings.maxLevelDiff = value
 					CSPS.getTreeControl():RefreshVisible()
 				end,
+			disabled = function() return not CSPS.doGear end,
 		},
 		{
 			type = "checkbox",
@@ -123,7 +124,30 @@ function CSPS.setupLam()
 			setFunc = function(value) 
 					CSPS.savedVariables.settings.saveSpecificGear = value
 				end,
+			disabled = function() return not CSPS.doGear end,
 		},
+		{
+			type = "checkbox",
+			name = GS(CSPS_ShowGearMarkers),
+			width = "full",
+			tooltip = GS(CSPS_ShowGearMarkersTooltip),
+			getFunc = function() return CSPS.savedVariables.settings.showGearMarkers end,
+			setFunc = function(value) 
+					CSPS.setGearMarkerOption(value)
+				end,
+			disabled = function() return not CSPS.doGear end,
+		},
+		{
+			type = "checkbox",
+			name = GS(CSPS_ShowGearMarkerDataBased),
+			width = "full",
+			tooltip = GS(CSPS_ShowGearMarkerDataBasedTooltip),
+			getFunc = function() return CSPS.savedVariables.settings.showGearMarkerDataBased end,
+			setFunc = function(value) 
+					CSPS.setGearMarkerOptionData(value)
+				end,
+			disabled = function() return not (CSPS.doGear and CSPS.savedVariables.settings.showGearMarkers) end,
+		},		
 		{
 			type = "submenu",
 			name = GS(CSPS_BtnApplyAll),
@@ -192,7 +216,7 @@ function CSPS.setupLam()
 					setFunc = function(value) 
 							CSPS.savedVariables.settings.applyAllExclude.gear = not value
 						end,
-					disabled = function() return not CSPS.savedVariables.settings.showApplyAll end,
+					disabled = function() return not CSPS.savedVariables.settings.showApplyAll or not CSPS.doGear end,
 				},
 				{
 					type = "checkbox",

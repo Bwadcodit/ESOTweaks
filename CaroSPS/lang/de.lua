@@ -232,6 +232,12 @@ local L = {}
 	L.CSPS_AcceptedLevelDifference = "Akzeptierte Level-Differenz"
 	L.CSPS_AcceptedLevelDifferenceTooltip = "CSPS wird nur Ausrüstungsgegenstände finden und ausrüsten, deren Level nicht weiter unter dem deines Charakters liegt als der eingestellte Wert."
 	L.CSPS_RequiresLibSets = "Für diese Funktion muss LibSets installiert und aktiviert werden."
+	L.CSPS_ShowGearMarkers = "Zeige Markierungen im Inventar"
+	L.CSPS_ShowGearMarkersTooltip = "Markierungen werden nur für Gegenstände aus gespeicherten Profilen angezeigt. Speichere dein Profil, nachdem du Änderungen vorgenommen hast, um die entsprechenden Gegenstände zu markieren."
+	L.CSPS_ShowGearMarkerDataBased = "Zeige Markierungen für Gegenstände mit passenden Eigenschaften"
+	L.CSPS_ShowGearMarkerDataBasedTooltip = "Falls Gegenstände anhand ihrer Eigenschaften anstelle ihrer einzigartigen ID gespeichert werden, kannst du einstellen, dass das Addons Gegenstände markiert, auf die diese Eigenschaften zutreffen. Andernfalls werden ausschließlich Gegenstände markiert, die 'spezifisch' anhand ihrer einzigartigen ID gespeichert wurden."
+	L.CSPS_SavedSpecific = "Gespeichert in: %s"
+	L.CSPS_SavedData = "Passt zu: %s"
 
 	-- Presets
 	L.CSPS_MSG_SwitchCP = "Setze Punkte in |c<<1>>'<<2>>'|r anstelle einer der anderen ausrüstbaren Fertigkeiten, wann immer du davon profitierst."
