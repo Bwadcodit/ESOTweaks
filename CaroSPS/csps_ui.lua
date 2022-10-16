@@ -693,7 +693,7 @@ function CSPS.OnWindowShow()
 	CSPS.showElement("load") -- Show, if theres data to load
 	
 	if not initOpen then
-		CSPS.showBuild()
+		CSPS.showBuild(true) -- boolean to prevent from setting unsaved-changes to true
 		initOpen = true
 	end
 	CSPS.toggleMouse(true)
