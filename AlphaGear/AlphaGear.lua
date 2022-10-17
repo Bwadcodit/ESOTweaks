@@ -1428,7 +1428,7 @@ end
 
 
 function AG.LoadSkill(nr, slot, pair) -- TWEAK TODO
-    if not nr or not slot then return end
+    if not nr or not slot or nr <= 0 or slot <= 0 then return end
     if pair == nil then pair = GetActiveWeaponPairInfo() end -- slot on active hotbar if not specified
     if pair ~= 1 and pair ~= 2 then return end -- invalid pair number
 
@@ -1441,16 +1441,18 @@ function AG.LoadSkill(nr, slot, pair) -- TWEAK TODO
     if newAbilityIndex == 0 or newAbilityIndex == currentAbilityIndex then return end
     trace('AbilityIndex has changed, replacing. Current AI: %d, New AI: %d', currentAbilityIndex, newAbilityIndex)
     local res = ACTION_BAR_ASSIGNMENT_MANAGER:GetHotbar(pair - 1):AssignSkillToSlotByAbilityId(slot + 2, skillID)
-    --if not res then
-    --    d("|cFF0000Failed to set new skill due to a bug in ESO.|r Kill a mob and try again!")
-    --end
+    if not res then
+       d("|cFF0000Failed to set new skill due to a bug in ESO.|r Kill a mob and try again!")
+    end
 end
 
 function AG.LoadSetBars(nr) -- TWEAK TODO
     if not nr then return end
     for pair = 1, 2 do
         local skillLineNr = AG.setdata[nr].Set.skill[pair]
-        for slot = 1, 6 do AG.LoadSkill(skillLineNr, slot, pair) end
+        if skillLineNr and skillLineNr > 0 then
+            for slot = 1, 6 do AG.LoadSkill(skillLineNr, slot, pair) end
+        end
     end
     if AG.isShowWeaponIcon() then AG.ForceUpdateWeaponStats() end
 end
