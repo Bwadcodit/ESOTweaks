@@ -551,7 +551,6 @@ local function compressQuickslots()
 		table.insert(myBar, itemLink)
 	end
 	myBar = table.concat(myBar, ",")
-	d(myBar)
 	return myBar, myPoints
 end
 

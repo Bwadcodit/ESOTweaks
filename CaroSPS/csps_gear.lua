@@ -1256,6 +1256,109 @@ function extractAndLoadGearString(myGearString, myGearStringUnique)
 	CSPS.extractGearString(myGearString, myGearStringUnique)
 end
 
+
+local function setMara(gearSlot, itemLink, itemUniqueID)
+	theGear[gearSlot] = {mara = true, setId = 44904, link = itemLink, itemUniqueID = itemUniqueID}
+end
+
+local function setPoisonFromIdAndLink(gearSlot, itemLink, itemId)
+	theGear[gearSlot] = {
+		firstId = itemId,
+		secondId = tonumber(string.match(itemLink, ":(%d+)|")) or 0
+	}
+end
+
+local function setArmorOrWeaponFromLink(gearSlot, itemLink, itemUniqueID)
+	theGear[gearSlot] = {}
+	local slotTable = theGear[gearSlot]
+	local hasSetInfo, _, _, _, neededNumber, itemSetId = GetItemLinkSetInfo(itemLink, false)
+	slotTable.setId = hasSetInfo and itemSetId or 0
+	slotTable.quality = GetItemLinkDisplayQuality(itemLink)
+	if slotTable.quality == ITEM_DISPLAY_QUALITY_MYTHIC_OVERRIDE then slotTable.mystic = true end
+	local enchantId = GetItemLinkFinalEnchantId(itemLink)
+	slotTable.enchant = enchantId
+	slotTable.trait = GetItemLinkTraitInfo(itemLink)
+	slotTable.link = itemLink
+	slotTable.itemUniqueID = itemUniqueID
+	if gearSlotsBody[gearSlot] then
+		slotTable.type = GetItemLinkArmorType(itemLink)
+	elseif gearSlotsHands[gearSlot] then
+		local weaponType = GetItemLinkWeaponType(itemLink)
+		slotTable.type = weaponType
+	end
+end
+
+local function removeDuplicateUniqueId(itemUniqueID)
+	for gearSlot, gearData in pairs(theGear) do
+		if gearData and gearData.itemUniqueID == itemUniqueID then theGear[gearSlot] = false end
+	end
+end
+
+local function receiveDrag(gearSlot)
+	local acceptedCursorContentTypes = {[MOUSE_CONTENT_INVENTORY_ITEM] = true, [MOUSE_CONTENT_EQUIPPED_ITEM] = true}
+	if not acceptedCursorContentTypes[GetCursorContentType()] then return false end
+
+	local bagId = GetCursorBagId()
+	local slotIndex = GetCursorSlotIndex()
+	ClearCursor()
+		
+	local itemLink = GetItemLink(bagId, slotIndex)
+	local itemType = GetItemType(bagId, slotIndex)
+	local itemUniqueID = Id64ToString(GetItemUniqueId(bagId, slotIndex))
+	itemUniqueID = itemUniqueID ~= "0" and itemUniqueID or false
+	local itemId = GetItemId(bagId, slotIndex)
+	
+	if gearSlotsPoison[gearSlot] then
+		if itemType ~= ITEMTYPE_POISON then return false end
+		setPoisonFromIdAndLink(gearSlot, itemLink, itemId)
+		CSPS:getTreeControl():RefreshVisible()
+		
+		return true
+	end
+	
+	local equipType = GetItemLinkEquipType(itemLink)
+	
+	if gearSlotsHands[gearSlot] then
+		if itemType ~= ITEMTYPE_WEAPON then return false end
+		if not equipSlotToEquipType[gearSlot][equipType] then return false end
+		local weaponType = GetItemLinkWeaponType(itemLink)
+		local slotToClearReverse = {
+			[EQUIP_SLOT_BACKUP_OFF]  = EQUIP_SLOT_BACKUP_MAIN,
+			[EQUIP_SLOT_OFF_HAND] = EQUIP_SLOT_MAIN_HAND,
+		}
+		if isTwoHanded[weaponType] then
+			local slotToClear = {
+				[EQUIP_SLOT_BACKUP_MAIN]  = EQUIP_SLOT_BACKUP_OFF,
+				[EQUIP_SLOT_MAIN_HAND] = EQUIP_SLOT_OFF_HAND,
+			}
+			if slotToClear[gearSlot] then theGear[slotToClear[gearSlot]] = false end
+		elseif slotToClearReverse[gearSlot] then
+			local weaponTypeMain = theGear[slotToClearReverse[gearSlot]]
+			weaponTypeMain = weaponTypeMain and weaponTypeMain.type
+			weaponTypeMain = weaponTypeMain and isTwoHanded[weaponTypeMain]
+			if weaponTypeMain then theGear[slotToClearReverse[gearSlot]] = false end
+		end
+		if itemUniqueID then removeDuplicateUniqueId(itemUniqueID) end
+		setArmorOrWeaponFromLink(gearSlot, itemLink, itemUniqueID)
+		CSPS:getTreeControl():RefreshVisible()
+		return true
+	end
+	
+	if itemType ~= ITEMTYPE_ARMOR then return false end
+	if not equipSlotToEquipType[gearSlot][equipType] then return false end
+	
+	if itemId == 44904 then 
+		if itemUniqueID then removeDuplicateUniqueId(itemUniqueID) end
+		setMara(gearSlot, itemLink, itemUniqueID) 
+	else	
+		if itemUniqueID then removeDuplicateUniqueId(itemUniqueID) end
+		setArmorOrWeaponFromLink(gearSlot, itemLink, itemUniqueID)
+	end
+	CSPS:getTreeControl():RefreshVisible()
+	return true
+		
+end
+
 local function NodeSetupGear(node, control, data, open, userRequested, enabled)
 	--Entries in data: Text, Value, entrColor
 	local mySlot = data.gearSlot
@@ -1267,6 +1370,8 @@ local function NodeSetupGear(node, control, data, open, userRequested, enabled)
 			{texture = "esoui/art/tooltips/icon_bag.dds", color = GetItemQualityColor(ITEM_QUALITY_ARCANE)},  -- result = 4, item is in inventory
 			{texture = "esoui/art/tooltips/icon_bank.dds", color = GetItemQualityColor(ITEM_QUALITY_ARTIFACT)}, -- result = 5, item is in bank
 	}
+	
+	control.receiveDragFunction = function() receiveDrag(mySlot) end
 	
 	if myTable then
 		local myItemFitIndicator = itemFitIndicators[3]		
@@ -1547,40 +1652,21 @@ function CSPS.setupGearTree()
 	myTree:RefreshVisible()
 end
 
-
 function CSPS.getCurrentGear()	
 	--local ringOfMara = false
 	for _, gearSlot in ipairs(gearSlots) do
 		theGear[gearSlot] = false
 		local itemLink = GetItemLink(BAG_WORN, gearSlot, LINK_STYLE_DEFAULT)
 		local itemUniqueID = Id64ToString(GetItemUniqueId(BAG_WORN, gearSlot))
-		itemUniqueID = itemUniqueID ~= 0 and itemUniqueID or false
+		itemUniqueID = itemUniqueID ~= "0" and itemUniqueID or false
 		local itemId = GetItemLinkItemId(itemLink)
-		if itemId == 44904 then 
-			theGear[gearSlot] = {mara = true, setId = 44904, link = itemLink, itemUniqueID = itemUniqueID}
+		
+		if itemId == 44904 then -- the actual functions are way up above because of the receive-drag-function that uses them too
+			setMara(gearSlot, itemLink, itemUniqueID)
 		elseif not gearSlotsPoison[gearSlot] and itemLink ~= "" then
-			theGear[gearSlot] = {}
-			local slotTable = theGear[gearSlot]
-			local hasSetInfo, _, _, _, neededNumber, itemSetId = GetItemLinkSetInfo(itemLink, false)
-			slotTable.setId = hasSetInfo and itemSetId or 0
-			slotTable.quality = GetItemLinkDisplayQuality(itemLink)
-			if slotTable.quality == ITEM_DISPLAY_QUALITY_MYTHIC_OVERRIDE then slotTable.mystic = true end
-			local enchantId = GetItemLinkFinalEnchantId(itemLink)
-			slotTable.enchant = enchantId
-			slotTable.trait = GetItemLinkTraitInfo(itemLink)
-			slotTable.link = itemLink
-			slotTable.itemUniqueID = itemUniqueID
-			if gearSlotsBody[gearSlot] then
-				slotTable.type = GetItemLinkArmorType(itemLink)
-			elseif gearSlotsHands[gearSlot] then
-				local weaponType = GetItemWeaponType(BAG_WORN, gearSlot)
-				slotTable.type = weaponType
-			end
+			setArmorOrWeaponFromLink(gearSlot, itemLink, itemUniqueID)
 		elseif itemLink ~= "" then
-			theGear[gearSlot] = {
-				firstId = itemId,
-				secondId = tonumber(string.match(itemLink, ":(%d+)|")) or 0
-			}
+			setPoisonFromIdAndLink(gearSlot, itemLink, itemId)
 		end
 	end
 

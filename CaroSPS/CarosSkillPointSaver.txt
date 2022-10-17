@@ -1,7 +1,7 @@
 ## Title: |c9e0911Caro|r's Skill Point Saver
 ## Description: Save your spent skill points, attributes, champion points, quick slots and gear and load them again.
 ## APIVersion: 101035 101036
-## Version: 4.2.2
+## Version: 4.2.3
 ## Author: |c1d6dadIrniben|r
 ## SavedVariables: CSPSSavedVariables
 ## DependsOn: LibAddonMenu-2.0
@@ -35,6 +35,7 @@ csps_barmanager.lua
 csps_gearcraft.lua
 csps_gear.lua
 csps_gearmarkers.lua
+csps_quickslots.lua
 csps_lam.lua
 
 csps_presets.xml

@@ -116,7 +116,12 @@ end
 
 local function getItemProfileList(itemData)
 	
+	local itemLink = itemData.itemLink or GetItemLink(itemData.bagId, itemData.slotIndex)
+	
+	if not itemLink or itemLink == "" then return false, false end
+	
 	local itemProfileListSpecific, itemProfileListData = false, false 
+	
 	
 	local itemUniqueID = Id64ToString(GetItemUniqueId(itemData.bagId, itemData.slotIndex))
 	local weaponOrArmor = {[ITEMTYPE_ARMOR] = true, [ITEMTYPE_WEAPON] = true}
@@ -126,8 +131,8 @@ local function getItemProfileList(itemData)
 	end
 		
 	if itemData.itemType == ITEMTYPE_POISON then	
-		local firstId = GetItemLinkItemId(itemData.itemLink)
-		local secondId = tonumber(string.match(itemData.itemLink, ":(%d+)|")) or 0
+		local firstId = GetItemLinkItemId(itemLink)
+		local secondId = tonumber(string.match(itemLink, ":(%d+)|")) or 0
 		itemProfileListData = gearMarkersPoison[firstId] and gearMarkersPoison[firstId][secondId] or false
 		return itemProfileListSpecific, itemProfileListData
 	end
@@ -136,24 +141,24 @@ local function getItemProfileList(itemData)
 	
 	if weaponOrArmor[itemData.itemType] then
 		if itemData.itemType == ITEMTYPE_WEAPON then 
-			itemProfileListData = gearMarkersDataWeapons[GetItemLinkWeaponType(itemData.itemLink)] or false
+			itemProfileListData = gearMarkersDataWeapons[GetItemLinkWeaponType(itemLink)] or false
 		else
 			itemProfileListData = gearMarkersData[itemData.equipType] or false
-			itemProfileListData = itemProfileListData and itemProfileListData[GetItemLinkArmorType(itemData.itemLink)] or false 
+			itemProfileListData = itemProfileListData and itemProfileListData[GetItemLinkArmorType(itemLink)] or false 
 		end
 		if itemProfileListData then
 		
-			local _, _, _, _, _, setId = GetItemLinkSetInfo(itemData.itemLink)
-			local quality = GetItemLinkDisplayQuality(itemData.itemLink) 
-			local enchant = GetItemLinkFinalEnchantId(itemData.itemLink) 
-			local trait = GetItemLinkTraitInfo(itemData.itemLink)
+			local _, _, _, _, _, setId = GetItemLinkSetInfo(itemLink)
+			local quality = GetItemLinkDisplayQuality(itemLink) 
+			local enchant = GetItemLinkFinalEnchantId(itemLink) 
+			local trait = GetItemLinkTraitInfo(itemLink)
 			
 			itemProfileListData = itemProfileListData and itemProfileListData[setId] or false 
 			itemProfileListData = itemProfileListData and itemProfileListData[quality] or false 
 			itemProfileListData = itemProfileListData and itemProfileListData[enchant] or false 
 			itemProfileListData = itemProfileListData and itemProfileListData[trait] or false 
 			
-			if itemProfileListData and checkItemLevel(itemData.itemLink, true) then itemProfileListData = false end
+			if itemProfileListData and checkItemLevel(itemLink, true) then itemProfileListData = false end
 			
 		end	
 	end	

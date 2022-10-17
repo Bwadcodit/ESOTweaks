@@ -156,8 +156,10 @@ function CSPS:Initialize()
 		CSPS.applyCP = false
 	end
 				
-	CSPS.profiles = CSPS.currentCharData.profiles or {}
-	CSPS.bindings = CSPS.currentCharData.bindings or {}
+	CSPS.currentCharData.profiles = CSPS.currentCharData.profiles or {}
+	CSPS.currentCharData.bindings = CSPS.currentCharData.bindings or {} 
+	CSPS.profiles = CSPS.currentCharData.profiles
+	CSPS.bindings = CSPS.currentCharData.bindings
 	CSPS.currentCharData.cpHbProfiles = CSPS.currentCharData.cpHbProfiles  or {}
 	
 	local mySettings = CSPS.savedVariables.settings

@@ -8,7 +8,7 @@ local ec = CSPS.ec
 local colTbl = CSPS.colors
 local cpColors = CSPS.cpColors
 
-local TREE_SECTION_SKILLTYPES, TREE_SECTION_SKILLLINES, TREE_SECTION_SKILLS, TREE_SECTION_CHAMPIONPOINTS, TREE_SECTION_ATTRIBUTES, TREE_SECTION_GEAR = 1,2,3,4,6,7
+local TREE_SECTION_SKILLTYPES, TREE_SECTION_SKILLLINES, TREE_SECTION_SKILLS, TREE_SECTION_CHAMPIONPOINTS, TREE_SECTION_ATTRIBUTES, TREE_SECTION_GEAR, TREE_SECTION_QS = 1,2,3,4,6,7, 8
 
 local errorColors = { -- ec = {correct = 1, wrongMorph = 2, rankHigher = 3, skillLocked = 4, rankLocked = 5, morphLocked = 6}, >>> + 1
 	colTbl.white,	
@@ -220,6 +220,11 @@ function CSPS.NodeSectionSetup(node, control, data, open, userRequested, enabled
 		myCtrText:SetColor(colTbl.white:UnpackRGBA())
 		CSPS.setupGearSection(control, node, data)
 		
+	elseif data.variant == TREE_SECTION_QS then
+		myCtrText:SetColor(colTbl.white:UnpackRGBA())
+		CSPS.setupQsSection(control, node, data)
+		
+	
 	elseif data.variant == TREE_SECTION_CHAMPIONPOINTS then -- Champion Points section
 		CSPS.cp2ParentTreeSection = control
 		if (CSPS.applyCP and CSPS.unlockedCP)  or (not CSPS.showApply) then 

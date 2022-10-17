@@ -1,5 +1,33 @@
 <GuiXml>
 	<Controls>
+		<Control name="CSPSQSLE" inherits="ZO_TreeEntry" virtual="true">
+			<Dimensions  y="34" />
+			<Controls>
+				<Texture name="$(parent)Marker" mouseEnabled="true">
+					<Dimensions x="26" y="26" />
+				      <Anchor point="TOPLEFT" relativeTo="$(parent)" relativePoint="TOPLEFT" offsetY="3" />
+					  <OnMouseEnter>ZO_Tooltips_ShowTextTooltip(self, RIGHT, GetString(CSPS_Tooltiptext_SkIcon))</OnMouseEnter>
+					  <OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>	
+				</Texture>	
+				<Texture name="$(parent)Icon" mouseEnabled="true">
+					<Dimensions x="32" y="32" />
+				      <Anchor point="LEFT" relativeTo="$(parent)Marker" relativePoint="RIGHT"  offsetX="4"/>/>
+					  <OnMouseEnter>ZO_Tooltips_ShowTextTooltip(self, RIGHT, GetString(CSPS_Tooltiptext_SkIcon))</OnMouseEnter>
+					  <OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>	
+				</Texture>	
+				<Label name="$(parent)Text" font="ZoFontGame" mouseEnabled="true" linkEnabled="true">
+					<Dimensions x="410" y="32" />
+					<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$(parent)Icon" offsetX="4"/>
+					<OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>	
+				</Label>
+				<Button name="$(parent)BtnMinus">
+					<Dimensions y="28" x="28" />
+					<Anchor point="RIGHT" relativePoint="RIGHT" relativeTo="$(parent)" />
+					<Textures normal="ESOUI/art/buttons/minus_up.dds" pressed="ESOUI/art/buttons/minus_down.dds" mouseOver="ESOUI/art/buttons/minus_over.dds" />
+					<OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>	
+				</Button>
+			</Controls>
+		</Control>
 		<Control name="CSPSPOISONLISTENTRY" mouseEnabled="true" virtual="true">
 			<Dimensions y="28" />
 			<OnMouseEnter>
@@ -153,20 +181,17 @@
 					<OnMouseUp>self:GetParent():GetHandler("OnMouseUp")(self, button, upInside)</OnMouseUp>
 					<OnMouseEnter>if self:GetParent().tooltipFunction then self:GetParent().tooltipFunction() end</OnMouseEnter>
 					<OnMouseExit>if self:GetParent().tooltipExitFunction then self:GetParent().tooltipExitFunction() end</OnMouseExit>	
+					<OnReceiveDrag>if self:GetParent().receiveDragFunction then self:GetParent().receiveDragFunction() end</OnReceiveDrag>
 				</Texture>	
 				
 				<Texture name="$(parent)Indicator">
 					<Dimensions x="18" y="18" />
 				    <Anchor point="BOTTOM" relativeTo="$(parent)Icon" relativePoint="BOTTOMRIGHT" offsetY="0" />
-					<OnMouseEnter></OnMouseEnter>
-					<OnMouseExit></OnMouseExit>	
 				</Texture>	
 				
 				<Texture name="$(parent)Indicator2" hidden="true" textureFile="esoui/art/tooltips/icon_lock.dds">
 					<Dimensions x="12" y="12" />
 				    <Anchor point="TOP" relativeTo="$(parent)Icon" relativePoint="TOPRIGHT" offsetY="0" />
-					<OnMouseEnter></OnMouseEnter>
-					<OnMouseExit></OnMouseExit>	
 				</Texture>	
 				
 				<!-- Just one Row:  (30 + 4) + 280 + 2 + 72 + 2 + 100 + (4 + 28) = 522 -->
@@ -177,6 +202,7 @@
 					<OnMouseUp>self:GetParent():GetHandler("OnMouseUp")(self, button, upInside)</OnMouseUp>
 					<OnMouseEnter>if self:GetParent().tooltipFunction then self:GetParent().tooltipFunction() end</OnMouseEnter>
 					<OnMouseExit>if self:GetParent().tooltipExitFunction then self:GetParent().tooltipExitFunction() end</OnMouseExit>
+					<OnReceiveDrag>if self:GetParent().receiveDragFunction then self:GetParent().receiveDragFunction() end</OnReceiveDrag>
 				</Label>
 				<Label name="$(parent)Trait" font="$(MEDIUM_FONT)|$(KB_16)|soft-shadow-thin" mouseEnabled="true" verticalAlignment="CENTER" wrapMode="1">
 					<Dimensions x="72" y="32" />
@@ -184,6 +210,7 @@
 					<OnMouseUp>self:GetParent():GetHandler("OnMouseUp")(self, button, upInside)</OnMouseUp>
 					<OnMouseEnter>if self:GetParent().tooltipFunction then self:GetParent().tooltipFunction() end</OnMouseEnter>
 					<OnMouseExit>if self:GetParent().tooltipExitFunction then self:GetParent().tooltipExitFunction() end</OnMouseExit>
+					<OnReceiveDrag>if self:GetParent().receiveDragFunction then self:GetParent().receiveDragFunction() end</OnReceiveDrag>
 				</Label>
 				<Label name="$(parent)Enchantment" font="$(MEDIUM_FONT)|$(KB_16)|soft-shadow-thin" mouseEnabled="true" verticalAlignment="CENTER" wrapMode="1">
 					<Dimensions x="110" y="32"  />
@@ -191,6 +218,7 @@
 					<OnMouseUp>self:GetParent():GetHandler("OnMouseUp")(self, button, upInside)</OnMouseUp>
 					<OnMouseEnter>if self:GetParent().tooltipFunction then self:GetParent().tooltipFunction() end</OnMouseEnter>
 					<OnMouseExit>if self:GetParent().tooltipExitFunction then self:GetParent().tooltipExitFunction() end</OnMouseExit>
+					<OnReceiveDrag>if self:GetParent().receiveDragFunction then self:GetParent().receiveDragFunction() end</OnReceiveDrag>
 				</Label>
 				<Button name="$(parent)BtnEdit">
 					<Dimensions x="28"  y="28" />
