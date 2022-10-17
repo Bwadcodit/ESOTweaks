@@ -12,913 +12,8 @@
 CSPSCPPresets = {
 
 ------------------------------------------------------------
-------------------------- RED TREE -------------------------
-------------------------------------------------------------
-
-	-- HEALER --
---[[
-50 Rejuvenation (slot)
-50 Boundless Vitality (slot)
-15 Tumbling 1
-10 Mystic Tenacity 1
-20 Hero's Vigor
-10 Piercing Gaze 1
-25 Tempered Soul 1
-50 Spirit Mastery (slot)
-16 Hasty
-30 Tumbling 2
-50 Fortified (slot)
-20 Defiance					331
-20 Sprinter
-10 Tireless Guardian 1
-30 Fortification
-6 Nimble Protector
-20 Tireless Guardian 2
-50 Mystic Tenacity 2
-50 Tempered Soul 2
-30 Piercing Gaze 2
-30 Savage Defense			
-20 Bashing Brutality		542
---]]
-	[1] = {
-		name = "Healer (up to 542)",
-		addInfo = "",
-		updated = {11, 04, 2021},
-		points = "(dynamic)",
-		source = "@Xisel",
-		role = 4,
-		discipline = 3,
-		preset = {
-			{35, 50},	-- Rejuvenation (slot)
-			{2, 50},	-- Boundless Vitality (slot)
-			{37, 15},	-- Tumbling 1
-			{53, 10},	-- Mystic Tenacity 1
-			{113, 20},	-- Hero's Vigor
-			{45, 10},	-- Piercing Gaze 1
-			{58, 25},	-- Tempered Soul 1
-			{56, 50},	-- Spirit Mastery (slot)
-			{42, 16},	-- Hasty
-			{37, 30},	-- Tumbling 2
-			{34, 50},	-- Fortified (slot)
-			{128, 20},	-- Defiance					331
-			{38, 20},	-- Sprinter
-			{39, 10},	-- Tireless Guardian 1
-			{43, 30},	-- Fortification
-			{44, 6},	-- Nimble Protector
-			{39, 20},	-- Tireless Guardian 2
-			{53, 50},	-- Mystic Tenacity 2
-			{58, 50},	-- Tempered Soul 2
-			{45, 30},	-- Piercing Gaze 2
-			{40, 30},	-- Savage Defense			
-			{50, 20},	-- Bashing Brutality		542
-		},
-		basestatsToFill = {},
-		slotted = {35,2,56,34}, -- Rejuvenation, Boundless Vitality, Spirit Mastery, Fortified
-	},
-
-	-- TANK --
---[[
-50 Rejuvenation (slot)
-50 Boundless Vitality (slot)
-20 Tireless Guardian
-16 Hasty
-30 Fortification
-6 Nimble Protector
-15 Tumbling 1
-50 Expert Evasion (slot)
-10 Defiance 1
-20 Hero's Vigor				
-50 Fortified (slot)			317
-30 Tumbling 2
-20 Defiance 2				
-50 Mystic Tenacity
-20 Sprinter
-10 Piercing Gaze 1
-50 Tempered Soul
-30 Savage Defense
-20 Bashing Brutality		
-30 Piercing Gaze 2			542
---]]
-	[2] = {
-		name = "Tank (up to 502)",
-		addInfo = "",
-		updated = {11, 04, 2021},
-		points = "(dynamic)",
-		source = "@Xisel",
-		role = 2,
-		discipline = 3,
-		preset = {
-			{35, 50},	-- Rejuvenation (slot)
-			{2, 50},	-- Boundless Vitality (slot)
-			{39, 20},	-- Tireless Guardian
-			{42, 16},	-- Hasty
-			{43, 30},	-- Fortification
-			{44, 6},	-- Nimble Protector
-			{37, 15},	-- Tumbling 1
-			{51, 50},	-- Expert Evasion (slot)
-			{128, 10},	-- Defiance 1
-			{113, 20},	-- Hero's Vigor				
-			{34, 50},	-- Fortified (slot)			317
-			{37, 30},	-- Tumbling 2
-			{128, 20},	-- Defiance 2				
-			{53, 50},	-- Mystic Tenacity
-			{38, 20},	-- Sprinter
-			{45, 10},	-- Piercing Gaze 1
-			{58, 50},	-- Tempered Soul
-			{40, 30},	-- Savage Defense
-			{50, 20},	-- Bashing Brutality		
-			{45, 30},	-- Piercing Gaze 2			542
-		},
-		basestatsToFill = {},
-		slotted = {35,2,51,34}, -- Rejuvenation, Boundless Vitality, Expert Evasion, Fortified
-	},
-
-	-- MAGICKA --
---[[
-50 Fortified (slot)
-50 Boundless Vitality (slot)
-30 Tumbling
-20 Defiance
-10 Mystic Tenacity 1
-20 Hero’s Vigor
-16 Hasty
-50 Siphoning Spells (slot)
-10 Shield Master
-50 Bastion (slot)			306
-20 Sprinter
-20 Tireless Guardian
-30 Fortification
-6 Nimble Protector
-50 Mystic Tenacity 2		422
-50 Tempered Soul
-30 Piercing Gaze
-30 Savage Defense			
-20 Bashing Brutality		552
---]]
-	[3] = {
-		name = "Magicka DPS (up to 552)",
-		addInfo = "",
-		updated = {11, 04, 2021},
-		points = "(dynamic)",
-		source = "@Xisel",
-		role = 5,
-		discipline = 3,
-		preset = {
-			{34, 50},	-- Fortified (slot)
-			{2, 50},	-- Boundless Vitality (slot)
-			{37, 30},	-- Tumbling
-			{128, 20},	-- Defiance
-			{53, 10},	-- Mystic Tenacity 1
-			{113, 20},	-- Hero’s Vigor
-			{42, 16},	-- Hasty
-			{47, 50},	-- Siphoning Spells (slot)
-			{63, 10},	-- Shield Master
-			{46, 50},	-- Bastion (slot)			306
-			{38, 20},	-- Sprinter
-			{39, 20},	-- Tireless Guardian
-			{43, 30},	-- Fortification
-			{44, 6},	-- Nimble Protector
-			{53, 50},	-- Mystic Tenacity 2		422
-			{58, 50},	-- Tempered Soul
-			{45, 30},	-- Piercing Gaze
-			{40, 30},	-- Savage Defense			
-			{50, 20},	-- Bashing Brutality		552
-		},
-		basestatsToFill = {},
-		slotted = {34,2,47,46}, -- Fortified, Boundless Vitality, Siphoning Spells, Bastion
-	},
-
-	-- MAGICKA FARM --
---[[
-50 Boundless Vitality (slot)
-30 Tumbling
-20 Defiance
-10 Mystic Tenacity 1
-20 Hero’s Vigor
-16 Hasty
-50 Celerity (slot)
-50 Siphoning Spells (slot)
-10 Shield Master
-50 Bastion (slot)			306
-20 Sprinter
-20 Tireless Guardian
-30 Fortification
-6 Nimble Protector
-50 Mystic Tenacity 2		422
-50 Tempered Soul
-30 Piercing Gaze
-30 Savage Defense			
-20 Bashing Brutality		552
---]]
-	[4] = {
-		name = "Magicka Farm (up to 552)",
-		addInfo = "Replace Fortified with Celerity",
-		updated = {11, 04, 2021},
-		points = "(dynamic)",
-		source = "@Xisel",
-		role = 5,
-		discipline = 3,
-		preset = {
-			{2, 50},	-- Boundless Vitality (slot)
-			{37, 30},	-- Tumbling
-			{128, 20},	-- Defiance
-			{53, 10},	-- Mystic Tenacity 1
-			{113, 20},	-- Hero’s Vigor
-			{42, 16},	-- Hasty
-			{270, 50},	-- Celerity (slot)
-			{47, 50},	-- Siphoning Spells (slot)
-			{63, 10},	-- Shield Master
-			{46, 50},	-- Bastion (slot)			306
-			{38, 20},	-- Sprinter
-			{39, 20},	-- Tireless Guardian
-			{43, 30},	-- Fortification
-			{44, 6},	-- Nimble Protector
-			{53, 50},	-- Mystic Tenacity 2		422
-			{58, 50},	-- Tempered Soul
-			{45, 30},	-- Piercing Gaze
-			{40, 30},	-- Savage Defense			
-			{50, 20},	-- Bashing Brutality		552
-		},
-		basestatsToFill = {},
-		slotted = {270,2,47,46}, -- Celerity, Boundless Vitality, Siphoning Spells, Bastion
-	},
-
--- MAGICKA PvP --
---[[
-50 Boundless Vitality (slot)
-30 Tumbling
-20 Defiance
-50 Mystic Tenacity
-20 Hero’s Vigor
-16 Hasty
-50 Pain’s Refuge (slot)
-50 Sustained by Suffering (slot)
-50 Slippery (slot)			
-20 Sprinter
-20 Tireless Guardian
-30 Fortification
-6 Nimble Protector
-30 Savage Defense			
-20 Bashing Brutality		
-30 Piercing Gaze
-50 Tempered Soul
---]]
-	[5] = {
-		name = "Magicka PvP  (up to 552)",
-		addInfo = "",
-		updated = {22, 02, 2022},
-		points = "(dynamic)",
-		source = "@Xisel",
-		role = 5,
-		discipline = 3,
-		preset = {
-			{2, 50},	-- Boundless Vitality (slot)
-			{37, 30},	-- Tumbling
-			{128, 20},	-- Defiance
-			{53, 50},	-- Mystic Tenacity
-			{113, 20},	-- Hero’s Vigor
-			{42, 16},	-- Hasty
-			{275, 50},	-- Pain’s Refuge (slot)
-			{273, 50},	-- Sustained by Suffering (slot)
-			{52, 50},	-- Slippery (slot)			
-			{38, 20},	-- Sprinter
-			{39, 20},	-- Tireless Guardian
-			{43, 30},	-- Fortification
-			{44, 6},	-- Nimble Protector
-			{40, 30},	-- Savage Defense			
-			{50, 20},	-- Bashing Brutality		
-			{45, 30},	-- Piercing Gaze
-			{58, 50},	-- Tempered Soul 			552
-		},
-		basestatsToFill = {},
-		slotted = {2,275,273,52}, -- Boundless Vitality, Pain’s Refuge, Sustained by Suffering, Slippery
-	},
-
-	-- STAMINA --
---[[
-50 Fortified (slot)
-50 Boundless Vitality (slot)
-30 Tumbling
-20 Defiance
-10 Mystic Tenacity 1
-20 Hero’s Vigor
-16 Hasty
-50 Bloody Renewal (slot)
-10 Shield Master
-50 Bastion (slot)			306
-20 Sprinter
-20 Tireless Guardian
-30 Fortification
-6 Nimble Protector
-50 Mystic Tenacity 2		422
-50 Tempered Soul
-30 Piercing Gaze
-30 Savage Defense			
-20 Bashing Brutality		552
---]]
-	[6] = {
-		name = "Stamina DPS (up to 552)",
-		addInfo = "",
-		updated = {11, 04, 2021},
-		points = "(dynamic)",
-		source = "@Xisel",
-		role = 6,
-		discipline = 3,
-		preset = {
-			{34, 50},	-- Fortified (slot)
-			{2, 50},	-- Boundless Vitality (slot)
-			{37, 30},	-- Tumbling
-			{128, 20},	-- Defiance
-			{53, 10},	-- Mystic Tenacity 1
-			{113, 20},	-- Hero’s Vigor
-			{42, 16},	-- Hasty
-			{48, 50},	-- Bloody Renewal (slot)
-			{63, 10},	-- Shield Master
-			{46, 50},	-- Bastion (slot)			306
-			{38, 20},	-- Sprinter
-			{39, 20},	-- Tireless Guardian
-			{43, 30},	-- Fortification
-			{44, 6},	-- Nimble Protector
-			{53, 50},	-- Mystic Tenacity 2		422
-			{58, 50},	-- Tempered Soul
-			{45, 30},	-- Piercing Gaze
-			{40, 30},	-- Savage Defense			
-			{50, 20},	-- Bashing Brutality		552
-		},
-		basestatsToFill = {},
-		slotted = {34,2,48,46}, -- Fortified, Boundless Vitality, Bloody Renewal, Bastion
-	},
-
-	-- STAMINA FARM --
---[[
-50 Boundless Vitality (slot)
-30 Tumbling
-20 Defiance
-10 Mystic Tenacity 1
-20 Hero’s Vigor
-16 Hasty
-50 Celerity (slot)
-50 Bloody Renewal (slot)
-10 Shield Master
-50 Bastion (slot)			306
-20 Sprinter
-20 Tireless Guardian
-30 Fortification
-6 Nimble Protector
-50 Mystic Tenacity 2		422
-50 Tempered Soul
-30 Piercing Gaze
-30 Savage Defense			
-20 Bashing Brutality		552
---]]
-	[7] = {
-		name = "Stamina Farm (up to 552)",
-		addInfo = "Replace Fortified with Celerity",
-		updated = {11, 04, 2021},
-		points = "(dynamic)",
-		source = "@Xisel",
-		role = 6,
-		discipline = 3,
-		preset = {
-			{2, 50},	-- Boundless Vitality (slot)
-			{37, 30},	-- Tumbling
-			{128, 20},	-- Defiance
-			{53, 10},	-- Mystic Tenacity 1
-			{113, 20},	-- Hero’s Vigor
-			{42, 16},	-- Hasty
-			{270, 50},	-- Celerity (slot)
-			{48, 50},	-- Bloody Renewal (slot)
-			{63, 10},	-- Shield Master
-			{46, 50},	-- Bastion (slot)			306
-			{38, 20},	-- Sprinter
-			{39, 20},	-- Tireless Guardian
-			{43, 30},	-- Fortification
-			{44, 6},	-- Nimble Protector
-			{53, 50},	-- Mystic Tenacity 2		422
-			{58, 50},	-- Tempered Soul
-			{45, 30},	-- Piercing Gaze
-			{40, 30},	-- Savage Defense			
-			{50, 20},	-- Bashing Brutality		552
-		},
-		basestatsToFill = {},
-		slotted = {270,2,48,46}, -- Celerity, Boundless Vitality, Bloody Renewal, Bastion
-	},
-
-------------------------------------------------------------
-------------------------- BLUE TREE ------------------------
-------------------------------------------------------------
-
-	-- HEALER --
---[[
-50 Arcane Supremacy (slot)
-20 Precision
-20 Eldritch Insight
-20 Blessed
-50 Hope Infusion (slot)
-50 From the Brink (slot)
-50 Enlivening Overflow (slot)
-20 Quick Recovery
-20 Preparation					300
-20 Piercing 
-20 Flawless Ritual 1
-30 War Mage
-20 Elemental Aegis
-20 Hardy						410
-40 Flawless Ritual 2
-20 Tireless Discipline
-40 Battle Mastery			
-30 Mighty						520
---]]
-	[8] = {
-		name = "Healer (up to 520)",
-		addInfo = "",
-		updated = {11, 04, 2021},
-		points = "(dynamic)",
-		source = "@Xisel",
-		role = 4,
-		discipline = 2,
-		preset = {
-			{3, 50},	-- Arcane Supremacy (slot)
-			{11, 20},	-- Precision
-			{99, 20},	-- Eldritch Insight
-			{108, 20},	-- Blessed
-			{261, 50},	-- Hope Infusion (slot)
-			{262, 50},	-- From the Brink (slot)
-			{263, 50},	-- Enlivening Overflow (slot)
-			{20, 20},	-- Quick Recovery
-			{14, 20},	-- Preparation					300
-			{10, 20},	-- Piercing
-			{17, 20},	-- Flawless Ritual
-			{21, 30},	-- War Mage
-			{15, 20},	-- Elemental Aegis
-			{16, 20},	-- Hardy						410
-			{17, 40},	-- Flawless Ritual
-			{6, 20},	-- Tireless Discipline
-			{18, 40},	-- Battle Mastery			
-			{22, 30},	-- Mighty						520
-		},
-		basestatsToFill = {},
-		slotted = {3,261,262,263},
-	},
-
-	-- TANK --
---[[
-20 Tireless Discipline
-20 Eldritch Insight
-20 Quick Recovery
-10 Hardy 1
-10 Elemental Aegis 1
-20 Preparation
-50 Unassailable (slot)
-50 Duelist's Rebuff (slot)
-50 Enduring Resolve (slot)
-50 Bulwark (slot)					300
-20 Hardy 2
-20 Elemental Aegis 2
-20 Blessed
-10 Piercing 1
-40 Flawless Ritual 					390
-40 Battle Mastery
-20 Piercing 2
-30 War Mage
-30 Mighty
-20 Precision						520
---]]
-	[9] = {
-		name = "Tank (up to 520)",
-		addInfo = "",
-		updated = {11, 04, 2021},
-		points = "(dynamic)",
-		source = "@Xisel",
-		role = 2,
-		discipline = 2,
-		preset = {
-			{6, 20},	-- Tireless Discipline
-			{99, 20},	-- Eldritch Insight
-			{20, 20},	-- Quick Recovery
-			{16, 10},	-- Hardy 1
-			{15, 10},	-- Elemental Aegis 1
-			{14, 20},	-- Preparation
-			{133, 50},	-- Unassailable (slot)
-			{134, 50},	-- Duelist's Rebuff (slot)
-			{136, 50},	-- Enduring Resolve (slot)
-			{159, 50},	-- Bulwark (slot)					300
-			{16, 20},	-- Hardy 2
-			{15, 20},	-- Elemental Aegis 2
-			{108, 20},	-- Blessed
-			{10, 10},	-- Piercing 1
-			{17, 40},	-- Flawless Ritual 					390
-			{18, 40},	-- Battle Mastery
-			{10, 20},	-- Piercing 2
-			{21, 30},	-- War Mage
-			{22, 30},	-- Mighty
-			{11, 20},	-- Precision						520
-		},
-		basestatsToFill = {},
-		slotted = {136,133,134,159},
-	},
-
-	-- MAGICKA DPS --
---[[
-20 Precision
-20 Eldritch Insight
-50 Wrathful Strikes (slot)
-20 Piercing
-50 Fighting Finesse / Backstabber (slot) 
-20 Quick Recovery
-20 Preparation
-50 Deadly Aim (slot)
-50 Master-at-Arms (slot)	300
-40 Flawless Ritual
-30 War Mage
-20 Elemental Aegis
-20 Hardy					410
-20 Blessed
-20 Tireless Discipline
-40 Battle Mastery
-30 Mighty					520
---]]
-	[10] = {
-		name = "Magicka Solo (up to 520)",
-		addInfo = "Use Fightning Fitness instead of Backstabber for group. Also keep in mind Thaumaturge and Biting Aura.",
-		updated = {11, 04, 2021},
-		points = "(dynamic)",
-		source = "@Xisel",
-		role = 5,
-		discipline = 2,
-		preset = {
-			{11, 20},	-- Precision
-			{99, 20},	-- Eldritch Insight
-			{8, 50},	-- Wrathful Strikes (slot)
-			{10, 20},	-- Piercing
-			{12, 50},	-- Fighting Finesse (slot)
-			{20, 20},	-- Quick Recovery
-			{14, 20},	-- Preparation
-			{25, 50},	-- Deadly Aim (slot)
-			{264, 50},	-- Master-at-Arms (slot)	300
-			{17, 40},	-- Flawless Ritual
-			{21, 30},	-- War Mage
-			{15, 20},	-- Elemental Aegis
-			{16, 20},	-- Hardy					410
-			{108, 20},	-- Blessed
-			{6, 20},	-- Tireless Discipline
-			{18, 40},	-- Battle Mastery
-			{22, 30},	-- Mighty					520
-		},
-		basestatsToFill = {},
-		slotted = {8,25,264,12},
-	},
-	[11] = {
-		name = "Magicka DPS (up to 520)",
-		addInfo = "Use Backstabber instead of Fightning Fitness for solo. Also keep in mind Thaumaturge and Biting Aura.",
-		updated = {11, 04, 2021},
-		points = "(dynamic)",
-		source = "@Xisel",
-		role = 5,
-		discipline = 2,
-		preset = {
-			{11, 20},	-- Precision
-			{99, 20},	-- Eldritch Insight
-			{8, 50},	-- Wrathful Strikes (slot)
-			{10, 20},	-- Piercing
-			{31, 50},	-- Backstabber (slot)
-			{20, 20},	-- Quick Recovery
-			{14, 20},	-- Preparation
-			{25, 50},	-- Deadly Aim (slot)
-			{264, 50},	-- Master-at-Arms (slot)	300
-			{17, 40},	-- Flawless Ritual
-			{21, 30},	-- War Mage
-			{15, 20},	-- Elemental Aegis
-			{16, 20},	-- Hardy					410
-			{108, 20},	-- Blessed
-			{6, 20},	-- Tireless Discipline
-			{18, 40},	-- Battle Mastery
-			{22, 30},	-- Mighty					520
-		},
-		basestatsToFill = {},
-		slotted = {8,25,264,31},
-	},
-
-	-- MAGICKA PvP --
---[[
-20 Precision
-20 Eldritch Insight
-50 Arcane Supremacy (slot)
-20 Piercing
-50 Untamed Aggression (slot)
-20 Quick Recovery
-20 Preparation
-50 Deadly Aim (slot)
-50 Duelist’s Rebuff (slot)	300
-20 Elemental Aegis
-20 Hardy					
-20 Blessed
-20 Tireless Discipline
-40 Flawless Ritual
-30 War Mage
-40 Battle Mastery
-30 Mighty					520
---]]
-	[12] = {
-		name = "Magicka PvP (up to 520)",
-		addInfo = "",
-		updated = {22, 02, 2022},
-		points = "(dynamic)",
-		source = "@Xisel",
-		role = 5,
-		discipline = 2,
-		preset = {
-			{11, 20},	-- Precision
-			{99, 20},	-- Eldritch Insight
-			{3, 50},	-- Arcane Supremacy (slot)
-			{10, 20},	-- Piercing
-			{4, 50},	-- Untamed Aggression (slot)
-			{20, 20},	-- Quick Recovery
-			{14, 20},	-- Preparation
-			{25, 50},	-- Deadly Aim (slot)
-			{134, 50},	-- Duelist’s Rebuff (slot)	300
-			{15, 20},	-- Elemental Aegis
-			{16, 20},	-- Hardy					410
-			{108, 20},	-- Blessed
-			{6, 20},	-- Tireless Discipline
-			{17, 40},	-- Flawless Ritual
-			{21, 30},	-- War Mage
-			{18, 40},	-- Battle Mastery
-			{22, 30},	-- Mighty					520
-		},
-		basestatsToFill = {},
-		slotted = {3,4,25,134},
-	},
-
-	-- STAMINA --
---[[
-20 Precision
-20 Tireless Discipline
-50 Wrathful Strikes (slot)
-20 Piercing
-50 Fighting Finesse / Backstabber (slot)
-20 Quick Recovery
-20 Preparation
-50 Deadly Aim (slot)
-50 Master-at-Arms (slot)		300
-40 Battle Mastery
-30 Mighty
-20 Elemental Aegis
-20 Hardy						410
-20 Blessed
-20 Eldritch Insight
-40 Flawless Ritual
-30 War Mage 					520
---]]
-	[13] = {
-		name = "Stamina Solo (up to 520)",
-		addInfo = "Use Fightning Fitness instead of Backstabber for group. Also keep in mind Thaumaturge and Biting Aura.",
-		updated = {11, 04, 2021},
-		points = "(dynamic)",
-		source = "@Xisel",
-		role = 6,
-		discipline = 2,
-		preset = {
-			{11, 20},	-- Precision
-			{6, 20},	-- Tireless Discipline
-			{8, 50},	-- Wrathful Strikes (slot)
-			{10, 20},	-- Piercing
-			{12, 50},	-- Fighting Finesse (slot)
-			{20, 20},	-- Quick Recovery
-			{14, 20},	-- Preparation
-			{25, 50},	-- Deadly Aim (slot)
-			{264, 50},	-- Master-at-Arms (slot)		300
-			{18, 40},	-- Battle Mastery
-			{22, 30},	-- Mighty
-			{15, 20},	-- Elemental Aegis
-			{16, 20},	-- Hardy						410
-			{108, 20},	-- Blessed
-			{99, 20},	-- Eldritch Insight
-			{17, 40},	-- Flawless Ritual
-			{21, 30},	-- War Mage 					520
-		},
-		basestatsToFill = {},
-		slotted = {8,25,264,12},
-	},
-	[14] = {
-		name = "Stamina DPS (up to 520)",
-		addInfo = "Use Backstabber instead of Fightning Fitness for solo. Also keep in mind Thaumaturge and Biting Aura.",
-		updated = {11, 04, 2021},
-		points = "(dynamic)",
-		source = "@Xisel",
-		role = 6,
-		discipline = 2,
-		preset = {
-			{11, 20},	-- Precision
-			{6, 20},	-- Tireless Discipline
-			{8, 50},	-- Wrathful Strikes (slot)
-			{10, 20},	-- Piercing
-			{31, 50},	-- Backstabber (slot)
-			{20, 20},	-- Quick Recovery
-			{14, 20},	-- Preparation
-			{25, 50},	-- Deadly Aim (slot)
-			{264, 50},	-- Master-at-Arms (slot)		300
-			{18, 40},	-- Battle Mastery
-			{22, 30},	-- Mighty
-			{15, 20},	-- Elemental Aegis
-			{16, 20},	-- Hardy						410
-			{108, 20},	-- Blessed
-			{99, 20},	-- Eldritch Insight
-			{17, 40},	-- Flawless Ritual
-			{21, 30},	-- War Mage 					520
-		},
-		basestatsToFill = {},
-		slotted = {8,25,264,31},
-	},
-
-------------------------------------------------------------
 ------------------------ GREEN TREE ------------------------
 ------------------------------------------------------------
-
-	-- CRAFT --
---[[
-50 Steed's Blessing
-10 Gilded Fingers 1
-10 Fortune's Favor 1
-15 Wanderer
-10 Steadfast Enchantment
-50 Treasure Hunter
-50 Meticulous Disassembly
-75 Master Gatherer
-50 Plentiful Harvest
-50 Gilded Fingers 2
-50 Fortune's Favor 2
-50 Breakfall
-100 Gifted Rider 
---]]
-	[15] = {
-		name = "Craft 320-450",
-		addInfo = "Use the Treasure Hunter skill path to avoid useless points in Inspiration. No Gifted Rider, Treasure Hunter in slot 2.",
-		updated = {11, 04, 2021},
-		points = "(dynamic)",
-		source = "@Xisel",
-		role = 7,
-		discipline = 1,
-		preset = {
-			{66, 50},	-- Steed's Blessing
-			{74, 10},	-- Gilded Fingers 1
-			{71, 10},	-- Fortune's Favor 1
-			{70, 15},	-- Wanderer
-			{75, 10},	-- Steadfast Enchantment
-			{79, 50},	-- Treasure Hunter
-			{83, 50},	-- Meticulous Disassembly
-			{78, 75},	-- Master Gatherer
-			{81, 50},	-- Plentiful Harvest
-			{74, 50},	-- Gilded Fingers 2
-			{71, 50},	-- Fortune's Favor 2
-			{69, 50},	-- Breakfall
-		},
-		basestatsToFill = {},
-		slotted = {66,79,81,83}, -- Steed's Blessing, Treasure Hunter, Plentiful Harvest, Meticulous Disassembly
-	},
-	[16] = {
-		name = "Craft 470-550",
-		addInfo = "Use the Treasure Hunter skill path to avoid useless points in Inspiration. Gifted Rider in slot 2.",
-		updated = {11, 04, 2021},
-		points = "(dynamic)",
-		source = "@Xisel",
-		role = 7,
-		discipline = 1,
-		preset = {
-			{66, 50},	-- Steed's Blessing
-			{74, 10},	-- Gilded Fingers 1
-			{71, 10},	-- Fortune's Favor 1
-			{70, 15},	-- Wanderer
-			{75, 10},	-- Steadfast Enchantment
-			{79, 50},	-- Treasure Hunter
-			{83, 50},	-- Meticulous Disassembly
-			{78, 75},	-- Master Gatherer
-			{81, 50},	-- Plentiful Harvest
-			{74, 50},	-- Gilded Fingers 2
-			{71, 50},	-- Fortune's Favor 2
-			{69, 50},	-- Breakfall
-			{92, 100},	-- Gifted Rider
-		},
-		basestatsToFill = {},
-		slotted = {66,92,81,83}, -- Steed's Blessing, Gifted Rider, Plentiful Harvest, Meticulous Disassembly
-	},
-
-	-- CRAFT INSPI --
---[[
-50 Steed's Blessing
-10 Gilded Fingers 1
-10 Fortune's Favor 1
-45 Inspiration Boost
-50 Meticulous Disassembly
-50 Treasure Hunter
-75 Master Gatherer
-50 Plentiful Harvest 
-50 Gilded Fingers 2
-50 Fortune's Favor 2
-15 Wanderer
-50 Breakfall
-100 Gifted Rider 
---]]
-	[17] = {
-		name = "Craft (+Inspiration) 340-485",
-		addInfo = "No Gifted Rider, Treasure Hunter in slot 2.",
-		updated = {11, 04, 2021},
-		points = "(dynamic)",
-		source = "@Xisel",
-		role = 7,
-		discipline = 1,
-		preset = {
-			{66, 50},	-- Steed's Blessing
-			{74, 10},	-- Gilded Fingers 1
-			{71, 10},	-- Fortune's Favor 1
-			{72, 45},	-- Inspiration Boost
-			{83, 50},	-- Meticulous Disassembly
-			{79, 50},	-- Treasure Hunter
-			{78, 75},	-- Master Gatherer
-			{81, 50},	-- Plentiful Harvest
-			{74, 50},	-- Gilded Fingers 2
-			{71, 50},	-- Fortune's Favor 2
-			{70, 15},	-- Wanderer
-			{69, 50},	-- Breakfall
-		},
-		basestatsToFill = {},
-		slotted = {66,79,81,83}, -- Steed's Blessing, Treasure Hunter, Plentiful Harvest, Meticulous Disassembly
-	},
-	[18] = {
-		name = "Craft (+Inspiration) 505-585",
-		addInfo = "Gifted Rider in slot 2.",
-		updated = {11, 04, 2021},
-		points = "(dynamic)",
-		source = "@Xisel",
-		role = 7,
-		discipline = 1,
-		preset = {
-			{66, 50},	-- Steed's Blessing
-			{74, 10},	-- Gilded Fingers 1
-			{71, 10},	-- Fortune's Favor 1
-			{72, 45},	-- Inspiration Boost
-			{83, 50},	-- Meticulous Disassembly
-			{79, 50},	-- Treasure Hunter
-			{78, 75},	-- Master Gatherer
-			{81, 50},	-- Plentiful Harvest
-			{74, 50},	-- Gilded Fingers 2
-			{71, 50},	-- Fortune's Favor 2
-			{70, 15},	-- Wanderer
-			{69, 50},	-- Breakfall
-			{92, 100},	-- Gifted Rider
-		},
-		basestatsToFill = {},
-		slotted = {66,92,81,83}, -- Steed's Blessing, Gifted Rider, Plentiful Harvest, Meticulous Disassembly
-	},
-
-	-- FARM -- 
---[[
-50 Steed's Blessing
-50 Gilded Fingers
-50 Breakfall
-15 Wanderer 1
-10 Steadfast Enchantment 1
-50 Treasure Hunter
-15 Master Gatherer
-50 Plentiful Harvest
-100 Gifted Rider 
-75 Master Gatherer
-50 Fortune's Favor
-30 Out of Sight
-40 Fleet Phantom
-75 Wanderer 2
-50 Steadfast Enchantment 2
-33 Soul Reservoir
---]]
-	[19] = {
-		name = "Farming 310+",
-		addInfo = "Prio harvesting, questing",
-		updated = {11, 04, 2021},
-		points = "(dynamic)",
-		source = "@Xisel",
-		role = 7,
-		discipline = 1,
-		preset = {
-			{66, 50},	-- Steed's Blessing
-			{74, 50},	-- Gilded Fingers
-			{69, 50},	-- Breakfall
-			{70, 15},	-- Wanderer 1
-			{75, 10},	-- Steadfast Enchantment 1
-			{79, 50},	-- Treasure Hunter
-			{78, 15},	-- Master Gatherer
-			{81, 50},	-- Plentiful Harvest
-			{92, 100},	-- Gifted Rider 
-			{78, 75},	-- Master Gatherer
-			{71, 50},	-- Fortune's Favor
-			{68, 30},	-- Out of Sight
-			{67, 40},	-- Fleet Phantom
-			{70, 75},	-- Wanderer 2
-			{75, 50},	-- Steadfast Enchantment 2
-			{87, 33},	-- Soul Reservoir
-		},
-		basestatsToFill = {},
-		slotted = {66,92,81,79}, -- Steed's Blessing, Gifted Rider, Plentiful Harvest, Treasure Hunter
-	},
 
 	-- STANDARD --
 --[[
@@ -931,7 +26,7 @@ CSPSCPPresets = {
 50 Treasure Hunter 
 75 Liquid Efficiency
 15 Master Gatherer
-100 Gifted Rider 
+100 Gifted Rider 			445
 30 Out of Sight
 40 Fleet Phantom
 50 Steadfast Enchantment 2
@@ -939,7 +34,7 @@ CSPSCPPresets = {
 33 Soul Reservoir
 75 Wanderer 2
 --]]
-	[20] = {
+	[1] = {
 		name = "Standard 445+",
 		addInfo = "",
 		updated = {11, 04, 2021},
@@ -967,6 +62,159 @@ CSPSCPPresets = {
 		},
 		basestatsToFill = {},
 		slotted = {66,92,86,79}, -- Steed's Blessing, Gifted Rider, Liquid Efficiency, Treasure Hunter
+	},
+
+	-- FARM -- 
+--[[
+50 Steed's Blessing
+50 Gilded Fingers
+50 Breakfall
+15 Wanderer 1
+10 Steadfast Enchantment 1
+50 Treasure Hunter
+15 Master Gatherer 1
+50 Plentiful Harvest
+100 Gifted Rider 
+75 Master Gatherer 2		450
+50 Fortune's Favor
+30 Out of Sight
+40 Fleet Phantom
+75 Wanderer 2 				630
+50 Steadfast Enchantment 2
+33 Soul Reservoir
+--]]
+	[2] = {
+		name = "Farming 310+",
+		addInfo = "Prio harvesting, questing",
+		updated = {11, 04, 2021},
+		points = "(dynamic)",
+		source = "@Xisel",
+		role = 7,
+		discipline = 1,
+		preset = {
+			{66, 50},	-- Steed's Blessing
+			{74, 50},	-- Gilded Fingers
+			{69, 50},	-- Breakfall
+			{70, 15},	-- Wanderer 1
+			{75, 10},	-- Steadfast Enchantment 1
+			{79, 50},	-- Treasure Hunter
+			{78, 15},	-- Master Gatherer 1
+			{81, 50},	-- Plentiful Harvest
+			{92, 100},	-- Gifted Rider 
+			{78, 75},	-- Master Gatherer 2
+			{71, 50},	-- Fortune's Favor
+			{68, 30},	-- Out of Sight
+			{67, 40},	-- Fleet Phantom
+			{70, 75},	-- Wanderer 2
+			{75, 50},	-- Steadfast Enchantment 2
+			{87, 33},	-- Soul Reservoir
+		},
+		basestatsToFill = {},
+		slotted = {66,92,81,79}, -- Steed's Blessing, Gifted Rider, Plentiful Harvest, Treasure Hunter
+	},
+
+	-- CRAFT --
+--[[
+50 Steed's Blessing
+10 Gilded Fingers 1
+10 Fortune's Favor 1
+15 Wanderer 1
+10 Steadfast Enchantment 1
+50 Treasure Hunter
+50 Meticulous Disassembly
+75 Master Gatherer
+50 Plentiful Harvest
+50 Gilded Fingers 2
+50 Fortune's Favor 2
+50 Breakfall
+100 Gifted Rider 			550
+30 Out of Sight
+40 Fleet Phantom
+75 Wanderer 2 
+50 Steadfast Enchantment 2
+33 Soul Reservoir
+--]]
+	[3] = {
+		name = "Craft 470+",
+		addInfo = "Use the Treasure Hunter skill path to avoid Inspiration. Gifted Rider in slot 2.",
+		updated = {17, 10, 2022},
+		points = "(dynamic)",
+		source = "@Xisel",
+		role = 7,
+		discipline = 1,
+		preset = {
+			{66, 50},	-- Steed's Blessing
+			{74, 10},	-- Gilded Fingers 1
+			{71, 10},	-- Fortune's Favor 1
+			{70, 15},	-- Wanderer
+			{75, 10},	-- Steadfast Enchantment
+			{79, 50},	-- Treasure Hunter
+			{83, 50},	-- Meticulous Disassembly
+			{78, 75},	-- Master Gatherer
+			{81, 50},	-- Plentiful Harvest
+			{74, 50},	-- Gilded Fingers 2
+			{71, 50},	-- Fortune's Favor 2
+			{69, 50},	-- Breakfall
+			{92, 100},	-- Gifted Rider
+			{68, 30},	-- Out of Sight
+			{67, 40},	-- Fleet Phantom
+			{70, 75},	-- Wanderer 2
+			{75, 50},	-- Steadfast Enchantment 2
+			{87, 33},	-- Soul Reservoir
+		},
+		basestatsToFill = {},
+		slotted = {66,92,81,83}, -- Steed's Blessing, Gifted Rider, Plentiful Harvest, Meticulous Disassembly
+	},
+
+	-- CRAFT INSPI --
+--[[
+50 Steed's Blessing
+10 Gilded Fingers 1
+10 Fortune's Favor 1
+45 Inspiration Boost
+50 Meticulous Disassembly
+50 Treasure Hunter
+75 Master Gatherer
+50 Plentiful Harvest 
+50 Gilded Fingers 2
+50 Fortune's Favor 2
+50 Breakfall
+100 Gifted Rider 			570
+30 Out of Sight
+40 Fleet Phantom
+75 Wanderer
+50 Steadfast Enchantment
+33 Soul Reservoir
+--]]
+	[4] = {
+		name = "Craft (+Inspiration) 490+",
+		addInfo = "Gifted Rider in slot 2.",
+		updated = {17, 10, 2022},
+		points = "(dynamic)",
+		source = "@Xisel",
+		role = 7,
+		discipline = 1,
+		preset = {
+			{66, 50},	-- Steed's Blessing
+			{74, 10},	-- Gilded Fingers 1
+			{71, 10},	-- Fortune's Favor 1
+			{72, 45},	-- Inspiration Boost
+			{83, 50},	-- Meticulous Disassembly
+			{79, 50},	-- Treasure Hunter
+			{78, 75},	-- Master Gatherer
+			{81, 50},	-- Plentiful Harvest
+			{74, 50},	-- Gilded Fingers 2
+			{71, 50},	-- Fortune's Favor 2
+			{69, 50},	-- Breakfall
+			{92, 100},	-- Gifted Rider
+			{68, 30},	-- Out of Sight
+			{67, 40},	-- Fleet Phantom
+			{70, 75},	-- Wanderer
+			{75, 50},	-- Steadfast Enchantment
+			{87, 33},	-- Soul Reservoir
+		},
+		basestatsToFill = {},
+		slotted = {66,92,81,83}, -- Steed's Blessing, Gifted Rider, Plentiful Harvest, Meticulous Disassembly
 	},
 }
 
