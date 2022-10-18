@@ -18,13 +18,15 @@ local function getCurrentQsBars(givenQSBars)
 		local myBar = myQSBars[hbIndex]
 		
 		for i=1, ACTION_BAR_UTILITY_BAR_SIZE do
-			if GetSlotType(reRoute1[i], hbCat) == ACTION_TYPE_EMOTE then
-				table.insert(myBar, GetSlotBoundId(reRoute1[i], hbCat))
+			local slotType = GetSlotType(reRoute1[i], hbCat)
+			local slotTypesForId = {[ACTION_TYPE_EMOTE] = true, [ACTION_TYPE_QUICK_CHAT] = true}
+			if slotTypesForId[slotType] then
+				table.insert(myBar, {type = slotType, value=GetSlotBoundId(reRoute1[i], hbCat)})
 			else
 				local itemLink = GetSlotItemLink(reRoute1[i], hbCat)
 				itemLink = itemLink or ""
-				table.insert(myBar, itemLink)
-			end
+				table.insert(myBar, {type = slotType, value=itemLink})
+			end -- ACTION_TYPE_QUICK_CHAT
 		end
 	end
 	
@@ -36,34 +38,94 @@ function CSPS.readCurrentQS()
 	CSPS.getTreeControl():RefreshVisible()
 end
 
+local function qsActionInfo(myAction)
+	if not myAction or myAction.value == "" then 
+		return "esoui/art/actionbar/passiveabilityframe_round_empty.dds", "-", false, false, false 
+	end
+	
+	if myAction.type == ACTION_TYPE_EMOTE then
+	
+		local emoteIndex = GetEmoteIndex(myAction.value)
+		local slashName, emoteCategory, _, emoteName = GetEmoteInfo(emoteIndex)
+		local listText = string.format("%s - %s", slashName, emoteName)		
+		local myIcon = GetEmoteCategoryKeyboardIcons(emoteCategory)
+		local additionalDescription = GetCollectibleDescription(GetEmoteCollectibleId(emoteIndex))
+		
+		return myIcon, listText, emoteName, slashName, {additionalDescription}
+		
+	elseif myAction.type == ACTION_TYPE_QUICK_CHAT then
+	
+			local myName = GetDefaultQuickChatName(myAction.value)
+			local myMessage = GetDefaultQuickChatMessage(myAction.value)
+			
+			return "esoui/art/hud/radialicon_whisper_over.dds", myName, myName, false, {myMessage}
+			
+	elseif myAction.type == ACTION_TYPE_COLLECTIBLE then
+	
+		local collectibleId = GetCollectibleIdFromLink(myAction.value)
+		local myIcon = GetCollectibleIcon(collectibleId)
+		local additionalDescription = GetCollectibleDescription(collectibleId)
+		
+		return myIcon, myAction.value, myAction.value, false, {additionalDescription}
+		
+	else
+		
+		local myIcon = GetItemLinkInfo(myAction.value)
+		
+		local _, _, onUseText =  GetItemLinkOnUseAbilityInfo(myAction.value)
+		local additionalDescription = {}
+		if onUseText and onUseText ~= "" then
+			table.insert(additionalDescription, onUseText)
+		end
+		for i=1, 10 do
+			local hasAb, abText = GetItemLinkTraitOnUseAbilityInfo(currentCustomItem, i)
+			if not hasAb then break end
+			if abText and abText ~= "" then 
+				table.insert(additionalDescription, abText)
+			else 
+				break
+			end
+		end
+		
+		return myIcon, myAction.value, myAction.value, false, additionalDescription
+		
+	end
+end
+
 local function NodeSetupQS(node, control, data, open, userRequested, enabled)
 
 	-- control.receiveDragFunction = function() receiveDrag(mySlot) end
-	local ctrLink = control:GetNamedChild("Text")
+	local ctrText = control:GetNamedChild("Text")
 	local ctrMarker = control:GetNamedChild("Marker")
 	local ctrIcon = control:GetNamedChild("Icon")
-	local myText = data.barTable[data.qsIndex]
-	local myIcon = myText ~= "" and GetItemLinkInfo(myText) or ""
-	local collectibleId = GetCollectibleIdFromLink(myText)
 	
-	if type(myText) == "number" then
-		local emoteIndex = GetEmoteIndex(myText)
-		local slashName, emoteCategory, _, emoteName = GetEmoteInfo(emoteIndex)
-		myText = string.format("%s - %s", slashName, emoteName)
+	local myAction = data.barTable[data.qsIndex]
+	local myIcon, listText, myName, subtitle, additionalDescription = qsActionInfo(myAction)
 		
-		myIcon = GetEmoteCategoryKeyboardIcons(emoteCategory)
-	elseif collectibleId then
-		myIcon = GetCollectibleIcon(collectibleId)
+	if myName then
+		control.tooltipFunction = function()
+			InitializeTooltip(InformationTooltip, ctrText, LEFT)
+			InformationTooltip:AddLine(zo_strformat("|t28:28:<<1>>|t <<C:2>>", myIcon , myName), "ZoFontWinH2")
+			--, r, g, b, CENTER, MODIFY_TEXT_TYPE_NONE, TEXT_ALIGN_CENTER, true)
+			--ZO_Tooltip_AddDivider(InformationTooltip)
+			if subtitle then InformationTooltip:AddLine(subtitle, "ZoFontGame") end 
+			if additionalDescription and #additionalDescription > 0 then
+				ZO_Tooltip_AddDivider(InformationTooltip)
+				for i, v in pairs(additionalDescription) do
+					InformationTooltip:AddLine(v, "ZoFontGame")
+				end
+			end
+		end
+	else
+		control.tooltipFunction = function() end
 	end
-	ctrLink:SetText(myText)
+	
+	ctrText:SetText(listText)
 	ctrIcon:SetTexture(myIcon)
 	ctrMarker:SetTexture("esoui/art/compass/repeatablequest_assistedareapin.dds")
 	-- + means counterclockwise
 	ctrMarker:SetTextureRotation(-3/4 * math.pi - (data.qsIndex * math.pi/4), 0.5,0.5)
 end
---  GetCollectibleTagInfo(*integer* _collectibleId_, *luaindex* _tagIndex_)
--- ** _Returns:_ *string* _tagDescription_, *[ItemTagCategory|#ItemTagCategory]* _tagCategory_, *bool* _hideInUi_
---GetNumCollectibleTags
 
 
 function CSPS.setupQsSection(control, node, data)

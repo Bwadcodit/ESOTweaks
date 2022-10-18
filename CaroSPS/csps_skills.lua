@@ -440,7 +440,7 @@ local function applySkillsGo(callAfterSkillChange)
 		end
 	end	
 	tryingToApplySkills = true
-	zo_callLater(function() tryingToApplySkills = false CSPS.refreshSkillSumsAndErrors()  CSPS.refreshTree() callAfterSkillChange() end, 500)	
+	zo_callLater(function() tryingToApplySkills = false CSPS.refreshSkillSumsAndErrors()  CSPS.refreshTree() if callAfterSkillChange then callAfterSkillChange() end end, 500)	
 end
 
 function CSPS.applySkills(skipDiag, callAfterSkillChange)

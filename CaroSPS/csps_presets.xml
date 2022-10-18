@@ -4,25 +4,26 @@
 			<Dimensions  y="34" />
 			<Controls>
 				<Texture name="$(parent)Marker" mouseEnabled="true">
-					<Dimensions x="26" y="26" />
-				      <Anchor point="TOPLEFT" relativeTo="$(parent)" relativePoint="TOPLEFT" offsetY="3" />
-					  <OnMouseEnter>ZO_Tooltips_ShowTextTooltip(self, RIGHT, GetString(CSPS_Tooltiptext_SkIcon))</OnMouseEnter>
+					<Dimensions x="24" y="24" />
+				      <Anchor point="TOPLEFT" relativeTo="$(parent)" relativePoint="TOPLEFT" offsetY="4" />
+					  <OnMouseEnter></OnMouseEnter>
 					  <OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>	
 				</Texture>	
 				<Texture name="$(parent)Icon" mouseEnabled="true">
-					<Dimensions x="32" y="32" />
+					<Dimensions x="30" y="30" />
 				      <Anchor point="LEFT" relativeTo="$(parent)Marker" relativePoint="RIGHT"  offsetX="4"/>/>
-					  <OnMouseEnter>ZO_Tooltips_ShowTextTooltip(self, RIGHT, GetString(CSPS_Tooltiptext_SkIcon))</OnMouseEnter>
+					  <OnMouseEnter>if self:GetParent().tooltipFunction then self:GetParent():tooltipFunction() end</OnMouseEnter>
 					  <OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>	
 				</Texture>	
 				<Label name="$(parent)Text" font="ZoFontGame" mouseEnabled="true" linkEnabled="true">
 					<Dimensions x="410" y="32" />
 					<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$(parent)Icon" offsetX="4"/>
+					<OnMouseEnter>if self:GetParent().tooltipFunction then self:GetParent():tooltipFunction() end</OnMouseEnter>
 					<OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>	
 				</Label>
 				<Button name="$(parent)BtnMinus">
 					<Dimensions y="28" x="28" />
-					<Anchor point="RIGHT" relativePoint="RIGHT" relativeTo="$(parent)" />
+					<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$(parent)Text" />
 					<Textures normal="ESOUI/art/buttons/minus_up.dds" pressed="ESOUI/art/buttons/minus_down.dds" mouseOver="ESOUI/art/buttons/minus_over.dds" />
 					<OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>	
 				</Button>
