@@ -22,6 +22,7 @@ local zoneAbbr = {
 	[1082] = "BRP",
 	[1227] = "VH",
 	[1263] = "RG",
+	[1344] = "DSR",
 }
 
 local roleAbbr = {
@@ -108,9 +109,7 @@ local function addConnectionToTooltip(myType, myId, discipline)
 	InformationTooltip:AddLine(string.format("|t26:26:esoui/art/miscellaneous/icon_lmb.dds|t + %s: %s", GS(SI_KEYCODE7), myText), "ZoFontGame")
 end
 
-CSPScppList = ZO_SortFilterList:Subclass()
-
-local CSPScppList = CSPScppList
+local CSPScppList = ZO_SortFilterList:Subclass()
 
 function CSPScppList:New( control )
 	local list = ZO_SortFilterList.New(self, control)
@@ -369,7 +368,9 @@ function CSPScppList:SetupItemRow( control, data )
 		end
 	end
 	if data.type == 4 then 
-		ctrName:SetWidth(200)
+		ctrName:ClearAnchors()
+		ctrName:SetAnchor(RIGHT, control:GetNamedChild("Role"), LEFT, -5, 0, ANCHOR_CONSTRAINS_X)
+		ctrName:SetAnchor(LEFT, ctrPoints, RIGHT, 5, 0)
 		control:GetNamedChild("Role"):SetHidden(false)
 		control:GetNamedChild("Source"):SetHidden(false)
 		control:GetNamedChild("Role"):SetText(data.role)
@@ -377,7 +378,9 @@ function CSPScppList:SetupItemRow( control, data )
 		control:GetNamedChild("Role").normalColor = ZO_DEFAULT_TEXT
 		control:GetNamedChild("Source").normalColor = ZO_DEFAULT_TEXT
 	else
-		ctrName:SetWidth(342)
+		ctrName:ClearAnchors()
+		ctrName:SetAnchor(RIGHT, control:GetNamedChild("Rename"), LEFT, -5, 0, ANCHOR_CONSTRAINS_X)
+		ctrName:SetAnchor(LEFT, ctrPoints, RIGHT, 5, 0)
 		control:GetNamedChild("Role"):SetHidden(true)
 		control:GetNamedChild("Source"):SetHidden(true)
 	end

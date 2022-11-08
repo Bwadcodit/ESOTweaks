@@ -1,13 +1,17 @@
 <GuiXml>
 	<Controls>
-		<TopLevelControl name="CSPSWindow" mouseEnabled="true" movable="true" clampedToScreen="true" hidden="true" tier="1"> 
+		<TopLevelControl name="CSPSWindow" mouseEnabled="true" movable="true" clampedToScreen="true" hidden="true" tier="1" resizeHandleSize="15"> 
             <Dimensions x="605" y="780" /> 
+			<DimensionConstraints minX="600" minY="742" />
             <Anchor point="CENTER" />
             <OnUpdate></OnUpdate>
 			<OnMouseUp></OnMouseUp>
 			<OnMoveStop>
 				CSPS.OnWindowMoveStop() 
 			</OnMoveStop>
+			<OnResizeStop>
+				CSPS.OnWindowResizeStop()
+			</OnResizeStop>
 			<OnShow>CSPS.OnWindowShow()</OnShow>
 			<OnHide>CSPS.OnWindowHide()</OnHide>
             <Controls>
@@ -165,46 +169,28 @@
 						</Label>
 						<Control resizeToFitDescendents="true">
 							<Anchor point="TOP" relativePoint="BOTTOM" relativeTo="$(parent)Title" offsetX="0" offsetY="5" />
-								<Controls>
-
-								<Button name="$(grandparent)CustomAcc" text="CSPS_CPP_BtnCustAcc" inherits="CSPScppBtnPreset">						
-									
+							<Controls>
+								<Button name="$(grandparent)CustomAcc" text="CSPS_CPP_BtnCustAcc" inherits="CSPScppBtnPreset">			
 									<Anchor point="TOPLEFT" relativePoint="TOPLEFT" relativeTo="$(parent)" offsetX="0" />
-									
 									<OnClicked>CSPS.cpProfileType(1)</OnClicked>
-									
 								</Button>
 								<Button name="$(grandparent)CustomChar" text="CSPS_CPP_BtnCustChar" inherits="CSPScppBtnPreset" >	
-									
 									<Anchor point="TOPLEFT" relativePoint="TOPRIGHT" relativeTo="$(grandparent)CustomAcc" offsetX="5" />
-									
 									<OnClicked>CSPS.cpProfileType(2)</OnClicked>
-									
 								</Button>
-								
-								<Button name="$(grandparent)ImportFromText" text="CSPS_CPP_BtnImportText" inherits="CSPScppBtnPreset">	
-								
+								<Button name="$(grandparent)ImportFromText" text="CSPS_CPP_BtnImportText" inherits="CSPScppBtnPreset">									
 									<Anchor point="TOPLEFT" relativePoint="TOPRIGHT" relativeTo="$(grandparent)CustomChar" offsetX="5" />
-									
 									<OnClicked>CSPS.cpProfileType(3)</OnClicked>
-									
 								</Button>
 								<Button name="$(grandparent)Presets" text="CSPS_CPP_BtnPresets" inherits="CSPScppBtnPreset">	
-								
 									<Anchor point="TOPLEFT" relativePoint="TOPRIGHT" relativeTo="$(grandparent)ImportFromText" offsetX="5" />
-									
 									<OnClicked>CSPS.cpProfileType(4)</OnClicked>
-									
 								</Button>								
 								<Button name="$(grandparent)BarsOnly" text="CSPS_CPP_BtnHotBar" inherits="CSPScppBtnPreset">	
-								
 									<Anchor point="TOPLEFT" relativePoint="TOPRIGHT" relativeTo="$(grandparent)Presets" offsetX="5" />
-									
 									<OnClicked>CSPS.cpProfileType(5)</OnClicked>
-									
 								</Button>
 							</Controls>
-						
 						</Control>
 						
 						<Button name="$(parent)CPProfilePlus">
@@ -233,15 +219,16 @@
 							<OnMouseUp>CSPS.cppSort("name")</OnMouseUp>
 							<Dimensions x="342" y="24" />
 						</Label>
-						<Label name="$(parent)HeaderRole" font="ZoFontGameLargeBold" text="CSPS_CPP_Role" color="FFAA33" mouseEnabled="true"  hidden="true">
-							<Anchor point="LEFT" relativeTo="$(parent)HeaderName" relativePoint="RIGHT" offsetX="5"  />
-							<OnMouseUp>CSPS.cppSort("role")</OnMouseUp>
-							<Dimensions x="80" y="24" />
-						</Label>
 						<Label name="$(parent)HeaderSource" font="ZoFontGameLargeBold" text="CSPS_CPP_Source" color="FFAA33" mouseEnabled="true" hidden="true">
-							<Anchor point="LEFT" relativeTo="$(parent)HeaderRole" relativePoint="RIGHT" offsetX="5"  />
+							<Anchor point="CENTER" relativeTo="$(parent)HeaderName" relativePoint="CENTER"   constrains="Y"  />
+							<Anchor point="RIGHT" relativeTo="$(parent)" relativePoint="RIGHT" offsetX="-21"  constrains="X"  />
 							<OnMouseUp>CSPS.cppSort("source")</OnMouseUp>
-							<Dimensions x="150" y="24" />
+							<Dimensions x="130" y="24" />
+						</Label>
+						<Label name="$(parent)HeaderRole" font="ZoFontGameLargeBold" text="CSPS_CPP_Role" color="FFAA33" mouseEnabled="true"  hidden="true">
+							<Anchor point="RIGHT" relativeTo="$(parent)HeaderSource" relativePoint="LEFT" offsetX="-5"  />
+							<OnMouseUp>CSPS.cppSort("role")</OnMouseUp>
+							<Dimensions x="100" y="24" />
 						</Label>
 						
 						<Control name="$(parent)List" inherits="ZO_ScrollList">
@@ -413,6 +400,7 @@
 				   </Controls>
 				</Control>
 				
+				
               
                 <Control name="$(grandparent)MundusComboBox" resizeToFitDescendents="true" mouseEnabled="true">
 					<Dimensions y="24" />
@@ -538,6 +526,47 @@
 					<Anchor point="BOTTOMRIGHT" relativePoint="TOPRIGHT" relativeTo="$(grandparent)Footer" offsetY="-5" offsetX="0"/>
 					
 				</Control>
+				
+				<Backdrop name="$(grandparent)Collectibles" mouseEnabled="true" tier="1" centerColor="080808" edgeColor="424242" hidden="true">
+					
+					<Anchor point="TOPLEFT" relativePoint="BOTTOM" relativeTo="$(grandparent)Include" offsetY="5" />
+					<Anchor point="BOTTOMRIGHT" relativePoint="TOPRIGHT" relativeTo="$(grandparent)Footer" offsetY="-5" offsetX="0"/>
+					<Controls>
+						<Control name="$(parent)Categories" inherits="ZO_ComboBox" >
+							<Dimensions y="25" />
+							<Anchor point="TOPRIGHT" relativeTo="$(parent)" relativePoint="TOPRIGHT" offsetX="-5" offsetY="5"/>
+							<Anchor point="TOPLEFT" relativeTo="$(parent)" relativePoint="TOP" offsetX="2.5" offsetY="5"/>
+						</Control>
+							
+						<Control name="$(parent)Types" inherits="ZO_ComboBox" >
+							<Dimensions y="25" />
+							<Anchor point="TOPLEFT" relativeTo="$(parent)" relativePoint="TOPLEFT" offsetX="5" offsetY="5"/>
+							<Anchor point="TOPRIGHT" relativeTo="$(parent)Categories" relativePoint="TOPLEFT" offsetX="-5"/>
+						</Control>
+						
+						<Button name="$(parent)Cancel" inherits="ZO_DefaultButton" text="SI_DIALOG_CANCEL">
+							<Dimensions x="120" y="28" />
+							<Anchor point="BOTTOMRIGHT" relativeTo="$(parent)" relativePoint="BOTTOMRIGHT" offsetX="-8" offsetY="-8" />
+							<OnClicked>CSPS.cancelQuickSlotEdit()</OnClicked>
+						</Button>
+						<!--
+						<Button name="$(parent)Ok" inherits="ZO_DefaultButton" text="SI_DIALOG_CONFIRM" >
+							<Dimensions x="120" y="28" />
+							<Anchor point="RIGHT" relativeTo="$(parent)Cancel" relativePoint="LEFT" offsetX="-8" />
+							<OnClicked>CSPS.setQuickSlot()</OnClicked>
+						</Button>
+						-->
+						<Control name="$(parent)List" inherits="ZO_ScrollList">
+							<Anchor point="TOPLEFT" relativePoint="BOTTOMLEFT" relativeTo="$(parent)Types" offsetY="5" offsetX="0" />
+							<Anchor point="BOTTOMRIGHT" relativePoint="TOPRIGHT" relativeTo="$(parent)Cancel" offsetY="-5" offsetX="3"/>
+						</Control>
+						
+						
+						
+					</Controls>
+					
+				</Backdrop>
+				
 				<Backdrop hidden="true" name="$(grandparent)CP2Bar" mouseEnabled="true" centerColor="080808" edgeColor="424242" >
 							<Anchor point="RIGHT" relativePoint="LEFT" relativeTo="$(grandparent)" />
 							<Dimensions x="38" y="574" />

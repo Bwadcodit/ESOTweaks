@@ -1,10 +1,10 @@
 ## Title: |c9e0911Caro|r's Skill Point Saver
 ## Description: Save your spent skill points, attributes, champion points, quick slots and gear and load them again.
 ## APIVersion: 101035 101036
-## Version: 4.2.4
+## Version: 4.2.5
 ## Author: |c1d6dadIrniben|r
 ## SavedVariables: CSPSSavedVariables
-## DependsOn: LibAddonMenu-2.0
+## DependsOn: LibAddonMenu-2.0>=34
 ## OptionalDependsOn: LibSets DressingRoom AlphaGear
 ##
 ## This Add-on is not created by, affiliated with or sponsored by ZeniMax Media Inc. or its affiliates.

@@ -132,11 +132,18 @@ function CSPS.OnWindowMoveStop()
 	CSPS.toggleMouse(true)
 end
 
+function CSPS.OnWindowResizeStop()
+	CSPS.savedVariables.settings.width = CSPSWindow:GetWidth()
+	CSPS.savedVariables.settings.height = CSPSWindow:GetHeight()
+end
+
 function CSPS:RestorePosition()
   local left = CSPS.savedVariables.settings.left
   local top = CSPS.savedVariables.settings.top
   CSPSWindow:ClearAnchors()
   CSPSWindow:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, left, top)
+  CSPSWindow:SetWidth(CSPS.savedVariables.settings.width or 605)
+  CSPSWindow:SetHeight(CSPS.savedVariables.settings.height or 780)
   if CSPS.savedVariables.settings.hbleft == nil then return end
   local hbleft = CSPS.savedVariables.settings.hbleft
   local hbtop = CSPS.savedVariables.settings.hbtop
