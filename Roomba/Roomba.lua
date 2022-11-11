@@ -6,7 +6,7 @@
 Roomba = {
     name = "Roomba",
     author = "|c3CB371@Masteroshi430|r, Wobin, CrazyDutchGuy, Ayantir & silvereyes",
-    version = "2022.09.21",
+    version = "2022.11.10",
     website = "http://www.esoui.com/downloads/info402-Roomba.html",
     debugMode = false,
 }
