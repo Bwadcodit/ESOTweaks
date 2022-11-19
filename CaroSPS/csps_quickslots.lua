@@ -22,7 +22,7 @@ local barCategories = {
 	HOTBAR_CATEGORY_EMOTE_WHEEL
 }
 
-local reRoute1 = {4, 3, 2, 1, 8, 7, 6, 5}
+local reRoute1 = {4, 3, 2, 1, 8, 7, 6, 5} -- want the quickslots to beginn at the top of the circle and not counterclockwise at 4 o'clock...
 
 local function getCurrentQsBars(givenQSBars)
 	local myQSBars = givenQSBars or {}
@@ -49,7 +49,26 @@ end
 
 function CSPS.readCurrentQS()
 	qsBars = getCurrentQsBars(qsBars)
-	CSPS.getTreeControl():RefreshVisible()
+end
+
+local function getItemLinkTooltip(itemLink)
+	local myIcon = GetItemLinkInfo(itemLink)
+	
+	local _, _, onUseText =  GetItemLinkOnUseAbilityInfo(itemLink)
+	local additionalDescription = {}
+	if onUseText and onUseText ~= "" then
+		table.insert(additionalDescription, onUseText)
+	end
+	for i=1, 10 do
+		local hasAb, abText = GetItemLinkTraitOnUseAbilityInfo(itemLink, i)
+		if not hasAb then break end
+		if abText and abText ~= "" then 
+			table.insert(additionalDescription, abText)
+		else 
+			break
+		end
+	end
+	return itemLink, myIcon, additionalDescription
 end
 
 local function qsActionInfo(myAction)
@@ -61,11 +80,10 @@ local function qsActionInfo(myAction)
 	
 		local emoteIndex = GetEmoteIndex(myAction.value)
 		local slashName, emoteCategory, _, emoteName = GetEmoteInfo(emoteIndex)
-		local listText = string.format("%s - %s", slashName, emoteName)		
 		local myIcon = GetEmoteCategoryKeyboardIcons(emoteCategory)
 		local additionalDescription = GetCollectibleDescription(GetEmoteCollectibleId(emoteIndex))
 		additionalDescription = additionalDescription ~= "" and additionalDescription or nil
-		return myIcon, listText, emoteName, slashName, {additionalDescription}
+		return myIcon, string.format("%s - %s", slashName, emoteName), emoteName, slashName, {additionalDescription}
 		
 	elseif myAction.type == ACTION_TYPE_QUICK_CHAT then
 	
@@ -84,22 +102,7 @@ local function qsActionInfo(myAction)
 		
 	else
 		
-		local myIcon = GetItemLinkInfo(myAction.value)
-		
-		local _, _, onUseText =  GetItemLinkOnUseAbilityInfo(myAction.value)
-		local additionalDescription = {}
-		if onUseText and onUseText ~= "" then
-			table.insert(additionalDescription, onUseText)
-		end
-		for i=1, 10 do
-			local hasAb, abText = GetItemLinkTraitOnUseAbilityInfo(currentCustomItem, i)
-			if not hasAb then break end
-			if abText and abText ~= "" then 
-				table.insert(additionalDescription, abText)
-			else 
-				break
-			end
-		end
+		local _, myIcon, additionalDescription = getItemLinkTooltip(myAction.value)
 		
 		return myIcon, myAction.value, myAction.value, false, additionalDescription
 		
@@ -112,10 +115,18 @@ local function NodeSetupQS(node, control, data, open, userRequested, enabled)
 	local ctrText = control:GetNamedChild("Text")
 	local ctrMarker = control:GetNamedChild("Marker")
 	local ctrIcon = control:GetNamedChild("Icon")
+	local ctrMinus = control:GetNamedChild("BtnMinus")
+	
 	
 	local myAction = data.barTable[data.qsIndex]
 	local myIcon, listText, myName, subtitle, additionalDescription = qsActionInfo(myAction)
-		
+	
+	ctrMinus:SetHidden(not myAction)
+	ctrMinus:SetHandler("OnClicked", function() 		
+		data.barTable[data.qsIndex] = {} 
+		CSPS.getTreeControl():RefreshVisible()
+	end)
+	
 	if myName then
 		control.tooltipFunction = function()
 			InitializeTooltip(InformationTooltip, ctrText, LEFT)
@@ -202,9 +213,19 @@ function CSPS_qsCollectibleList:Setup( )
 	local sortKeys = {}
 	self.currentSortKey = ""
 	self.currentSortOrder = ZO_SORT_ORDER_UP
-	self.sortFunction = function( listEntry1, listEntry2 )	return true end
-
+	self.sortFunction = function( listEntry1, listEntry2 )	return listEntry1.data.name < listEntry2.data.name end
 	self:RefreshData()
+end
+
+local function showItemTooltip(control, itemLink, myIcon, additionalDescription)
+	InitializeTooltip(InformationTooltip, control, LEFT)
+	InformationTooltip:AddLine(zo_strformat("|t28:28:<<1>>|t <<C:2>>", myIcon , itemLink), "ZoFontWinH2")
+	if additionalDescription and #additionalDescription > 0 then
+		ZO_Tooltip_AddDivider(InformationTooltip)
+		for i, v in pairs(additionalDescription) do
+			InformationTooltip:AddLine(v, "ZoFontGame")
+		end
+	end	
 end
 
 function CSPS_qsCollectibleList:BuildMasterList()
@@ -277,6 +298,66 @@ function CSPS_qsCollectibleList:BuildMasterList()
 		for i = 1, collectibleCategoryData:GetNumSubcategories() do
 			collectibleCategoryIterator(collectibleCategoryData:GetSubcategoryData(i))
 		end
+	elseif currentType == ACTION_TYPE_ITEM then
+		if currentCategory ~= 3 then 
+			local itemTypes = { -- more categories?
+			
+				[ITEMTYPE_POTION] = 1,
+				[ITEMTYPE_FOOD] = 2,
+				[ITEMTYPE_DRINK] = 2,
+			}
+			for slotIndex = 0, GetBagSize(BAG_BACKPACK) do
+				if IsValidItemForSlot(BAG_BACKPACK, slotIndex, 1, HOTBAR_CATEGORY_QUICKSLOT_WHEEL) then 
+					local itemType = GetItemType(BAG_BACKPACK, slotIndex)
+					if itemTypes[itemType] then
+						if itemTypes[itemType] == currentCategory then
+							table.insert(self.masterList, 
+								{
+									name = zo_strformat("<<C:1>>", GetItemName(BAG_BACKPACK, slotIndex)),
+									tooltipFunction = function(control)
+										showItemTooltip(control, getItemLinkTooltip(GetItemLink(BAG_BACKPACK, slotIndex)))
+										end,
+									leftClickFunction = function() setQuickSlot(ACTION_TYPE_ITEM, GetItemLink(BAG_BACKPACK, slotIndex)) end,
+									rightClickFunction = function() end,
+								})
+						end
+					elseif currentCategory == 4 then
+							table.insert(self.masterList, 
+								{
+									name = zo_strformat("<<C:1>>", GetItemName(BAG_BACKPACK, slotIndex)),
+									tooltipFunction = function(control) showItemTooltip(control, getItemLinkTooltip(GetItemLink(BAG_BACKPACK, slotIndex))) end,
+									leftClickFunction = function() setQuickSlot(ACTION_TYPE_ITEM, GetItemLink(BAG_BACKPACK, slotIndex)) end,
+									rightClickFunction = function() end,
+								})
+					end
+				end
+			end
+		else
+			for journalIndex=1, MAX_JOURNAL_QUESTS do 
+				for toolIndex=1, GetQuestToolCount(journalIndex) do
+					local _, _, _, questItemName, questItemId = GetQuestToolInfo(journalIndex, toolIndex)
+					questItemName = zo_strformat("<<C:1>>", questItemName)
+					if CanQuickslotQuestItemById(questItemId) then
+						table.insert(self.masterList, 
+							{
+								name = questItemName,
+								tooltipFunction = function(control)
+									local descr = GetQuestItemTooltipText(questItemId)
+									local myIcon = GetQuestItemIcon(questItemId)
+									showItemTooltip(control, questItemName, myIcon, {descr})
+								end,
+								leftClickFunction = function() end,
+								rightClickFunction = function() end,
+							})
+					end
+				end
+			end
+		end
+		-- 1) potions
+		-- 2) food/drink
+		-- 3) quest items
+		-- 4) others
+			
 	end	
 end
 
@@ -312,7 +393,7 @@ local function updateCategoryCombo(myType)
 	if myType == ACTION_TYPE_EMOTE then
 		for _, emoteType in pairs(PLAYER_EMOTE_MANAGER:GetEmoteCategories()) do	
 			if emoteType ~= EMOTE_CATEGORY_INVALID then
-				table.insert(myTypes, {name = GS("SI_EMOTECATEGORY", emoteType), value = emoteType})
+				table.insert(myTypes, {name = zo_strformat("<<C:1>>", GS("SI_EMOTECATEGORY", emoteType)), value = emoteType})
 			end
 		end
 	elseif myType == ACTION_TYPE_QUICK_CHAT then
@@ -325,6 +406,9 @@ local function updateCategoryCombo(myType)
 			GS(SI_ITEMFILTERTYPE26), -- quest items (not in the regular inventory)
 			GS(SI_FURNITURETHEMETYPE1), -- others
 		}
+		for i, v in pairs(itemTypeCategories) do
+			table.insert(myTypes, {name = zo_strformat("<<C:1>>", v), value = i})
+		end
 	elseif myType == ACTION_TYPE_COLLECTIBLE then
 		local collectibleCategoryIdByBarCat = {
 			[HOTBAR_CATEGORY_QUICKSLOT_WHEEL] = {
@@ -340,7 +424,7 @@ local function updateCategoryCombo(myType)
 		}
 		local collectibleCategories = collectibleCategoryIdByBarCat[barCategories[slotToEdit.bar]]
 		for _, v in pairs(collectibleCategories) do
-			table.insert(myTypes, {name = ZO_COLLECTIBLE_DATA_MANAGER:GetCategoryDataById(v):GetName(), value = v})
+			table.insert(myTypes, {name = zo_strformat("<<C:1>>", (ZO_COLLECTIBLE_DATA_MANAGER:GetCategoryDataById(v):GetName())), value = v})
 		end
 		if #collectibleCategories == 1 then
 			preSelectName = myTypes[1].name
@@ -443,7 +527,7 @@ function CSPS.setupQsSection(control, node, data)
 	
 end
 
--- CSPS.readCurrentQS() CSPS.setupQsTree()
+-- /script CSPS.setupQsTree()
 
 function CSPS.setupQsTree()
 	
@@ -455,10 +539,10 @@ function CSPS.setupQsTree()
 		for qsIndex, itemLink in pairs(barTable) do
 			table.insert(fillContentBar, {"CSPSQSLE", {barIndex = barIndex, barTable = barTable, qsIndex = qsIndex}})
 		end
-		table.insert(fillContent, {"CSPSLH", {name = GS("SI_HOTBARCATEGORY", barCategories[barIndex]), variant = 8, fillContent=fillContentBar}})
+		table.insert(fillContent, {"CSPSLH", {name = GS("SI_HOTBARCATEGORY", barCategories[barIndex]), variant=8, fillContent=fillContentBar}})
 	end
 	local overNode = myTree:AddNode("CSPSLH", {name = GS(SI_HOTBARCATEGORY10), variant=8, fillContent=fillContent}) 
 
 	
-	myTree:RefreshVisible()
+	myTree:RefreshVisible() -- delete after including this function!
 end

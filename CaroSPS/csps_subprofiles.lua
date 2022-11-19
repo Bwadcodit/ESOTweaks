@@ -1,11 +1,16 @@
 local GS = GetString
 local cpColors = CSPS.cpColors
 
+local cspsD = CSPS.cspsD
+
 local lastZoneName = ""
 
 local qsCooldown = false
 
 local roles = {"DD", GS(CSPS_CPP_Tank), "", GS(SI_LFGROLE4), "DD(Mag)", "DD(Stam)", GS(SI_GEMIFIABLEFILTERTYPE0)}
+
+local PROFILE_TYPE_ACCOUNT, PROFILE_TYPE_CHAR, PROFILE_TYPE_IMPORT, PROFILE_TYPE_PRESET, PROFILE_TYPE_HOTBARS = 1, 2, 3, 4, 5
+local PROFILE_TYPE_QS_ACCOUNT, PROFILE_TYPE_QS_CHAR, PROFILE_TYPE_SK_ACCOUNT, PROFILE_TYPE_SK_CHAR = 6, 7, 8, 9
 
 local zoneAbbr = {
 	[636] = "HRC",
@@ -56,7 +61,7 @@ local function getProfileTypeLists(createIfEmpty, presetsToo)
 	local profileTypeLists = {
 		CSPS.savedVariables.cpProfiles, CSPS.currentCharData.cpProfiles, 	--1,2
 		nil, 																--3
-		presetsToo and CSPSCPPresets or nil, 								--4
+		presetsToo and CSPS.CPPresets or nil, 								--4
 		CSPS.currentCharData.cpHbProfiles,									--5
 		CSPS.savedVariables.qsProfiles,	CSPS.currentCharData.qsProfiles,	--6,7
 		CSPS.savedVariables.skProfiles,	CSPS.currentCharData.skProfiles,	--8,9
@@ -506,8 +511,11 @@ function CSPScppList:FilterScrollList( )
 	end
 end
 
-function CSPS.cpProfile(i)
-	if CSPSWindowCPProfiles:IsHidden() == false and CSPS.cpProfDis == i then
+function CSPS.cpProfile(i, silentChange)
+	if silentChange and CSPSWindowCPProfiles:IsHidden() then 
+		CSPS.cpProfDis = i
+		return 
+	elseif CSPSWindowCPProfiles:IsHidden() == false and CSPS.cpProfDis == i and silentChange == nil then
 		CSPSWindowCPProfiles:SetHidden(true)
 		CSPSWindowCPImport:SetHidden(true)
 		CSPSWindowCPProfiles:SetHeight(0)
@@ -603,7 +611,12 @@ function CSPS.cp2ProfilePlus(myType)
 	end
 	
 	newProfileBringToTop = true
-	CSPS.cppList:RefreshData()	
+	
+	if not CSPS.cppList then
+		CSPS.cppList = CSPScppList:New(CSPSWindowCPProfiles)
+	else
+		CSPS.cppList:RefreshData()
+	end
 	
 	-- setting .isnew to nil after refreshing so it will only show until the next refresh
 	for j, w in pairs(profileTypeLists) do
@@ -611,6 +624,7 @@ function CSPS.cp2ProfilePlus(myType)
 			v.isNew = nil
 		end
 	end
+	
 end
 
 local function getCPProfileName(myId, myType)
@@ -814,6 +828,8 @@ end
 
 local function loadDynamicCP(myList, mySlotted, myBase, discipline)
 	if myList == nil then return end
+	local myBase = myBase or {}
+	local mySlotted = mySlotted or {}
 	local i = 1
 	local remainingPoints = GetNumSpentChampionPoints(GetChampionDisciplineId(discipline)) + GetNumUnspentChampionPoints(GetChampionDisciplineId(discipline))
 	
@@ -829,6 +845,7 @@ local function loadDynamicCP(myList, mySlotted, myBase, discipline)
 				CSPS.cp2UpdateUnlock(discipline)
 				remainingPoints = remainingPoints -  CSPS.cp2Table[myList[i][1]][2]
 			else
+				cspsD("Not enough points for "..myList[i][1])
 				if DoesChampionSkillHaveJumpPoints(myList[i][1]) then
 					local myJumpPoint = 0
 					for j, w in ipairs({GetChampionSkillJumpPoints(myList[i][1])}) do
@@ -850,7 +867,10 @@ local function loadDynamicCP(myList, mySlotted, myBase, discipline)
 				end
 				if strictOrder then break end
 			end
+		else
+			cspsD("Not found:"..myList[i][1])
 		end
+		if remainingPoints <= 0 then cspsD("No points left") end
 		i = i +1
 	end
 	if remainingPoints > 0 then
@@ -931,7 +951,7 @@ CSPS.loadCPProfile = loadCPProfile
 local function loadCPPreset(myType, myId, discipline, suppressInfoAlert)
 	local myPreset = {}
 	if myType == 4 then 
-		myPreset = CSPSCPPresets[myId]
+		myPreset = CSPS.CPPresets[myId]
 	else
 		return
 	end
@@ -940,16 +960,42 @@ local function loadCPPreset(myType, myId, discipline, suppressInfoAlert)
 	if myPreset.switch then
 		myMessage = zo_strformat(GS(CSPS_MSG_SwitchCP), cpColors[myPreset.discipline]:ToHex(), GetChampionSkillName(myPreset.switch))
 	end
-	if myPreset.situational and #myPreset.situational > 0 then
+	if myPreset.situational and #myPreset.situational > 0 or myPreset.aoe or myPreset.penetration or myPreset.offBalance or myPreset.crit then
 		local mySituationals = {}
-		for i, v in pairs (myPreset.situational) do
-			table.insert(mySituationals, zo_strformat("'<<C:1>>'", GetChampionSkillName(v)))
+		
+		local function addSublist(subList)
+			--local tempSubList = {}
+			for i, v in pairs(subList) do 
+				local myIcon = CSPS.useCustomIcons and CSPS.customCpIcons[v] or "esoui/art/champion/champion_icon_32.dds"
+				table.insert(mySituationals, zo_strformat("   |t24:24:<<1>>|t |c<<2>>'<<C:3>>'|r", myIcon, cpColors[myPreset.discipline]:ToHex(), GetChampionSkillName(v)))
+			end
 		end
+		
+		if myPreset.situational and #myPreset.situational > 0 then
+			addSublist(myPreset.situational)
+		end
+		if myPreset.ao then
+			table.insert(mySituationals, string.format("%s:", GS(CSPS_AOE)))
+			addSublist(myPreset.aoe)
+		end
+		if myPreset.penetration then
+			table.insert(mySituationals, zo_strformat("<<C:1>> < 18200:", GS(SI_DERIVEDSTATS27)))
+			addSublist(myPreset.aoe)
+		end
+		if myPreset.offBalance then
+			table.insert(mySituationals, string.format("%s > %s%%:", GS(CSPS_OffBalance), myPreset.offBalanceUp))
+			addSublist(myPreset.offBalance)
+		end
+		if myPreset.crit then
+			table.insert(mySituationals, string.format("%s < 125%%:", GS(CSPS_CRIT)))
+			addSublist(myPreset.crit)
+		end
+				
 		mySituationals = table.concat(mySituationals, "\n")
 		if myMessage ~= "" then
-			myMessage = string.format("%s\n\n%s\n|c%s%s|r", myMessage, GS(CSPS_MSG_SituationalCP), cpColors[myPreset.discipline]:ToHex(), mySituationals)
+			myMessage = string.format("%s\n\n%s\n%s", myMessage, GS(CSPS_MSG_SituationalCP), mySituationals)
 		else
-			myMessage = string.format("%s\n|c%s%s|r", GS(CSPS_MSG_SituationalCP), cpColors[myPreset.discipline]:ToHex(), mySituationals)
+			myMessage = string.format("%s\n%s", GS(CSPS_MSG_SituationalCP), mySituationals)
 		end	
 	end
 	if myMessage ~= "" and not suppressInfoAlert then
@@ -964,8 +1010,8 @@ function CSPS.showPresetProfileContent(control, myType, myId, discipline)
 	local myList = {}
 	local myName = ""
 	if myType == 4 then
-		myName = CSPSCPPresets[myId].name
-		myList = CSPSCPPresets[myId].preset
+		myName = CSPS.CPPresets[myId].name
+		myList = CSPS.CPPresets[myId].preset
 	elseif myType == 1 or myType == 2 then
 		local myProfile = myType == 1 and CSPS.savedVariables.cpProfiles[myId] or CSPS.currentCharData.cpProfiles[myId]
 		local cp2Comp = myProfile.cpComp or ""
@@ -1139,6 +1185,7 @@ function CSPS.CPListRowMouseUp( control, button, upInside, shift)
 	if button == 1 then
 		if control.data.discipline < 4 then
 			if shift then
+				if control.data.type == 5 then return end
 				connectToProfile(control.data.type, control.data.myId, control.data.discipline)
 				return
 			end

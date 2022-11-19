@@ -8,7 +8,7 @@ local ec = CSPS.ec
 local colTbl = CSPS.colors
 local cpColors = CSPS.cpColors
 
-local TREE_SECTION_SKILLTYPES, TREE_SECTION_SKILLLINES, TREE_SECTION_SKILLS, TREE_SECTION_CHAMPIONPOINTS, TREE_SECTION_ATTRIBUTES, TREE_SECTION_GEAR, TREE_SECTION_QS = 1,2,3,4,6,7, 8
+local TREE_SECTION_SKILLTYPES, TREE_SECTION_SKILLLINES, TREE_SECTION_SKILLS, TREE_SECTION_CHAMPIONPOINTS, TREE_SECTION_ATTRIBUTES, TREE_SECTION_GEAR, TREE_SECTION_QS, TREE_SECTION_QS_CATEGORY = 1,2,3,4,6,7,8,9
 
 local errorColors = { -- ec = {correct = 1, wrongMorph = 2, rankHigher = 3, skillLocked = 4, rankLocked = 5, morphLocked = 6}, >>> + 1
 	colTbl.white,	
@@ -120,6 +120,13 @@ local function NodeSetup(node, control, data, open, userRequested, enabled)
 	local myColor = mySkill.purchased and errorColors[myErrorCode + 1] or colTbl.gray
 	
 	myCtrText:SetHandler("OnMouseEnter", function() showSkTT(myCtrText, i, j, k, mySkill.morph, mySkill.rank, myErrorCode, mySkill) end)
+	
+	myCtrText:SetHandler("OnMouseUp", 
+		function(_, mouseButton, upInside, ctrl, _, shift) 
+			if mouseButton == 1 and upInside and ctrl and shift then 
+				d(string.format("%s - %s - %s (Morph %s, Rank %s) - ID: %s", i, j, k, mySkill.morph or "-", mySkill.rank or "-", (GetSpecificSkillAbilityInfo(i, j, k, mySkill.morph, mySkill.rank))))
+			end 
+		end)
 	myCtrText:SetColor(myColor:UnpackRGBA())
 	myCtrIcon:SetDesaturation(mySkill.purchased and 0 or 1)
 	
@@ -181,7 +188,9 @@ function CSPS.NodeSectionSetup(node, control, data, open, userRequested, enabled
 	local myCtrBtnMinus = control:GetNamedChild("BtnMinus")
 	local myCtrBtnPlus = control:GetNamedChild("BtnPlus")
 	local btnToggle = GetControl(control, "Toggle")
-		
+	-- BtnSave
+	-- IndicatorSaveNew
+	
 	if data.variant == TREE_SECTION_SKILLTYPES or data.variant == TREE_SECTION_SKILLLINES then -- Skill type/line
 		local myData = data.variant == TREE_SECTION_SKILLTYPES and data.typeData or data.lineData
 		myText = string.format("%s (%s)", myText, myData.points)
@@ -220,7 +229,7 @@ function CSPS.NodeSectionSetup(node, control, data, open, userRequested, enabled
 		myCtrText:SetColor(colTbl.white:UnpackRGBA())
 		CSPS.setupGearSection(control, node, data)
 		
-	elseif data.variant == TREE_SECTION_QS then
+	elseif data.variant == TREE_SECTION_QS or data.variant == TREE_SECTION_QS_CATEGORY then
 		myCtrText:SetColor(colTbl.white:UnpackRGBA())
 		CSPS.setupQsSection(control, node, data)
 		
@@ -255,6 +264,7 @@ local function NodeSetupCP2Discipline(node, control, data, open, userRequested, 
 	local ctrConnect = GetControl(control, "Connection")
 	ctrConnect:SetColor(data.entrColor:UnpackRGBA())
 	ctrConnect:SetHidden(not myProfile)
+	ctrConnect:SetWidth(not myProfile and 0 or 24)
 	if myProfile then
 		ctrConnect:SetHandler("OnMouseEnter",
 			function()
@@ -268,7 +278,50 @@ local function NodeSetupCP2Discipline(node, control, data, open, userRequested, 
 					myTree:RefreshVisible() 
 					CSPS.cppList:RefreshVisible()
 				end 
-			end) 
+			end)
+		
+		local myType, myId = SplitString("-", myProfile)
+		myType = tonumber(myType)
+		myId = tonumber(myId)	
+		
+		control:GetNamedChild("IndicatorSaveNew"):SetHidden(true)
+		
+		if node:IsOpen() and not data.fillContent then 
+			control:GetNamedChild("BtnSave"):SetHidden(myType > 2)
+			control:GetNamedChild("BtnSave"):SetHandler("OnClicked", 
+				function()  
+					CSPS.cpProfile(data.i, true)
+					CSPS.cp2ProfileSaveGo(myId, myType)
+			end)
+		else
+			control:GetNamedChild("BtnSave"):SetHidden(true)
+		end	
+	else
+		if node:IsOpen() and not data.fillContent then 
+			control:GetNamedChild("BtnSave"):SetHidden(false)
+			control:GetNamedChild("IndicatorSaveNew"):SetHidden(false)
+			control:GetNamedChild("BtnSave"):SetHandler("OnClicked", 
+				function()  
+					AddCustomMenuItem(string.gsub(GS(CSPS_CPP_BtnCustAcc), "\n", " "), 
+						function()
+							CSPS.cpProfType = 1
+							CSPS.cpProfile(data.i, false)
+							CSPS.cp2ProfilePlus(1)
+						end)
+					AddCustomMenuItem(string.gsub(GS(CSPS_CPP_BtnCustChar), "\n", " "), 
+						function() 
+							CSPS.cpProfType = 2
+							CSPS.cpProfile(data.i, false)
+							CSPS.cp2ProfilePlus(2)
+						end)
+					ShowMenu()
+					
+			end)
+		else
+			control:GetNamedChild("BtnSave"):SetHidden(true)
+			control:GetNamedChild("IndicatorSaveNew"):SetHidden(true)
+		end	
+		
 	end	
 	control:GetNamedChild("Name"):SetText(myText)
 end
@@ -432,7 +485,15 @@ local function NodeSetupCP2Entry(node, control, data, open, userRequested, enabl
 		control.ctrBtnPlus:SetHidden(myValue >= GetChampionSkillMaxPoints(myId))
 		control.ctrBtnMinus:SetHidden(myValue <= 0)
 	end
-	control.ctrName:SetHandler("OnMouseUp", function(self, mouseButton, upInside) if upInside then CSPS.cpClicked(self, myId, mouseButton) end end)
+	control.ctrName:SetHandler("OnMouseUp", function(self, mouseButton, upInside, ctrl, _, shift) 
+		if upInside then 
+			if mouseButton == 1 and ctrl and shift then
+				d(myId)
+			else
+				CSPS.cpClicked(self, myId, mouseButton) 
+			end
+		end 
+	end)
 	control.ctrBtnPlus:SetHandler("OnClicked", function(_,_,_,_,shift) CSPS.cp2BtnPlusMinus(data.skId, 1, shift) end)
 	control.ctrBtnMinus:SetHandler("OnClicked", function(_,_,_,_,shift) CSPS.cp2BtnPlusMinus(data.skId, -1, shift) end)
 	

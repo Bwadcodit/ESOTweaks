@@ -64,9 +64,20 @@ local sdm = SKILLS_DATA_MANAGER
 
 local skillTable = CSPS.skillTable
 local skillTypes = {SKILL_TYPE_CLASS, SKILL_TYPE_WEAPON, SKILL_TYPE_ARMOR, SKILL_TYPE_WORLD, SKILL_TYPE_GUILD, SKILL_TYPE_AVA, SKILL_TYPE_RACIAL, SKILL_TYPE_TRADESKILL}
+local cspsDoDebug = false
 
 local ec = CSPS.ec
 
+function CSPS.cspsD(debugMessage)
+	if not cspsDoDebug then return end
+	d(debugMessage)
+end
+
+local cspsD = CSPS.cspsD
+
+function CSPS.debug(arg)
+	cspsDoDebug = arg
+end
 
 function CSPS.isMagOrStam()
 	local magStam = 0
@@ -244,6 +255,7 @@ function CSPS.showBuild(initOpen)
 	CSPS.cp2ReadCurrent()
 	CSPS.hbRead()
 	CSPS.hbPopulate()
+	CSPS.readCurrentQS()
 	if not CSPS.tabEx then CSPS.createTable() end
 	
 	for i=1,3 do

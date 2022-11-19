@@ -1,4 +1,4 @@
-CSPSSkillFactoryDBExport = {
+CSPS.SkillFactoryDBExport = {
     skMap = {
         [15540] = 431,
         [15957] = 408,

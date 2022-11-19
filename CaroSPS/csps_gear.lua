@@ -487,7 +487,7 @@ local function getSetAutoCompleteOptions(gearSlot)
 	if gearSlotsPoison[gearSlot] then return false, false end
 	local allSets = {}
 	local allSetsT = {}
-	for i, v in pairs(CSPSGetSetList()) do
+	for i, v in pairs(CSPS.GetSetList()) do
 		if not gearSlot or doesSetFitGearSlot(gearSlot, v) then
 			local myName = ""
 			if GetItemSetType(v) == ITEM_SET_TYPE_WEAPON then

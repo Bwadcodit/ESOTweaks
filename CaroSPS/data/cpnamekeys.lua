@@ -1,4 +1,4 @@
-CSPScpNameKeys = {
+CSPS.cpNameKeys = {
 	[1] = {
 		["outofsight"] = 68,
 		["fleetphantom"] = 67,
@@ -76,6 +76,8 @@ CSPScpNameKeys = {
 		["hopeinfusion"] = 261,
 		["salveofrenewal"] = 260,
 		["ironclad"] = 265,
+		["forceofnature"] = 276,
+		["exploiter"] = 277,
 	},
 	[3] = {
 		["sprinter"] = 38,

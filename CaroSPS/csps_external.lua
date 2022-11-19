@@ -4,13 +4,13 @@ local cpColTex = {
 		"esoui/art/champion/champion_points_health_icon-hud-32.dds",
 }
 
-local skMap = CSPSSkillFactoryDBExport.skMap
-local cpMap = CSPSSkillFactoryDBExport.cpMap
-local cp2Map = CSPSSkillFactoryDBExport.cp2Map
-local muMap = CSPSSkillFactoryDBExport.mundusMap
-local raMap = CSPSSkillFactoryDBExport.raceMap
-local clMap = CSPSSkillFactoryDBExport.classMap
-local alMap = CSPSSkillFactoryDBExport.allianceMap
+local skMap = CSPS.SkillFactoryDBExport.skMap
+local cpMap = CSPS.SkillFactoryDBExport.cpMap
+local cp2Map = CSPS.SkillFactoryDBExport.cp2Map
+local muMap = CSPS.SkillFactoryDBExport.mundusMap
+local raMap = CSPS.SkillFactoryDBExport.raceMap
+local clMap = CSPS.SkillFactoryDBExport.classMap
+local alMap = CSPS.SkillFactoryDBExport.allianceMap
 local basisUrl = ""
 local GS = GetString
 
@@ -221,7 +221,7 @@ local function generateLinkSF()
 	
 	linkTable[3] = string.format("%s,%s", table.concat(hbTab[1], ":"), table.concat(hbTab[2], ":"))  -- Hotbar 2
 	linkTable[4] = "" --setInfo
-	if CSPSBuildSkillFactorySetList then linkTable[4] = CSPSBuildSkillFactorySetList() end
+	if CSPS.BuildSkillFactorySetList then linkTable[4] = CSPSBuildSkillFactorySetList() end
 	linkTable[5] = string.format("%s,%s,%s", CSPS.cp2ColorSum[1], CSPS.cp2ColorSum[2], CSPS.cp2ColorSum[3])-- cp-sums green blue red
 	linkTable[6] = table.concat(cpTable, ",") -- cp as id:value
 	linkTable[7] = table.concat(cpHbTable, ",") -- cp hb as pos:id
@@ -373,7 +373,7 @@ local function importLinkSF()
 	-- 5: CP-sums (green-blue-red)
 	-- 6: CP-values (id:value), 7: CP-hotbars (position:id), 1-4 = green, 5-8 = blue, 9-12 = red
 	local lnkGearTab = sfV2 and lnkParameter[4] and lnkParameter[4] ~= "-" and lnkParameter[4]
-	if lnkGearTab and CSPS.doGear then CSPSImportSkillFactorySetList(lnkGearTab) end
+	if lnkGearTab and CSPS.doGear then CSPS.ImportSkillFactorySetList(lnkGearTab) end
 	
 	local lnkCpTab = false
 	lnkCpTab = sfV2 and lnkParameter[6] ~= nil and lnkParameter[6] ~= "-" and {SplitString(",", lnkParameter[6])}

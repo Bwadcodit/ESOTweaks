@@ -151,6 +151,12 @@ function CSPS:RestorePosition()
   CSPSCpHotbar:SetAnchor(TOPLEFT, GuiRoot, TOPLEFT, hbleft, hbtop)
 end
 
+local function changeButtonTextures(btnCtr, differentTextures, sameTextures)
+	btnCtr:SetNormalTexture(sameTextures or differentTextures.."_up.dds")
+	btnCtr:SetMouseOverTexture(sameTextures or differentTextures.."_over.dds")
+	btnCtr:SetPressedTexture(sameTextures or differentTextures.."_down.dds")
+end
+
 function CSPS.showElement(myElement, arg)
 	if myElement == "checkCP" then
 		if CSPS.unlockedCP == false then
@@ -177,14 +183,10 @@ function CSPS.showElement(myElement, arg)
 		local cp2BL = CSPS.cp2BarLabels
 		local myCtrl = CSPSWindowCP2Bar
 		if cp2BL == true then
-			myCtrl:GetNamedChild("ToggleLabels"):SetNormalTexture("esoui/art/buttons/large_rightarrow_up.dds")
-			myCtrl:GetNamedChild("ToggleLabels"):SetMouseOverTexture("esoui/art/buttons/large_rightarrow_over.dds")
-			myCtrl:GetNamedChild("ToggleLabels"):SetPressedTexture("esoui/art/buttons/large_rightarrow_down.dds")
+			changeButtonTextures(myCtrl:GetNamedChild("ToggleLabels"), "esoui/art/buttons/large_rightarrow")
 			myCtrl:SetWidth(242)
 		else 
-			myCtrl:GetNamedChild("ToggleLabels"):SetNormalTexture("esoui/art/buttons/large_leftarrow_up.dds")
-			myCtrl:GetNamedChild("ToggleLabels"):SetMouseOverTexture("esoui/art/buttons/large_leftarrow_over.dds")
-			myCtrl:GetNamedChild("ToggleLabels"):SetPressedTexture("esoui/art/buttons/large_leftarrow_down.dds")
+			changeButtonTextures(myCtrl:GetNamedChild("ToggleLabels"), "esoui/art/buttons/large_leftarrow")
 			myCtrl:SetWidth(38)
 		end
 		for i=1, 3 do
@@ -252,6 +254,15 @@ function CSPS.showElement(myElement, arg)
 end
 
 function CSPS.toggleOptional()
+	--[[ClearMenu()
+	
+	AddCustomMenuItem(GS(CSPS_CPBar_Manage), function() CSPS.toggleManageBars(true) end)
+	local chkBoxIndex = AddCustomMenuItem(GS(CSPS_ShowHb), function() CSPS.toggleHotbar() end, MENU_ADD_OPTION_CHECKBOX)
+	ZO_Menu.items[chkBoxIndex].checked = function()  return CSPS.showHotbar  end
+	AddCustomMenuItem(GS(CSPS_Tooltiptext_Optional), function() CSPS.openLAM() end)
+	
+	ShowMenu()
+	if true then return end]]--
 	CSPSWindowOptions:SetHidden(not CSPSWindowOptions:IsHidden())
 	if not CSPSWindowOptions:IsHidden() then EVENT_MANAGER:RegisterForEvent(CSPS.name, EVENT_GLOBAL_MOUSE_DOWN, CSPS.hideOptions) end
 end
@@ -363,16 +374,7 @@ function CSPS.toggleImportExport(arg)
 end
 
 local function toggleCheckbox(buttonName, arg)
-	local buttonControl = GetControl(CSPSWindow, buttonName)
-	if arg == true then
-		buttonControl:SetNormalTexture(checkedT)
-		buttonControl:SetPressedTexture(checkedT)
-		buttonControl:SetMouseOverTexture(checkedT)
-	else
-		buttonControl:SetNormalTexture(uncheckedT)
-		buttonControl:SetPressedTexture(uncheckedT)
-		buttonControl:SetMouseOverTexture(uncheckedT)		
-	end
+	changeButtonTextures(GetControl(CSPSWindow, buttonName), nil, arg == true and checkedT or uncheckedT)
 end
 
 function CSPS.impExpAddInfo(myAlliance, myRace, myClass)

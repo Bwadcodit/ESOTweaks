@@ -764,7 +764,7 @@ local sfSlots = {
 	[EQUIP_SLOT_BACKUP_POISON] = 16,
 }
 
-function CSPSGetSetList()
+function CSPS.GetSetList()
 	local mySetList = {}
 	for i, v in pairs(sfSetIds) do
 		table.insert(mySetList, i)
@@ -772,7 +772,7 @@ function CSPSGetSetList()
 	return (mySetList)
 end
 
-function CSPSGetSkillFactorySetData(myItem, slotId)
+function CSPS.GetSkillFactorySetData(myItem, slotId)
 	if not myItem or myItem == "" then return false end
 	local mySetData = {"", "", "0", "", ""}
 	local myItemId = GetItemLinkItemId(myItem)
@@ -802,6 +802,7 @@ function CSPSGetSkillFactorySetData(myItem, slotId)
 	return table.concat(mySetData, ":")
 end
 
+local GetSkillFactorySetData = CSPS.GetSkillFactorySetData
 local function getSFSetData2(myTable, gearSlot)
 	if not myTable or type(myTable) ~= "table" then return false end
 	local mySetData = {"", "", "0", "", ""}
@@ -831,7 +832,7 @@ local function getSFSetData2(myTable, gearSlot)
 	return table.concat(mySetData, ":")	
 end
 
-function CSPSBuildSkillFactorySetList()
+function CSPS.BuildSkillFactorySetList()
 	local sfSetTable = {}
 	if CSPS.doGear then
 		local theGear = CSPS.getTheGear()
@@ -843,14 +844,14 @@ function CSPSBuildSkillFactorySetList()
 	else
 		for gearSlot, sfSlot in pairs(sfSlots) do
 			local myItem = GetItemLink(BAG_WORN, gearSlot)
-			local mySetData = CSPSGetSkillFactorySetData(myItem, gearSlot)
+			local mySetData = GetSkillFactorySetData(myItem, gearSlot)
 			if mySetData then table.insert(sfSetTable, string.format("%s:%s", sfSlot, mySetData)) end
 		end
 	end
 	return table.concat(sfSetTable, ",")
 end
 
-function CSPSImportSkillFactorySetList(myGearString)
+function CSPS.ImportSkillFactorySetList(myGearString)
 	myGearString = string.gsub(myGearString, "::", ":0:")
 	local myGearStringTable = {SplitString(",", myGearString)}
 	local myGear = {}

@@ -1,10 +1,10 @@
 ## Title: |c9e0911Caro|r's Skill Point Saver
 ## Description: Save your spent skill points, attributes, champion points, quick slots and gear and load them again.
 ## APIVersion: 101035 101036
-## Version: 4.2.5
+## Version: 4.2.6
 ## Author: |c1d6dadIrniben|r
 ## SavedVariables: CSPSSavedVariables
-## DependsOn: LibAddonMenu-2.0>=34
+## DependsOn: LibAddonMenu-2.0>=34 LibCustomMenu>=713
 ## OptionalDependsOn: LibSets DressingRoom AlphaGear
 ##
 ## This Add-on is not created by, affiliated with or sponsored by ZeniMax Media Inc. or its affiliates.
@@ -16,13 +16,15 @@
 lang/en.lua
 lang/$(language).lua
 
+CarosSkillPointSaver.lua
+
 data/skillfactory.lua
 data/skillfactory-setexport.lua
 data/cpnamekeys.lua
 data/presets.lua
-CarosSkillPointSaver.lua
-csps_skills.lua
 data/geartables.lua
+
+csps_skills.lua
 csps_mundus.lua
 csps_external.lua
 csps_cp2.lua

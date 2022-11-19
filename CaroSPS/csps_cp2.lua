@@ -6,6 +6,7 @@ local cpSlT = {
 }
 --local cpColHex = {"A6D852", "5CBDE7", "DE6531" }
 local cpColors = CSPS.cpColors
+local cpNameKeys = CSPS.cpNameKeys
 
 CSPS.cpProfDis = 1
 CSPS.cpProfType = 1
@@ -1123,7 +1124,7 @@ function CSPS.exportTextCP(myDiscipline, myLang)
 	end
 	local CSPScpNameKeysRev = {}
 	if not myLang then
-		for i, v in pairs(CSPScpNameKeys[myDiscipline]) do
+		for i, v in pairs(cpNameKeys[myDiscipline]) do
 			CSPScpNameKeysRev[v] = i
 		end
 	end
@@ -1163,7 +1164,7 @@ end
 function CSPS.checkCPNameKeys(engl)
 	local myList = {}
 	CSPScpNameKeysT = {}
-	for i, v in pairs(CSPScpNameKeys) do
+	for i, v in pairs(cpNameKeys) do
 		for j, w in pairs(v) do
 			CSPScpNameKeysT[w] = j
 		end
@@ -1233,7 +1234,7 @@ function CSPS.importTextCP(myDiscipline, convertMe, sumUp, createDynamicProfile,
 	local namesChecked = {}
 	-- Trying to map the normalized skill names directly to keys
 	for i, v in pairs(myImportTable) do
-		local myKey = CSPScpNameKeys[myDiscipline][v[1]]
+		local myKey = cpNameKeys[myDiscipline][v[1]]
 		local mustSlot = string.find(v[1], "slot")
 		local isBasestat = string.find(v[1], "basestat")
 		if myKey ~= nil then
@@ -1273,7 +1274,7 @@ function CSPS.importTextCP(myDiscipline, convertMe, sumUp, createDynamicProfile,
 			if myMinStart > 4 and v[2] <= 100 then
 				local keyInString = nil
 				local stringInKey = nil
-				for j,w in pairs(CSPScpNameKeys[myDiscipline]) do
+				for j,w in pairs(cpNameKeys[myDiscipline]) do
 					if (not namesChecked[j]) or convertMe or createDynamicProfile then
 						-- Check if the normalized skill name is part of the namekey
 						local startA = string.find(v[1], j)
@@ -1294,7 +1295,7 @@ function CSPS.importTextCP(myDiscipline, convertMe, sumUp, createDynamicProfile,
 					end
 				end
 				if keyInString ~= nil then
-					myKey = CSPScpNameKeys[myDiscipline][keyInString]
+					myKey = cpNameKeys[myDiscipline][keyInString]
 					table.insert(skillsToImport, {myKey, v[2]})
 					namesChecked[myKey] = true
 					if mustSlot then 
@@ -1309,7 +1310,7 @@ function CSPS.importTextCP(myDiscipline, convertMe, sumUp, createDynamicProfile,
 					numMapSuccessful = numMapSuccessful + 1
 				elseif stringInKey then
 					if string.len(v[1]) > string.len(stringInKey) / 2 then
-						myKey = CSPScpNameKeys[myDiscipline][stringInKey]
+						myKey = cpNameKeys[myDiscipline][stringInKey]
 						table.insert(skillsToImport, {myKey, v[2]})
 						numMapSuccessful = numMapSuccessful + 1
 						if mustSlot then 
@@ -1322,7 +1323,7 @@ function CSPS.importTextCP(myDiscipline, convertMe, sumUp, createDynamicProfile,
 						end
 						if isBasestat then markedAsBase[myKey] = true end
 					else
-						myKey = CSPScpNameKeys[myDiscipline][stringInKey]
+						myKey = cpNameKeys[myDiscipline][stringInKey]
 						table.insert(mappingUnclear , {myKey, v[2], v[3]})
 						numMapUnclear = numMapUnclear + 1
 						if mustSlot then 

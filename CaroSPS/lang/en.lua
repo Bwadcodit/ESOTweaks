@@ -247,6 +247,9 @@ local L = {}
 	L.CSPS_MSG_SwitchCP = "Invest points into |c<<1>>'<<2>>'|r instead of one of the other slottables whenever you might profit from it."
 	L.CSPS_MSG_SituationalCP = "Consider replacing the slottables by one of the following skills depending on the situation:"
 	L.CSPS_CPP_Tank = "Tank"
+	L.CSPS_AOE = "AOE damage"
+	L.CSPS_CRIT = "Critical damage"
+	L.CSPS_OffBalance = "Off balance"
 	
 	-- Import/Export
 	L.CSPS_ImpEx_BtnImpLink = "Import link"

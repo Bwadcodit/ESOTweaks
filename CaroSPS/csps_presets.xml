@@ -531,6 +531,20 @@
 					  
 					  <OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>	
 				</Texture>	
+				
+				<Button name="$(parent)BtnSave" hidden="false" >
+					<TextureCoords left="0.1" right="0.8" top="0.2" bottom="0.9" />
+					<Dimensions y="21" x="21" />
+					<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$(parent)Connection" />
+					<Textures normal="esoui\art\mail\mail_tabicon_compose_up.dds" pressed="esoui\art\mail\mail_tabicon_compose_down.dds" mouseOver="esoui\art\mail\mail_tabicon_compose_over.dds" />
+					<OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>	
+				</Button>
+				
+				<Texture name="$(parent)IndicatorSaveNew" textureFile="ESOUI/art/buttons/gamepad/gp_plus.dds" hidden="true" layer="2">
+					<Dimensions x="12" y="12" />
+				    <Anchor point="BOTTOM" relativeTo="$(parent)BtnSave" relativePoint="BOTTOMRIGHT" offsetY="5" />
+					
+				</Texture>	
 			</Controls>
 		</Control>
 		
@@ -700,6 +714,19 @@
 					<Textures normal="ESOUI/art/buttons/minus_up.dds" pressed="ESOUI/art/buttons/minus_down.dds" mouseOver="ESOUI/art/buttons/minus_over.dds" />
 					<OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>	
 				</Button>
+				<Button name="$(parent)BtnSave" hidden="true" >
+					<TextureCoords left="0.1" right="0.8" top="0.2" bottom="0.9" />
+					<Dimensions y="21" x="21" />
+					<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$(parent)BtnMinus" />
+					<Textures normal="esoui\art\mail\mail_tabicon_compose_up.dds" pressed="esoui\art\mail\mail_tabicon_compose_down.dds" mouseOver="esoui\art\mail\mail_tabicon_compose_over.dds" />
+					<OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>	
+				</Button>
+				
+				<Texture name="$(parent)IndicatorSaveNew" textureFile="ESOUI/art/buttons/gamepad/gp_plus.dds" hidden="true" layer="2">
+					<Dimensions x="12" y="12" />
+				    <Anchor point="BOTTOM" relativeTo="$(parent)BtnSave" relativePoint="BOTTOMRIGHT" offsetY="5" />
+					
+				</Texture>	
 			</Controls>
 		</Control>
 		

@@ -243,6 +243,9 @@ local L = {}
 	L.CSPS_MSG_SwitchCP = "Setze Punkte in |c<<1>>'<<2>>'|r anstelle einer der anderen ausrüstbaren Fertigkeiten, wann immer du davon profitierst."
 	L.CSPS_MSG_SituationalCP = "Je nach Situation empfiehlt es sich, eine oder mehrere ausrüstbare Fertigkeiten gegen eine der folgenden auszutauschen:"
 	L.CSPS_CPP_Tank = "Tank"
+	L.CSPS_AOE = "Flächenschaden"
+	L.CSPS_CRIT = "Kritischer Schaden"
+	L.CSPS_OffBalance = "Aus dem Gleichgewicht"
 	
 	-- ImportExport
 	L.CSPS_ImpEx_BtnImpLink = "Link importieren"	
