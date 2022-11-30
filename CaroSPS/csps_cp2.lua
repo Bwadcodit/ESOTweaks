@@ -452,31 +452,69 @@ function CSPS.showCpTT(control, myId, myValue, withTitle, hotbarExplain)
 	end
 end
  
-function CSPS.cp2HbIcons(disciplineIndex)
-	local myBar = CSPS.cp2HbTable[disciplineIndex]
-	local changeOrderRev = {3, 1, 2}
-	for i=1, 4 do
-		local myCtrl = CSPSWindowCP2Bar:GetNamedChild("Icon"..changeOrderRev[disciplineIndex].."_"..i.."b")
-		local myCtrla = CSPSWindowCP2Bar:GetNamedChild("Icon"..changeOrderRev[disciplineIndex].."_"..i)
-		local myCtrlLabel = CSPSWindowCP2Bar:GetNamedChild("Label"..changeOrderRev[disciplineIndex].."_"..i)
-		if myBar[i] ~= nil then
-			myCtrl:SetHidden(false)
-			if CSPS.useCustomIcons and CSPS.customCpIcons[myBar[i]] then 
-				myCtrl:SetTexture(CSPS.customCpIcons[myBar[i]])
+function CSPS.initCP2Bar()
+	local cpBarCtr = CSPSWindowCP2Bar
+	cpBarCtr.initialized = true
+	cpBarCtr.slots = {}
+	local bars = cpBarCtr.slots
+	local hbRearrange = {2, 3, 1}
+	local cp2BL = CSPS.cp2BarLabels
+	for i=1,3 do
+		local disciplineIndex = hbRearrange[i]
+		bars[disciplineIndex] = {}
+		local slots = bars[hbRearrange[i]]
+		
+		for j=1,4 do
+			local oneSlot = WINDOW_MANAGER:CreateControlFromVirtual(string.format("CSPSWindowCP2BarSlot%s_%s", i, j), cpBarCtr, "CSPSCP2BarPres")
+			slots[j] = oneSlot
+			if j == 1 and i == 1 then
+				oneSlot:SetAnchor(TOP, cpBarCtr:GetNamedChild("ToggleLabels"), BOTTOM, 0, 10)
+			elseif j == 1 then
+				oneSlot:SetAnchor(TOP, bars[hbRearrange[i-1]][4], BOTTOM, 0, 45)
 			else
-				myCtrl:SetTexture("esoui/art/champion/champion_icon_32.dds")
+				oneSlot:SetAnchor(TOP, slots[j-1], BOTTOM, 0, 10)
+			end
+						
+			oneSlot.circle = oneSlot:GetNamedChild("Circle")
+			oneSlot.icon = oneSlot:GetNamedChild("Icon")
+			oneSlot.label = oneSlot:GetNamedChild("Label")
+			oneSlot.label:SetHidden(not cp2BL)
+			oneSlot.circle:SetTexture(cpSlT[disciplineIndex])
+			if disciplineIndex == 1 then oneSlot.circle:SetColor(0.8235, 0.8235, 0) end
+			oneSlot.circle:SetHandler("OnMouseExit", function() ZO_Tooltips_HideTextTooltip() end)
+			oneSlot.circle:SetHandler("OnReceiveDrag", function() CSPS.onCpHbIconReceive(disciplineIndex, j) end)
+			oneSlot.circle:SetHandler("OnMouseUp", 
+				function(_, button) WINDOW_MANAGER:SetMouseCursor(0)
+					if button==2 then CSPS.CpHbSkillRemove(disciplineIndex, j) end 
+				end)
+			oneSlot.circle:SetHandler("OnDragStart", function(_, button) if button == 1 then WINDOW_MANAGER:SetMouseCursor(15)  CSPS.onCpHbIconDrag(disciplineIndex, j) end end)
+		end
+	end
+end
+
+function CSPS.cp2HbIcons(disciplineIndex)
+	if not CSPSWindowCP2Bar.initialized then return end
+	local myBar = CSPS.cp2HbTable[disciplineIndex]
+	for i=1, 4 do
+		local myCtrl = CSPSWindowCP2Bar.slots[disciplineIndex][i]
+		if myBar[i] ~= nil then
+			myCtrl.icon:SetHidden(false)
+			if CSPS.useCustomIcons and CSPS.customCpIcons[myBar[i]] then 
+				myCtrl.icon:SetTexture(CSPS.customCpIcons[myBar[i]])
+			else
+				myCtrl.icon:SetTexture("esoui/art/champion/champion_icon_32.dds")
 			end
 			
 			local myName = cpColors[disciplineIndex]:Colorize(zo_strformat("<<C:1>>", GetChampionSkillName(myBar[i])))
-			myCtrlLabel:SetText(myName)
+			myCtrl.label:SetText(myName)
 
-			myCtrla:SetHandler("OnMouseEnter", function()  CSPS.showCpTT(myCtrla, myBar[i], CSPS.cp2Table[myBar[i]][2], true, true) end) 
-			myCtrla:SetHandler("OnMouseExit", function () ZO_Tooltips_HideTextTooltip() end)
+			myCtrl.circle:SetHandler("OnMouseEnter", function()  CSPS.showCpTT(myCtrl.circle, myBar[i], CSPS.cp2Table[myBar[i]][2], true, true) end) 
+			myCtrl.circle:SetHandler("OnMouseExit", function () ZO_Tooltips_HideTextTooltip() end)
 		else
-			myCtrlLabel:SetText("")
-			myCtrl:SetHidden(true)
-			myCtrla:SetHandler("OnMouseEnter", function() ZO_Tooltips_ShowTextTooltip(myCtrla, RIGHT, GS(CSPS_Tooltip_CPBar)) end)
-			myCtrla:SetHandler("OnMouseExit", function () ZO_Tooltips_HideTextTooltip() end)
+			myCtrl.label:SetText("")
+			myCtrl.icon:SetHidden(true)
+			myCtrl.circle:SetHandler("OnMouseEnter", function() ZO_Tooltips_ShowTextTooltip(myCtrl.circle, RIGHT, GS(CSPS_Tooltip_CPBar)) end)
+			myCtrl.circle:SetHandler("OnMouseExit", function () ZO_Tooltips_HideTextTooltip() end)
 		end
 	end
 end
