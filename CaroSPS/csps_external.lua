@@ -221,7 +221,7 @@ local function generateLinkSF()
 	
 	linkTable[3] = string.format("%s,%s", table.concat(hbTab[1], ":"), table.concat(hbTab[2], ":"))  -- Hotbar 2
 	linkTable[4] = "" --setInfo
-	if CSPS.BuildSkillFactorySetList then linkTable[4] = CSPSBuildSkillFactorySetList() end
+	if CSPS.BuildSkillFactorySetList then linkTable[4] = CSPS.BuildSkillFactorySetList() end
 	linkTable[5] = string.format("%s,%s,%s", CSPS.cp2ColorSum[1], CSPS.cp2ColorSum[2], CSPS.cp2ColorSum[3])-- cp-sums green blue red
 	linkTable[6] = table.concat(cpTable, ",") -- cp as id:value
 	linkTable[7] = table.concat(cpHbTable, ",") -- cp hb as pos:id

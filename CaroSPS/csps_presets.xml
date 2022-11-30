@@ -537,6 +537,7 @@
 					<Dimensions y="21" x="21" />
 					<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$(parent)Connection" />
 					<Textures normal="esoui\art\mail\mail_tabicon_compose_up.dds" pressed="esoui\art\mail\mail_tabicon_compose_down.dds" mouseOver="esoui\art\mail\mail_tabicon_compose_over.dds" />
+					<OnMouseEnter>ZO_Tooltips_ShowTextTooltip(self, RIGHT, self.tooltip)</OnMouseEnter>
 					<OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>	
 				</Button>
 				
@@ -719,6 +720,7 @@
 					<Dimensions y="21" x="21" />
 					<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$(parent)BtnMinus" />
 					<Textures normal="esoui\art\mail\mail_tabicon_compose_up.dds" pressed="esoui\art\mail\mail_tabicon_compose_down.dds" mouseOver="esoui\art\mail\mail_tabicon_compose_over.dds" />
+					<OnMouseEnter>ZO_Tooltips_ShowTextTooltip(self, RIGHT, self.tooltip)</OnMouseEnter>
 					<OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>	
 				</Button>
 				
@@ -730,8 +732,23 @@
 			</Controls>
 		</Control>
 		
-		
-
+		<Control name="CSPSCP2BarPres" virtual="true">
+			<Dimensions x="28" y="28" />
+			<Controls>
+				<Texture name="$(parent)Circle" tier="1" mouseEnabled="true" textureFile="esoui/art/champion/actionbar/champion_bar_combat_selection.dds">
+					<Dimensions x="28" y="28" />
+					<Anchor point="CENTER" relativeTo="$(parent)" relativePoint="CENTER" />
+				</Texture>	
+				<Texture name="$(parent)Icon" hidden="true" textureFile="esoui/art/champion/champion_icon_32.dds">
+					<Dimensions x="28" y="28" />
+					<Anchor point="CENTER" relativeTo="$(parent)Circle" relativePoint="CENTER" />			  
+				</Texture>
+				<Label name="$(parent)Label"  font="$(MEDIUM_FONT)|$(KB_15)|soft-shadow-thin" horizontalAlignment="1" hidden="true">
+					<Anchor point="RIGHT" relativeTo="$(parent)Circle" relativePoint="LEFT" offsetX="-5" />
+					<Dimensions x="200" />
+				</Label>
+			</Controls>
+		</Control>						
 		<Control name="CSPSHelpSectionPres" virtual="true" resizeToFitDescendents="true">
 			<Controls>
 				<Button name="$(parent)Btn" inherits="CSPScppBtnPreset">

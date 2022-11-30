@@ -288,6 +288,7 @@ local function NodeSetupCP2Discipline(node, control, data, open, userRequested, 
 		
 		if node:IsOpen() and not data.fillContent then 
 			control:GetNamedChild("BtnSave"):SetHidden(myType > 2)
+			control:GetNamedChild("BtnSave").tooltip = GS(CSPS_Tooltiptext_Save)
 			control:GetNamedChild("BtnSave"):SetHandler("OnClicked", 
 				function()  
 					CSPS.cpProfile(data.i, true)
@@ -300,6 +301,7 @@ local function NodeSetupCP2Discipline(node, control, data, open, userRequested, 
 		if node:IsOpen() and not data.fillContent then 
 			control:GetNamedChild("BtnSave"):SetHidden(false)
 			control:GetNamedChild("IndicatorSaveNew"):SetHidden(false)
+			control:GetNamedChild("BtnSave").tooltip = GS(CSPS_Tooltiptext_AddProfile)
 			control:GetNamedChild("BtnSave"):SetHandler("OnClicked", 
 				function()  
 					AddCustomMenuItem(string.gsub(GS(CSPS_CPP_BtnCustAcc), "\n", " "), 

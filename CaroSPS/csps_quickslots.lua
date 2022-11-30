@@ -24,6 +24,8 @@ local barCategories = {
 
 local reRoute1 = {4, 3, 2, 1, 8, 7, 6, 5} -- want the quickslots to beginn at the top of the circle and not counterclockwise at 4 o'clock...
 
+CSPS.qsBars = function() return qsBars end
+
 local function getCurrentQsBars(givenQSBars)
 	local myQSBars = givenQSBars or {}
 	
@@ -49,6 +51,53 @@ end
 
 function CSPS.readCurrentQS()
 	qsBars = getCurrentQsBars(qsBars)
+end
+
+function CSPS.compressQS(cat)
+	local auxTable = {}
+	for barIndex, barTable in pairs(qsBars) do
+		if barIndex == cat or not cat then
+			local auxSubTable = {}
+			for qsIndex, qsActionInfo in pairs(barTable) do
+				local myValue = qsActionInfo.value
+				local myType = qsActionInfo.type
+				if myType == ACTION_TYPE_COLLECTIBLE then
+					myValue = GetCollectibleIdFromLink(myValue)
+				elseif myType == ACTION_TYPE_ITEM then
+					myValue = string.sub(myValue, 10, -5)
+				end
+				table.insert(auxSubTable, myType == 0 and "0" or string.format("%s=%s", myType, myValue))
+			end
+			table.insert(auxTable, table.concat(auxSubTable, ","))
+		end
+	end
+	
+	return table.concat(auxTable, ";")
+end
+
+function CSPS.extractQS(compressedString, cat)
+	local auxTable = {SplitString(";", compressedString)}
+	local formatStrings = {
+		[ACTION_TYPE_COLLECTIBLE] = function(aString) return string.format("|H0:collectible:%s|h|h", aString) end,
+		[ACTION_TYPE_ITEM] = function(aString) return string.format("|H0:item:%s|h|h", aString) end,
+	}
+	for barIndex, compressedBar in pairs(auxTable) do
+		qsBars[cat or barIndex] = qsBars[cat or barIndex] or {}
+		local barTable = qsBars[cat or barIndex]
+		local auxBar = {SplitString(",", compressedBar)}
+		for qsIndex, compressedQsData in pairs(auxBar) do
+			local qsData = {SplitString("=", compressedQsData)}
+			
+			if qsData[1] == "0" then
+				barTable[qsIndex] = false
+			else 
+				local myType = tonumber(qsData[1])
+				local myStringFormatter = formatStrings[myType] or tonumber
+				barTable[qsIndex] = {type = myType, value = myStringFormatter(qsData[2])}
+			end
+		end
+	end
+	CSPS.getTreeControl():RefreshVisible()
 end
 
 local function getItemLinkTooltip(itemLink)
@@ -116,14 +165,13 @@ local function NodeSetupQS(node, control, data, open, userRequested, enabled)
 	local ctrMarker = control:GetNamedChild("Marker")
 	local ctrIcon = control:GetNamedChild("Icon")
 	local ctrMinus = control:GetNamedChild("BtnMinus")
-	
-	
+		
 	local myAction = data.barTable[data.qsIndex]
 	local myIcon, listText, myName, subtitle, additionalDescription = qsActionInfo(myAction)
 	
 	ctrMinus:SetHidden(not myAction)
 	ctrMinus:SetHandler("OnClicked", function() 		
-		data.barTable[data.qsIndex] = {} 
+		data.barTable[data.qsIndex] = false
 		CSPS.getTreeControl():RefreshVisible()
 	end)
 	
@@ -479,14 +527,15 @@ local function updateTypeCombo()
 		preSeletType = actionCategory
 
 	end
+	
 	if numberTypes > 1 then 
 		preSelectName = false 
 	else
 		CSPSWindowCollectiblesCategories:SetHidden(false)
 		CSPSWindowCollectiblesList:SetHidden(true)
 		updateCategoryCombo(preSeletType)
-		
 	end
+	
 	typeComboBox:SetSelectedItem(preSelectName or "-")
 	updateCategoryCombo(HOTBAR_CATEGORY_ALLY_WHEEL)
 end

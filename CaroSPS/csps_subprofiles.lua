@@ -185,19 +185,41 @@ function CSPS.getProfileNamesByGroup(myGroupId)
 end
 
 function CSPS.initHkNumberList()
+	CSPSWindowcpHbHkNumberList.initialized = true
+	CSPSWindowcpHbHkNumberList.btns = {}
+	local btns = CSPSWindowcpHbHkNumberList.btns
+	CSPSWindowcpHbHkNumberList.cols = {}
 	for i=1, 20 do
-		CSPSWindowcpHbHkNumberList:GetNamedChild(string.format("Btn%s", i)):SetHandler("OnMouseEnter", function() CSPSWindowcpHbHkNumberList:listDetails(i) end)
-		CSPSWindowcpHbHkNumberList:GetNamedChild(string.format("Btn%s", i)):SetHandler("OnMouseExit", function() CSPSWindowcpHbHkNumberList:listDetails(nil) end)
+		local oneBtn = WINDOW_MANAGER:CreateControlFromVirtual(string.format("CSPSWindowcpHbHkNumberListBtn%s", i), CSPSWindowcpHbHkNumberList, "CSPScppBtnPreset")
+		oneBtn:SetDimensions(42, 24)
+		if i == 1 then
+			oneBtn:SetAnchor(TOPLEFT, CSPSWindowcpHbHkNumberList, TOPLEFT, 5, 5)
+		elseif i % 5 == 1 then
+			oneBtn:SetAnchor(TOPLEFT, btns[i-5], BOTTOMLEFT, 0, 5)
+		else
+			oneBtn:SetAnchor(TOPLEFT, btns[i-1], TOPRIGHT, 5, 0)
+		end
+		
+		-- local oneBtn = CSPSWindowcpHbHkNumberList:GetNamedChild(string.format("Btn%s", i))
+		btns[i] = oneBtn
+		oneBtn:SetHandler("OnMouseEnter", function() CSPSWindowcpHbHkNumberList:listDetails(i) end)
+		oneBtn:SetHandler("OnMouseExit", function() CSPSWindowcpHbHkNumberList:listDetails(nil) end)
+		oneBtn:SetHandler("OnClicked", function() CSPS.assignHkGroup(i) end)
 	end
+	local curKey = CSPSWindowcpHbHkNumberList:GetNamedChild("CurKey")
+	
+	curKey:SetAnchor(TOPLEFT, btns[16], BOTTOMLEFT, 0, 5)
+	curKey:SetAnchor(TOPRIGHT, btns[20], BOTTOMRIGHT, -30, 5)
+	
 	function CSPSWindowcpHbHkNumberList:listDetails(myGroupId)
 		if myGroupId ~= nil then
-			self:GetNamedChild("CurKey"):SetText(string.format("Hotkey: %s", CSPS.getHotkeyByGroup(myGroupId)))
+			curKey:SetText(string.format("Hotkey: %s", CSPS.getHotkeyByGroup(myGroupId)))
 			local myColNames = CSPS.getProfileNamesByGroup(myGroupId)
 			self:GetNamedChild("Col1"):SetText(myColNames[2])
 			self:GetNamedChild("Col2"):SetText(myColNames[3])
 			self:GetNamedChild("Col3"):SetText(myColNames[1])
 		else
-			self:GetNamedChild("CurKey"):SetText("")
+			curKey:SetText("")
 			self:GetNamedChild("Col1"):SetText("")
 			self:GetNamedChild("Col2"):SetText("")
 			self:GetNamedChild("Col3"):SetText("")
@@ -209,7 +231,7 @@ function CSPS.initHkNumberList()
 		self.idToAssign = myId
 		self.disciToAssign = myDiscipline
 		for i=1, 20 do
-			local myBtn = self:GetNamedChild(string.format("Btn%s", i))
+			local myBtn = self.btns[i]
 			local myBG = myBtn:GetNamedChild("BG")
 			if CSPS.cp2hbpHotkeys[i][myDiscipline] == myId then
 				local r,g,b = self.col:UnpackRGB()
@@ -270,6 +292,7 @@ function CSPS.cpFilterCombo()
 end
 
 function CSPS.cp2HbHkClick(myId, myDiscipline, control, mouseButton)
+	if not CSPSWindowcpHbHkNumberList.initialized then CSPS.initHkNumberList() end
 	if not CSPSWindowcpHbHkNumberList:IsHidden() then 
 		CSPSWindowcpHbHkNumberList:SetHidden(true) 
 		return 
