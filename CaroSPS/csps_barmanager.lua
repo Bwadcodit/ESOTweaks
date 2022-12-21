@@ -467,7 +467,7 @@ function CSPS.bindingsLOC()
 	CSPSWindowManageBarsSubSets:SetHidden(true)
 	CSPSWindowManageBarsAddBind:SetHidden(true)
 	CSPSWindowManageBarsRoleIcon:SetHidden(true)
-	colTbl.orange:UnpackRGB()
+	local r,g,b = colTbl.orange:UnpackRGB()
 	CSPSWindowManageBarsBtnLocBG:SetCenterColor(r,g,b, 0.4)
 	CSPSWindowManageBarsBtnAGBG:SetCenterColor(0.0314, 0.0314, 0.0314)
 	CSPSWindowManageBarsBtnDRBG:SetCenterColor(0.0314, 0.0314, 0.0314)
@@ -626,9 +626,11 @@ function CSPS.initConnect()
 		end
 	end
 	if CSPSAG ~= nil then
-		 ZO_PostHook(AG, "LoadSet", function(x1) HookAG(x1) end)
+		CSPSWindowManageBarsBtnAG:SetEnabled(true)
+		ZO_PostHook(AG, "LoadSet", function(x1) HookAG(x1) end)
 	end
 	if CSPSDR ~= nil then
+		CSPSWindowManageBarsBtnDR:SetEnabled(true)
 		ZO_PostHook(DressingRoom, "LoadSet", function(_, x2) HookDR(x2) end)
 	end
 	CSPS.cpKbList = CSPSbindingsList:New(CSPSWindowManageBars)
