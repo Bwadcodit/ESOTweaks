@@ -997,7 +997,7 @@ local function loadCPPreset(myType, myId, discipline, suppressInfoAlert)
 		if myPreset.situational and #myPreset.situational > 0 then
 			addSublist(myPreset.situational)
 		end
-		if myPreset.ao then
+		if myPreset.aoe then
 			table.insert(mySituationals, string.format("%s:", GS(CSPS_AOE)))
 			addSublist(myPreset.aoe)
 		end
