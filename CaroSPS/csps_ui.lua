@@ -1,10 +1,15 @@
 local GS = GetString
+local cspsPost = CSPS.post
+local cspsD = CSPS.cspsD
 local checkedT = "esoui/art/buttons/checkbox_checked.dds"
 local uncheckedT = "esoui/art/buttons/checkbox_unchecked.dds"
 local helpSections = {}
 local helpOversections = {}
 local impExpChoices = {}
 local initOpen = false
+local sm = SCENE_MANAGER
+local wm = WINDOW_MANAGER
+local cp = CSPS.cp
 
 local function initCSPSHelp()
 	local helpOversectionsCtr = CSPSWindowHelpSection:GetNamedChild("Oversections")
@@ -14,10 +19,10 @@ local function initCSPSHelp()
 		if myTitle == "" then break end
 		local myText = GS("CSPS_Help_Sect", i)
 		local myOversection = GS("CSPS_Help_Oversection", i)
-		helpSections[i] = WINDOW_MANAGER:CreateControlFromVirtual("CSPSWindowHelpSectionSection"..i, CSPSWindowHelpSection, "CSPSHelpSectionPres")
+		helpSections[i] = wm:CreateControlFromVirtual("CSPSWindowHelpSectionSection"..i, CSPSWindowHelpSection, "CSPSHelpSectionPres")
 		local ctrBefore = helpOversectionsCtr
 		if myOversection ~= "" then
-			helpOversections[i] = WINDOW_MANAGER:CreateControlFromVirtual("CSPSWindowHelpSectionOversection"..i, CSPSWindowHelpSectionOversections, "CSPSHelpOversectionPres")
+			helpOversections[i] = wm:CreateControlFromVirtual("CSPSWindowHelpSectionOversection"..i, CSPSWindowHelpSectionOversections, "CSPSHelpOversectionPres")
 			if i == 1 then
 				helpOversections[i]:SetAnchor(TOPLEFT, helpOversectionsCtr, TOPLEFT, 0, 0)
 				helpOversectionsCtr:SetWidth(100)
@@ -94,22 +99,18 @@ function CSPS:InitLocalText()
 			},
 		setup = function() end,
 	}
-	ESO_Dialogs[CSPS.name.."_RenameProfile"] = {
+	
+	ESO_Dialogs[CSPS.name.."_TextInputDiag"] = {
 		canQueue = true,
-		uniqueIdentifier = CSPS.name.."_RenameProfile",
+		uniqueIdentifier = CSPS.name.."_TextInputDiag",
 		title = {text = GS(CSPS_MyWindowTitle)},
-		mainText = {text = GS(CSPS_MSG_RenameProfile)},
+		mainText = {text = "<<C:1>>"}, --GS(CSPS_MSG_RenameProfile)
 		editBox = {},
 		buttons = {
 			[1] = {
 				text = SI_DIALOG_CONFIRM,
 				callback = function(dialog)
-					local txt = ZO_Dialogs_GetEditBoxText(dialog)
-					if txt ~= "" and dialog.data ~= nil then 
-						CSPS.cp2ProfileRenameGo(txt, dialog.data.myId, dialog.data.myType) 
-					elseif txt ~= "" then
-						CSPS.renameProfileGo(txt) 
-					end
+					dialog.data.confirmFunc(ZO_Dialogs_GetEditBoxText(dialog))
 					CSPS.toggleMouse(true)
 				end,
 			},
@@ -120,6 +121,16 @@ function CSPS:InitLocalText()
 			},
 		setup = function() end,
 	}
+	
+	local cpButtons = {"CPProfileBlue", "CPProfileRed", "CPProfileGreen"}
+	for i,v in pairs(cpButtons) do
+		GetControl(CSPSWindowBuild, v):SetHandler("OnMouseEnter", 
+			function(self) 
+				ZO_Tooltips_ShowTextTooltip(self, RIGHT, 
+					zo_strformat("<<C:1>> (<<C:2>>)\n|t26:26:esoui/art/miscellaneous/icon_lmb.dds|t: <<3>>\n|t26:26:esoui/art/miscellaneous/icon_rmb.dds|t: <<4>>", 
+					GS(CSPS_Tooltiptext_CPProfile), GetChampionDisciplineName(i), GS(CSPS_SubProfiles_Edit), GS(SI_GIFT_INVENTORY_VIEW_KEYBIND)))
+			end)
+	end
 	
 	CSPS.fillSrcCombo()
 	CSPS.fillProfileCombo()
@@ -160,83 +171,101 @@ local function changeButtonTextures(btnCtr, differentTextures, sameTextures)
 end
 
 function CSPS.showElement(myElement, arg)
-	if myElement == "checkCP" then
-		local hideCPCtr = CSPS.unlockedCP == false
-		
-		CSPSWindowIncludeCPCheck1:SetHidden(hideCPCtr)
-		CSPSWindowIncludeCPCheck2:SetHidden(hideCPCtr)
-		CSPSWindowIncludeCPCheck3:SetHidden(hideCPCtr)
-		CSPSWindowIncludeCPLabel:SetHidden(hideCPCtr)
-		CSPSWindowBuildCPProfileGreen:SetHidden(hideCPCtr)
-		CSPSWindowBuildCPProfileRed:SetHidden(hideCPCtr)
-		CSPSWindowBuildCPProfileBlue:SetHidden(hideCPCtr)
-		CSPSWindowIncludeBtnApplyCP:SetHidden(hideCPCtr)
-
-	elseif myElement == "cp2barlabels" then
-		if arg ~= nil then CSPS.cp2BarLabels = arg else CSPS.cp2BarLabels = not CSPS.cp2BarLabels end
-		local cp2BL = CSPS.cp2BarLabels
-		local myCtrl = CSPSWindowCP2Bar
-		
-		changeButtonTextures(myCtrl:GetNamedChild("ToggleLabels"), cp2BL == true and "esoui/art/buttons/large_rightarrow" or "esoui/art/buttons/large_leftarrow")
-		myCtrl:SetWidth(cp2BL == true and 242 or 38)
-		
-		for i=1, 3 do
-			for j=1,4 do 
-				CSPSWindowCP2Bar.slots[i][j].label:SetHidden(not cp2BL)
+	local showFunctions = {
+		checkCP = function()
+			local hideCPCtr = CSPS.unlockedCP == false
+			
+			CSPSWindowIncludeCPCheck1:SetHidden(hideCPCtr)
+			CSPSWindowIncludeCPCheck2:SetHidden(hideCPCtr)
+			CSPSWindowIncludeCPCheck3:SetHidden(hideCPCtr)
+			CSPSWindowIncludeCPLabel:SetHidden(hideCPCtr)
+			CSPSWindowBuildCPProfileGreen:SetHidden(hideCPCtr)
+			CSPSWindowBuildCPProfileRed:SetHidden(hideCPCtr)
+			CSPSWindowBuildCPProfileBlue:SetHidden(hideCPCtr)
+			CSPSWindowIncludeBtnApplyCP:SetHidden(hideCPCtr)
+		end,
+		cpsidebarlabels = function()
+			if arg ~= nil then CSPS.savedVariables.settings.cpSideBarLabels = arg else CSPS.savedVariables.settings.cpSideBarLabels = not CSPS.savedVariables.settings.cpSideBarLabels end
+			local cpBL = CSPS.savedVariables.settings.cpSideBarLabels
+			local myCtrl = CSPSWindowCPSideBar
+			
+			changeButtonTextures(myCtrl:GetNamedChild("ToggleLabels"), cpBL == true and "esoui/art/buttons/large_rightarrow" or "esoui/art/buttons/large_leftarrow")
+			myCtrl:SetWidth(cpBL == true and 242 or 38)
+			
+			for i=1, 3 do
+				for j=1,4 do 
+					CSPSWindowCPSideBar.slots[i][j].label:SetHidden(not cpBL)
+				end
+			end
+		end,
+		load = function()
+			if arg ~= nil then CSPSWindowBuildLoad:SetHidden(not arg) return end
+			if not CSPS.currentCharData or not CSPS.currentCharData.werte or not CSPS.currentCharData.werte.prog then
+				CSPSWindowBuildLoad:SetHidden(true)
+			else
+				CSPSWindowBuildLoad:SetHidden(false)
+			end
+		end,
+		save = function()
+			if arg ~= nil then CSPSWindowBuildSave:SetHidden(not arg) end
+		end,
+		apply = function()
+			if arg ~= nil then
+				CSPS.showApply = arg
+				CSPSWindowInclude:SetHidden(not arg)
+			end
+		end,
+		hotbar = function()
+			CSPSWindowFooter:SetHidden(arg == false)
+			CSPSWindowFooter:SetHeight(arg == false and 3 or 46)
+		end,
+		cpProfiles = function()
+			local showMe = CSPSWindowSubProfiles:IsHidden()
+			if arg ~= nil then showMe = arg end
+			CSPSWindowSubProfiles:SetHidden(not showMe)
+			if (not CSPSWindowCPImport:IsHidden() and showMe == true) or not CSPSWindowSubProfiles:IsHidden() then
+				CSPS.showElement("apply", true)
+				CSPS.showElement("save", true)
+				CSPS.unsavedChanges = true
+			end
+			CSPSWindowCPImport:SetHidden(true)
+			if showMe then 
+				CSPSWindowSubProfiles:SetAnchor(BOTTOMRIGHT, CSPSWindowSPPlaceholder, RIGHT, -7, 150)
+				--CSPSWindowSubProfiles:SetHeight(277) 
+			else 
+				CSPSWindowSubProfiles:SetAnchor(BOTTOMRIGHT, CSPSWindowBuild, BOTTOMRIGHT, 0, 5)
+				--CSPSWindowSubProfiles:SetHeight(0) 
+			end
+		end,
+		cpImport = function()
+			local showMe = CSPSWindowCPImport:IsHidden()
+			if arg ~= nil then showMe = arg end
+			if not showMe then
+				CSPS.showElement("apply", true)
+				CSPS.showElement("save", true)
+				CSPS.unsavedChanges = true
+				CSPS.inCpRemapMode = false
+				cpDisciToMap = nil
+				cpSkillToMap = nil
+			end
+			CSPSWindowSubProfiles:SetHidden(true)
+			CSPSWindowCPImport:SetHidden(not showMe)
+			if showMe then 
+				CSPSWindowSubProfiles:SetAnchor(BOTTOMRIGHT, CSPSWindowSPPlaceholder, RIGHT, -7, 150)
+				--CSPSWindowSubProfiles:SetHeight(277) 
+			else 
+				CSPSWindowSubProfiles:SetAnchor(BOTTOMRIGHT, CSPSWindowBuild, BOTTOMRIGHT, 0, 5)
+				--CSPSWindowSubProfiles:SetHeight(0) 
 			end
 		end
-
-	elseif myElement == "load" then
-		if arg ~= nil then CSPSWindowBuildLoad:SetHidden(not arg) return end
-		if not CSPS.currentCharData or not CSPS.currentCharData.werte or not CSPS.currentCharData.werte.prog then
-			CSPSWindowBuildLoad:SetHidden(true)
-		else
-			CSPSWindowBuildLoad:SetHidden(false)
-		end
-	elseif myElement == "save" then
-		if arg ~= nil then CSPSWindowBuildSave:SetHidden(not arg) end
-	elseif myElement == "apply" then
-		if arg ~= nil then
-			CSPS.showApply = arg
-			CSPSWindowInclude:SetHidden(not arg)
-		end
-	elseif myElement == "hotbar" then
-		CSPSWindowFooter:SetHidden(arg == false)
-		CSPSWindowFooter:SetHeight(arg == false and 3 or 46)
-		CSPSWindowOptionsChkHotbar:SetTexture(arg == false and uncheckedT or checkedT)
-	elseif myElement == "cpProfiles" then
-		local showMe = CSPSWindowCPProfiles:IsHidden()
-		if arg ~= nil then showMe = arg end
-		CSPSWindowCPProfiles:SetHidden(not showMe)
-		if (not CSPSWindowCPImport:IsHidden() and showMe == true) or not CSPSWindowCPProfiles:IsHidden() then
-			CSPS.showElement("apply", true)
-			CSPS.showElement("save", true)
-			CSPS.unsavedChanges = true
-		end
-		CSPSWindowCPImport:SetHidden(true)
-		if showMe then CSPSWindowCPProfiles:SetHeight(320) else CSPSWindowCPProfiles:SetHeight(0) end
-	elseif myElement == "cpImport" then
-		local showMe = CSPSWindowCPImport:IsHidden()
-		if arg ~= nil then showMe = arg end
-		if not showMe then
-			CSPS.showElement("apply", true)
-			CSPS.showElement("save", true)
-			CSPS.unsavedChanges = true
-			CSPS.inCpRemapMode = false
-			cpDisciToMap = nil
-			cpSkillToMap = nil
-		end
-		CSPSWindowCPProfiles:SetHidden(true)
-		CSPSWindowCPImport:SetHidden(not showMe)
-		if showMe then CSPSWindowCPProfiles:SetHeight(320) else CSPSWindowCPProfiles:SetHeight(0) end
-	end
-	
+	}
+	showFunctions[myElement]()
 end
 
 function CSPS.toggleOptional()
 	--[[ClearMenu()
 	
-	AddCustomMenuItem(GS(CSPS_CPBar_Manage), function() CSPS.toggleManageBars(true) end)
+	AddCustomMenuItem(GS(CSPS_Manage_Connections), function() CSPS.toggleManageBars(true) end)
 	local chkBoxIndex = AddCustomMenuItem(GS(CSPS_ShowHb), function() CSPS.toggleHotbar() end, MENU_ADD_OPTION_CHECKBOX)
 	ZO_Menu.items[chkBoxIndex].checked = function()  return CSPS.showHotbar  end
 	AddCustomMenuItem(GS(CSPS_Tooltiptext_Optional), function() CSPS.openLAM() end)
@@ -248,7 +277,7 @@ function CSPS.toggleOptional()
 end
 
 function CSPS.hideOptions()
-	local control = WINDOW_MANAGER:GetMouseOverControl()
+	local control = wm:GetMouseOverControl()
 	if control == CSPSWindowOptions or control:GetParent() == CSPSWindowOptions or control == CSPSWindowOptionalButton then return end
 	CSPSWindowOptions:SetHidden(true)
 	EVENT_MANAGER:UnregisterForEvent(CSPS.name, EVENT_GLOBAL_MOUSE_DOWN)
@@ -256,7 +285,7 @@ end
 
 local function autoShowCSPS(oldState, newState)
 	if newState == SCENE_SHOWING then 
-		if CSPS.useCustomIcons then CSPS.showCpBar() end
+		if cp.useCustomIcons then cp.showCustomIcons() end
 		if CSPS.cpAutoOpen then CSPSWindow:SetHidden(false) end
 	elseif newState == SCENE_HIDDEN then
 		if CSPS.cpAutoOpen then CSPSWindow:SetHidden(true) end
@@ -271,7 +300,7 @@ end
 function CSPS.toggleArmoryAutoOpen()
 	CSPS.armoryAutoOpen = CSPS.savedVariables.settings.armoryAutoOpen
 	if not CSPS.armoryAutoOpen then return end
-	SCENE_MANAGER:GetScene("armoryKeyboard"):RegisterCallback("StateChange", 
+	sm:GetScene("armoryKeyboard"):RegisterCallback("StateChange", 
 		function(oldState, newState)
 			if not CSPS.armoryAutoOpen then return end
 			if newState == SCENE_SHOWING then
@@ -285,39 +314,25 @@ end
 
 
 function CSPS.toggleCPCustomIcons()
-	CSPS.useCustomIcons = CSPS.savedVariables.settings.useCustomIcons
-	for i=1, 3 do
-		CSPS.cp2HbIcons(i)
-	end
-	if CSPS.cpCustomBar then CSPS.showCpBar() end
+	cp.useCustomIcons = CSPS.savedVariables.settings.useCustomIcons
+	cp.updateSidebarIcons()
+	
+	if CSPS.savedVariables.settings.cpCustomBar then cp.refreshCustomBar() end
 end 
 
 function CSPS.toggleCPCustomBar()
-	CSPS.cpCustomBar = CSPS.savedVariables.settings.cpCustomBar
-	if CSPS.cpCustomBar then 
-		CSPS.HbRearrange()
+	if CSPS.savedVariables.settings.cpCustomBar then 
+		cp.rearrangeCustomBar()
 		if CSPS.cpFragment == nil then CSPS.cpFragment = ZO_SimpleSceneFragment:New( CSPSCpHotbar ) end
-		SCENE_MANAGER:GetScene('hud'):AddFragment( CSPS.cpFragment  )
-		SCENE_MANAGER:GetScene('hudui'):AddFragment( CSPS.cpFragment  )
+		sm:GetScene('hud'):AddFragment( CSPS.cpFragment  )
+		sm:GetScene('hudui'):AddFragment( CSPS.cpFragment  )
 	else
 		if CSPS.cpFragment ~= nil then
-			SCENE_MANAGER:GetScene('hud'):RemoveFragment( CSPS.cpFragment )
-			SCENE_MANAGER:GetScene('hudui'):RemoveFragment( CSPS.cpFragment )	
+			sm:GetScene('hud'):RemoveFragment( CSPS.cpFragment )
+			sm:GetScene('hudui'):RemoveFragment( CSPS.cpFragment )	
 		end
 	end
 end 
-
-
-function CSPS.toggleHotbar(arg)
-	if CSPS.showHotbar == false or arg == true then
-		CSPS.showHotbar = true
-		CSPS.showElement("hotbar", true)
-	else
-		CSPS.showHotbar = false
-		CSPS.showElement("hotbar", false)
-	end
-	CSPS.savedVariables.settings.showHotbar = CSPS.showHotbar
-end
 
 function CSPS.toggleManageBars(arg)
 	if CSPSWindowManageBars:IsHidden() or arg == nil or arg == true then
@@ -325,12 +340,11 @@ function CSPS.toggleManageBars(arg)
 		CSPSWindowImportExport:SetHidden(true)
 		CSPSWindowOptions:SetHidden(true)
 		CSPSWindowMain:SetHidden(true)
-		CSPSWindowcpHbHkNumberList:SetHidden(true) 
+		CSPSWindowCpHbHkNumberList:SetHidden(true) 
 		CSPSWindowManageBars:SetHidden(false)
-		CSPS.updateRole()
-		CSPS.updatePrCombo(1)
-		CSPS.updatePrCombo(2)
-		CSPS.updatePrCombo(3)
+		for i=1, 4 do
+			CSPS.updatePrCombo(i)
+		end
 	else
 		CSPSWindowImportExport:SetHidden(true)
 		CSPSWindowOptions:SetHidden(true)
@@ -353,8 +367,9 @@ function CSPS.toggleImportExport(arg)
 	end
 end
 
-local function toggleCheckbox(buttonName, arg)
-	changeButtonTextures(GetControl(CSPSWindow, buttonName), nil, arg == true and checkedT or uncheckedT)
+local function toggleCheckbox(ctrButton, arg)
+	if type(ctrButton) == "string" then ctrButton = GetControl(CSPSWindow, ctrButton) end
+	changeButtonTextures(ctrButton, nil, arg == true and checkedT or uncheckedT)
 end
 
 local function ieCtr(childName)
@@ -448,7 +463,7 @@ function CSPS.UpdateProfileCombo()
 		else 
 			local name1 = CSPS.profiles[CSPS.currentProfile] and CSPS.profiles[CSPS.currentProfile].name or GS(CSPS_Txt_StandardProfile)
 			local name2 = choiceIndex > 0 and CSPS.profiles[choiceIndex].name or GS(CSPS_Txt_StandardProfile)
-			local myWarning = (not CSPSWindowCPProfiles:IsHidden()) and GS(CSPS_MSG_NoCPProfiles) or ""		
+			local myWarning = not CSPS.savedVariables.settings.suppressSaveOther and  (not CSPSWindowSubProfiles:IsHidden()) and GS(CSPS_MSG_NoCPProfiles) or ""		
 			ZO_Dialogs_ShowDialog(CSPS.name.."_OkCancelDiag", 
 				{
 					returnFunc = function() CSPS.selectProfile(choiceIndex) CSPS.loadBuild() CSPS.tweakApplyFull() end, -- TWEAK HERE ( TODO )
@@ -487,29 +502,48 @@ function CSPS.UpdateProfileCombo()
 	end
 end
 
+
+local function getLanguageName()
+    local language = GetCVar("Language.2")
+	local langNames = {
+		--["en"] = SI_GUILDLANGUAGEATTRIBUTEVALUE1,
+		["de"] = SI_GUILDLANGUAGEATTRIBUTEVALUE3,
+		["fr"] = SI_GUILDLANGUAGEATTRIBUTEVALUE2,
+		["sp"] = SI_GUILDLANGUAGEATTRIBUTEVALUE6,
+		-- ["jp"] = SI_GUILDLANGUAGEATTRIBUTEVALUE4
+		-- ["ru"] = SI_GUILDLANGUAGEATTRIBUTEVALUE5
+  }
+  return langNames[language] and GS(langNames[language])
+end
+
 function CSPS.toggleImpExpSource(myChoice, fromList)
-	CSPS.formatImpExp = myChoice
+	local oldTxtExports = {txtSk1 = true, txtSk2 = true, txtSk3 = true, txtOd = true}
+	myChoice = oldTxtExports[myChoice] and "txtExport" or myChoice
 	CSPS.savedVariables.settings.formatImpExp = myChoice
 	if not fromList then 
 		for i,v in pairs(impExpChoices) do
 			if v == myChoice then ieCtr("SrcList").comboBox:SetSelectedItem(i) end
 		end
 	end
+	
 	local function hideShowImpExpControls(tableToShow)
-		ieCtr("BtnImp1"):SetHidden(not tableToShow["btnImp"])
-		ieCtr("BtnExp1"):SetHidden(not tableToShow["btnExp"])
-		ieCtr("Text"):SetHidden(not tableToShow["txt"])
-		ieCtr("AddInfo"):SetHidden(not tableToShow["add"])
-		ieCtr("HandleCP"):SetHidden(not tableToShow["handleCP"])
-		ieCtr("Transfer"):SetHidden(not tableToShow["transfer"])
-		ieCtr("CleanUpText"):SetHidden(not tableToShow["cleanUp"])
-		ieCtr("BtnTextCPOrder1"):SetHidden(not tableToShow["cpOrd1"])
-		ieCtr("BtnTextCPOrder2"):SetHidden(not tableToShow["cpOrd2"])
-		ieCtr("BtnTextCPOrder3"):SetHidden(not tableToShow["cpOrd3"])
-		ieCtr("TextEdit"):SetText(tableToShow["txt"] or "")
-		ieCtr("BtnImp1"):SetText(tableToShow["btnImp"] or "")
-		ieCtr("BtnImp1").tooltip = tableToShow["btnImpTT"] or ""
-		ieCtr("BtnExp1"):SetText(tableToShow["btnExp"] or "")
+		ieCtr("BtnImp1"):SetHidden(not tableToShow.btnImp)
+		ieCtr("BtnExp1"):SetHidden(not tableToShow.btnExp)
+		ieCtr("Text"):SetHidden(not tableToShow.txt)
+		ieCtr("AddInfo"):SetHidden(not tableToShow.add)
+		ieCtr("HandleCP"):SetHidden(not tableToShow.handleCP)
+		ieCtr("SelectParts"):SetHidden(not tableToShow.selectParts)
+		ieCtr("Transfer"):SetHidden(not tableToShow.transfer)
+		ieCtr("CleanUpText"):SetHidden(not tableToShow.cleanUp)
+		ieCtr("ChkLanguage"):SetHidden(not tableToShow.cpLang)
+		ieCtr("LblLang"):SetHidden(not tableToShow.cpLang)
+		ieCtr("BtnTextCPOrder1"):SetHidden(not tableToShow.cpOrd)
+		ieCtr("BtnTextCPOrder2"):SetHidden(not tableToShow.cpOrd)
+		ieCtr("BtnTextCPOrder3"):SetHidden(not tableToShow.cpOrd)
+		ieCtr("TextEdit"):SetText(tableToShow.txt or "")
+		ieCtr("BtnImp1"):SetText(tableToShow.btnImp or "")
+		ieCtr("BtnImp1").tooltip = tableToShow.btnImpTT or ""
+		ieCtr("BtnExp1"):SetText(tableToShow.btnExp or "")
 				
 	end
 	local choiceFunctions = {}
@@ -518,10 +552,17 @@ function CSPS.toggleImpExpSource(myChoice, fromList)
 			txt = GS(CSPS_ImpEx_Standard), btnExp = GS(CSPS_ImpEx_BtnExpLink), add = true})
 	elseif myChoice == "csvCP" then
 		hideShowImpExpControls({btnImp = GS(CSPS_ImpEx_BtnImpText), btnImpTT = GS(CSPS_ImpEx_BtnImpTT), handleCP = true, txt = ""})
+	elseif myChoice == "csps" then
+		hideShowImpExpControls({btnImp = GS(CSPS_ImpEx_BtnImpText), btnImpTT = GS(CSPS_ImpEx_BtnImpTT), btnExp = GS(CSPS_ImpEx_BtnExpText), selectParts = true, txt = ""})
 	elseif string.sub(myChoice, 1, 6) == "txtCP2" then
+		local cpLang = getLanguageName()
 		hideShowImpExpControls({btnImp = GS(CSPS_ImpEx_BtnImpText), btnImpTT = GS(CSPS_ImpEx_BtnImpTTCP), 
 			handleCP = true, txt = GS(CSPS_ImpEx_CpAsText), btnExp = GS(CSPS_ImpEx_BtnExpText),
-			cpOrd1 = true, cpOrd2 = true, cpOrd3 = true, cleanUp = true})
+			cpOrd = true, cpLang = cpLang, cleanUp = true})
+		if cpLang then
+			ieCtr("LblLang"):SetText(cpLang)
+			ieCtr("ChkLanguage"):SetHandler("OnMouseEnter", function(self) ZO_Tooltips_ShowTextTooltip(self, RIGHT, string.format(GS(CSPS_ImpEx_LangTT), cpLang)) end)
+		end
 		CSPS.toggleCPReverseImport()
 	elseif myChoice == "transfer" then
 		hideShowImpExpControls({transfer = true})
@@ -543,15 +584,16 @@ function CSPS.fillSrcCombo()
 	
 	local choices = {
 		["eso-skillfactory.com"] = "sf",
-		[string.format("%s 1/3", GS(CSPS_ImpExp_TextSk))] = "txtSk1",
-		[string.format("%s 2/3", GS(CSPS_ImpExp_TextSk))] = "txtSk2",
-		[string.format("%s 3/3", GS(CSPS_ImpExp_TextSk))] = "txtSk3",
-		[GS(CSPS_ImpExp_TextOd)] = "txtOd",
+		[GS(CSPS_ImpExp_TextSk)] = "txtExport",
+		--[string.format("%s 2/3", GS(CSPS_ImpExp_TextSk))] = "txtSk2",
+		--[string.format("%s 3/3", GS(CSPS_ImpExp_TextSk))] = "txtSk3",
+		--[GS(CSPS_ImpExp_TextOd)] = "txtOd",
 		[GS(CSPS_ImpExp_Transfer)] = "transfer",
 		[GS(CSPS_ImpEx_CsvCP)] = "csvCP",
 		[GS(CSPS_ImpEx_TxtCP2_1)] = "txtCP2_1",
 		[GS(CSPS_ImpEx_TxtCP2_2)] = "txtCP2_2",
 		[GS(CSPS_ImpEx_TxtCP2_3)] = "txtCP2_3",
+		["CSPS"] = "csps",
 	}
 	
 	impExpChoices = choices
@@ -565,11 +607,17 @@ function CSPS.fillSrcCombo()
 	
 	for i,v in pairs(choices) do
 		myComboBox:AddItem(myComboBox:CreateItemEntry(i, OnItemSelect))
-		if CSPS.formatImpExp == v then
+		if CSPS.savedVariables.settings.formatImpExp == v then
 			myComboBox:SetSelectedItem(i)
 		end
 	end
 end
+
+local function toggleChkTexture(ctrButton, value)
+	ctrButton:SetTexture(value and checkedT or uncheckedT)
+end
+
+CSPS.toggleChkTexture = toggleChkTexture
 
 function CSPS.toggleCP(disciplineIndex, arg)
 	if disciplineIndex == 0 or disciplineIndex == nil then
@@ -581,11 +629,35 @@ function CSPS.toggleCP(disciplineIndex, arg)
 	end
 	if CSPS.applyCPc[1] or CSPS.applyCPc[2] or CSPS.applyCPc[3] then CSPS.applyCP = true end
 	for i=1,3 do 
-		CSPSWindowInclude:GetNamedChild("CPCheck"..i):SetTexture(CSPS.applyCPc[i] and checkedT or uncheckedT)
+		toggleChkTexture(CSPSWindowInclude:GetNamedChild("CPCheck"..i), CSPS.applyCPc[i])
 	end
 	CSPS.savedVariables.settings.applyCP = CSPS.applyCP
 	CSPS.savedVariables.settings.applyCPc = CSPS.applyCPc
 	 CSPS.refreshTree()
+end
+
+function CSPS.toggleCPImportLanguage(arg)
+	if arg ~= nil then CSPS.cpImportLang = arg else CSPS.cpImportLang = not CSPS.cpImportLang end
+	if not getLanguageName() then CSPS.cpImportLang = false end
+	toggleCheckbox("ImportExportChkLanguage", CSPS.cpImportLang)
+	CSPS.savedVariables.settings.cpImportLang = CSPS.cpImportLang
+end
+
+function CSPS.toggleCPImpExpParts(arg)
+	local partTable = CSPS.savedVariables.settings.importExportParts
+	if arg then partTable[arg] = not partTable[arg] end
+	local partControls = {
+		skills = "ChkSkills",
+		hotbar = "ChkSkillBar",
+		attributes = "ChkAttributes",
+		mundus = "ChkMundus",
+		cp = "ChkCp",
+		gear = "ChkGear",
+		quickslots = "ChkQuickSlots"
+	}
+	for i, v in pairs(partTable) do
+		toggleCheckbox(string.format("ImportExportSelectParts%s", partControls[i]), v)
+	end
 end
 
 function CSPS.toggleCPCapImport(arg)
@@ -596,19 +668,19 @@ end
 
 function CSPS.toggleStrictOrder(arg)
 	if arg ~= nil then CSPS.savedVariables.settings.strictOrder = arg else CSPS.savedVariables.settings.strictOrder = not CSPS.savedVariables.settings.strictOrder end
-	toggleCheckbox("CPProfilesChkStrictOrder", CSPS.savedVariables.settings.strictOrder)
+	toggleCheckbox("SubProfilesChkStrictOrder", CSPS.savedVariables.settings.strictOrder)
 end
 
 function CSPS.toggleMouse(arg)
-	local myScene = SCENE_MANAGER.currentScene and SCENE_MANAGER.currentScene:GetName()
+	local myScene = sm.currentScene and sm.currentScene:GetName()
 	if myScene ~= "hud" and myScene ~= "hudui" then return end
 	if arg then
-		if not SCENE_MANAGER:IsInUIMode() then
-			SCENE_MANAGER:SetInUIMode(true)
+		if not sm:IsInUIMode() then
+			sm:SetInUIMode(true)
 		end
 	else
-		if SCENE_MANAGER:IsInUIMode() then
-			SCENE_MANAGER:SetInUIMode(false)
+		if sm:IsInUIMode() then
+			sm:SetInUIMode(false)
 		end
 	end
 end
@@ -619,8 +691,8 @@ function CSPS.toggleCPReverseImport(arg)
 		CSPS.cpImportReverse = arg
 	end
 	local thisDisci = 1
-	if string.sub(CSPS.formatImpExp, 1,6) == "txtCP2" then 
-		thisDisci = tonumber(string.sub(CSPS.formatImpExp, 8))
+	if string.sub(CSPS.savedVariables.settings.formatImpExp, 1,6) == "txtCP2" then 
+		thisDisci = tonumber(string.sub(CSPS.savedVariables.settings.formatImpExp, 8))
 	end
 	local myColor = CSPS.cpColors[thisDisci]
 	for i=1, 3 do
@@ -636,11 +708,87 @@ function CSPS.toggleCPReverseImport(arg)
 	CSPS.savedVariables.settings.cpImportReverse = CSPS.cpImportReverse
 end
 
+function CSPS.openKeybindSettings()
+  local function openKeybindSettings()
+    local kbMenu = ZO_GameMenu_InGame.gameMenu and ZO_GameMenu_InGame.gameMenu.headerControls[GetString(SI_GAME_MENU_CONTROLS)]
+    if not kbMenu then return end
+    for _, nodeControl in ipairs(kbMenu:GetChildren()) do
+      local data = nodeControl:GetData()
+      if data and data.name == GetString(SI_GAME_MENU_KEYBINDINGS) then
+		nodeControl:GetTree():SelectNode(nodeControl)
+		local ctrKbList = KEYBINDING_MANAGER.list.list
+		for _, entry in pairs(ZO_ScrollList_GetDataList(ctrKbList)) do
+		  if type(entry) == "table" and type(entry.data) == "table" and entry.data.categoryName == "|c9e0911Caro's|r Skill Point Saver" then
+			ZO_ScrollList_ScrollRelative(ctrKbList, entry.data.dataEntry.top - ctrKbList.scrollbar:GetValue(), nil, true)
+			return
+		  end
+		end
+		return	
+      end
+    end
+  end
+  if sm:GetScene("gameMenuInGame"):GetState() == SCENE_SHOWN then
+    openKeybindSettings()
+  else
+    sm:CallWhen("gameMenuInGame", SCENE_SHOWN, openKeybindSettings)  -- CallWhen: callback once then delete callback entry
+    sm:Show("gameMenuInGame")
+  end
+end
+
+function CSPS.setupImportExportTextEdit()
+	local ctrText = CSPSWindowImportExportText
+	local ctrEdit = GetControl(ctrText, "Edit")
+	local ctrScroll = CSPSWindowImportExportTxtScrollBar
+	ctrEdit:SetMaxInputChars(3000)
+	
+	local scrollExtents = 0
+	local topLineIndex = 0
+	
+	local function updateLine()
+		topLineIndex = ctrEdit:GetTopLineIndex()
+		ctrScroll:SetValue(topLineIndex)
+	end
+	local function updateExtents()
+		scrollExtents = ctrEdit:GetScrollExtents()
+		if scrollExtents == 0 then ctrScroll:SetValue(1) ctrScroll:SetEnabled(false) return end
+		ctrScroll:SetEnabled(true)
+		ctrScroll:SetValueStep(1)
+		ctrScroll:SetMinMax(1, scrollExtents)
+		ctrScroll:SetThumbTextureHeight(ctrScroll:GetHeight()/scrollExtents)
+		updateLine()
+	end
+
+	updateExtents()
+	
+	local function refreshTxtScroll()
+		if scrollExtents ~= ctrEdit:GetScrollExtents() then updateExtents() return end 
+		if topLineIndex ~= ctrEdit:GetTopLineIndex() then updateLine() end
+	end
+	
+	ctrEdit:SetHandler("OnEffectivelyShown",  function() EVENT_MANAGER:RegisterForUpdate("CSPS_RefreshTextEditScroll", 100, refreshTxtScroll) end)
+	ctrEdit:SetHandler("OnEffectivelyHidden", function() EVENT_MANAGER:UnregisterForUpdate("CSPS_RefreshTextEditScroll") end)
+	
+	ctrScroll:SetHandler("OnMouseWheel", function(_, delta) ctrEdit:SetTopLineIndex(topLineIndex - delta) end)
+	ctrScroll:SetHandler("OnValueChanged", function(_, value, eventReason)	if eventReason == EVENT_REASON_SOFTWARE then return end	ctrEdit:SetTopLineIndex(value) end)
+	
+	local btnUp = GetControl(ctrScroll, "Up")
+	local btnDown = GetControl(ctrScroll, "Down")
+	
+	local function moveUp() if topLineIndex > 1 then ctrEdit:SetTopLineIndex(topLineIndex - 1) end end
+	local function moveDown() if topLineIndex < scrollExtents + 1 then ctrEdit:SetTopLineIndex(topLineIndex + 1) end end
+	btnUp:SetHandler("OnMouseDown", function() moveUp() EVENT_MANAGER:RegisterForUpdate("CSPS_MoveTextUp", 500, moveUp) end)
+	btnUp:SetHandler("OnMouseUp", function() EVENT_MANAGER:UnregisterForUpdate("CSPS_MoveTextUp") end)
+	
+	btnDown:SetHandler("OnMouseDown", function() moveDown() EVENT_MANAGER:RegisterForUpdate("CSPS_MoveTextDown", 500, moveDown) end)
+	btnDown:SetHandler("OnMouseUp", function() EVENT_MANAGER:UnregisterForUpdate("CSPS_MoveTextDown") end)
+	
+end
+
 function CSPS.OnWindowShow()
 	CSPS.showElement("load") -- Show, if theres data to load
 	
 	if not initOpen then
-		CSPS.initCP2Bar()
+		CSPS.initCPSideBar()
 		CSPS.showBuild(true) -- boolean to prevent from setting unsaved-changes to true
 		initOpen = true
 	end
