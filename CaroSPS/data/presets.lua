@@ -6,7 +6,8 @@
 -- Slotted: The four skills that should be slotted if available.
 -- switch = number If this field is present, a message will be displayed promting to switch to a specific skill.
 -- situational = {} If this list contains entries, the user will get a message with recommended situational skills.
-
+-- aoe, penetration, crit, aoe, offBalance, offBalanceUp: can be used to give recommendations for certain scenarios
+		
 CSPS.CPPresets = {
 	[1] = {
 		name = "Tank", 			-- Warfare
@@ -80,6 +81,7 @@ CSPS.CPPresets = {
 		discipline = 2,
 		role = 5,
 		source = "Skinny Cheeks",
+		old = true,
 		preset = {
 			{11, 10}, {31, 50}, {12, 50}, {10, 20},
 			{264, 50}, {25, 50}, {11, 20}, {99, 20},
@@ -99,6 +101,7 @@ CSPS.CPPresets = {
 		discipline = 2,
 		role = 6,
 		source = "Skinny Cheeks",
+		old = true,
 		preset = {
 			{11, 10}, {31, 50}, {12, 50}, {10, 20},
 			{264, 50}, {25, 50}, {11, 20}, {6, 20},
@@ -118,6 +121,7 @@ CSPS.CPPresets = {
 		discipline = 2,
 		role = 5,
 		source = "Skinny Cheeks",
+		old = true,
 		preset = {
 			{99, 10}, {20, 10}, {14, 20}, {11, 10},
 			{31, 50}, {12, 50}, {10, 20}, {264, 50},
@@ -137,6 +141,7 @@ CSPS.CPPresets = {
 		discipline = 2,
 		role = 6,
 		source = "Skinny Cheeks",
+		old = true,
 		preset = {
 			{6, 10}, {20, 10}, {14, 20}, {11, 10},
 			{31, 50}, {12, 50}, {10, 20}, {264, 50},
@@ -173,6 +178,7 @@ CSPS.CPPresets = {
 		discipline = 3,
 		role = 6,
 		source = "Skinny Cheeks",
+		old = true,
 		preset = {
 			{2, 50}, {35, 50}, {38, 10}, {42, 8}, 
 			{113, 20}, {48, 50}, {34, 50}, {39, 10}, 
@@ -187,6 +193,7 @@ CSPS.CPPresets = {
 		website = "www.youtube.com/c/SkinnyCheeksGaming/",
 		updated = {06, 01, 2021},
 		points = "(dynamic)",
+		old = true,
 		discipline = 2,
 		role = 5,
 		source = "Skinny Cheeks",
@@ -204,6 +211,7 @@ CSPS.CPPresets = {
 		website = "www.youtube.com/c/SkinnyCheeksGaming/",
 		updated = {06, 01, 2021},
 		points = "(dynamic)",
+		old = true,
 		discipline = 2,
 		role = 6,
 		source = "Skinny Cheeks",
@@ -225,6 +233,7 @@ CSPS.CPPresets = {
 		discipline = 2,
 		role = 5,
 		source = "Skinny Cheeks",
+		old = true,
 		preset = {
 			{11, 10}, {31, 50}, {12, 50}, {10, 20},
 			{264, 50}, {23, 50}, {11, 20}, {99, 20},
@@ -244,6 +253,7 @@ CSPS.CPPresets = {
 		discipline = 2,
 		role = 6,
 		source = "Skinny Cheeks",
+		old = true,
 		preset = {
 			{11, 10}, {31, 50}, {12, 50}, {10, 20},
 			{264, 50}, {23, 50}, {11, 20}, {6, 20},
@@ -263,6 +273,7 @@ CSPS.CPPresets = {
 		discipline = 2,
 		role = 5,
 		source = "Skinny Cheeks",
+		old = true,
 		preset = {
 			{11, 10}, {31, 50}, {12, 50}, {10, 20},
 			{264, 50}, {27, 50}, {11, 20}, {99, 20},
@@ -282,6 +293,7 @@ CSPS.CPPresets = {
 		discipline = 2,
 		role = 6,
 		source = "Skinny Cheeks",
+		old = true,
 		preset = {
 			{11, 10}, {31, 50}, {12, 50}, {10, 20},
 			{264, 50}, {27, 50}, {11, 20}, {6, 20},
@@ -463,6 +475,7 @@ CSPS.CPPresets = {
 		discipline = 2,
 		role = 5,
 		source = "Skinny Cheeks",
+		old = true,
 		preset = {
 			{11, 10}, {12, 50}, {10, 20},
 			{264, 50}, {25, 50}, {27, 50}, {11, 20}, {99, 20},
@@ -482,6 +495,7 @@ CSPS.CPPresets = {
 		discipline = 2,
 		role = 6,
 		source = "Skinny Cheeks",
+		old = true,
 		preset = {
 			{11, 10}, {12, 50}, {10, 20},
 			{264, 50}, {25, 50}, {27, 50}, {11, 20}, {6, 20},

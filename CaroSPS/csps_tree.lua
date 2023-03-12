@@ -1,14 +1,29 @@
 
 local GS = GetString
+local cspsPost = CSPS.post
+local cspsD = CSPS.cspsD
 local cpIcInact = {0.21, 0.33, 0.63}
 local myTree = false
-local cp2Controls = {}
-local cp2ClusterControls = {}
+local cpControls = {}
+local cpClusterControls = {}
 local ec = CSPS.ec
 local colTbl = CSPS.colors
 local cpColors = CSPS.cpColors
+local cp = CSPS.cp
+local cpBar = cp.bar
+local cpTable = cp.table
+local cpOvernode = false
+local cpDisciplineNodes = false
 
-local TREE_SECTION_SKILLTYPES, TREE_SECTION_SKILLLINES, TREE_SECTION_SKILLS, TREE_SECTION_CHAMPIONPOINTS, TREE_SECTION_ATTRIBUTES, TREE_SECTION_GEAR, TREE_SECTION_QS, TREE_SECTION_QS_CATEGORY = 1,2,3,4,6,7,8,9
+local TREE_SECTION_SKILLTYPES = 1
+local TREE_SECTION_SKILLLINES = 2
+local TREE_SECTION_SKILLS = 3
+local TREE_SECTION_CHAMPIONPOINTS = 4
+local TREE_SECTION_ATTRIBUTES = 6
+local TREE_SECTION_GEAR = 7
+local TREE_SECTION_QS = 8
+
+local sectionNodes = {}
 
 local errorColors = { -- ec = {correct = 1, wrongMorph = 2, rankHigher = 3, skillLocked = 4, rankLocked = 5, morphLocked = 6}, >>> + 1
 	colTbl.white,	
@@ -34,6 +49,9 @@ local cpSlT = {
 local werewolfNode = false
 local werewolfParentNode = false
 
+CSPS.sectionNodes = sectionNodes
+--/script for i, v in pairs(CSPS.sectionNodes) do d(v and v.data and i..v.data.name) end
+-- /script CSPS.getTreeControl().rootNode:UpdateAllChildrenHeightsAndCurrentHeights()
 local function refreshWerewolfMode(allowWerewolfMode)
 	if not werewolfNode or not werewolfParentNode then return end
 	local oldWerewolfMode = CSPS.werewolfMode
@@ -42,27 +60,74 @@ local function refreshWerewolfMode(allowWerewolfMode)
 	CSPS.hbPopulate()
 end
 
+local function toggleNode(node, buttonControl, callOnLastEntry)
+	buttonControl = buttonControl or node.control:GetNamedChild("Toggle")
+	local createdNew = false
+	if node.data.fillContent then
+		createdNew = true
+		if callOnLastEntry then 
+			node.data.fillContent[#node.data.fillContent][2].callbackFunc = callOnLastEntry 
+		end
+		for _, v in pairs(node.data.fillContent) do
+			myTree:AddNode(v[1], v[2], node) --v[1] = template, v[2] = content
+		end
+		node.data.fillContent = nil
+	end
+	if buttonControl.state == node:IsOpen() then ZO_ToggleButton_Toggle(buttonControl) end
+	node:SetOpen(not node:IsOpen(), USER_REQUESTED_OPEN)
+	
+	if buttonControl.cpSection then
+		CSPSWindowCPSideBar:SetHidden(not node:IsOpen())
+	elseif buttonControl.isWerewolf then
+		refreshWerewolfMode(true)
+	end
+	return createdNew
+end
+
+local function openNode(node, callOnLastEntry)
+	if not node or node:IsOpen() and not node.data.fillContent then return end
+	return toggleNode(node, nil, callOnLastEntry)
+end
+
+function CSPS.openTreeToSection(sectionIndex, subIndex)
+	local parentNode = sectionNodes[sectionIndex]
+	if not parentNode then return end
+	
+	local function scrollToNode(targetNode)
+		ZO_Scroll_SetScrollToRealOffsetAccountingForGradients(
+			myTree.scrollControl, 
+			myTree.rootNode:GetCurrentChildrenHeight(), --
+			targetNode.control:GetTop() - myTree.rootNode.children[1].control:GetTop() , -- offset
+			150	-- duration for animated scrolling
+		) 
+	end
+	
+	local targetNode = parentNode
+	
+	if subIndex then 
+		openNode(targetNode[1])
+		targetNode = parentNode[subIndex + 1]
+		if not openNode(targetNode, function() zo_callLater(function() scrollToNode(targetNode) end, 100) end) then scrollToNode(targetNode) end
+	else
+		if not openNode(targetNode, function() zo_callLater(function() scrollToNode(targetNode) end, 100) end) then scrollToNode(targetNode) end
+	end
+	
+	
+	
+	--myTree:SetScrollToTargetNode(parentNode, childNode)
+end
+
+
+
 function CSPS.onToggleSektion(buttonControl, button)
 	if button == MOUSE_BUTTON_INDEX_LEFT then
-		local parentNode = buttonControl:GetParent().node
-		if parentNode.data.fillContent then
-			for _, v in pairs(parentNode.data.fillContent) do
-				local node = myTree:AddNode(v[1], v[2], parentNode) --v[1] = template, v[2] = content
-			end
-			parentNode.data.fillContent = nil
-		end
-		if buttonControl.state == parentNode:IsOpen() then ZO_ToggleButton_Toggle(buttonControl) end
-		parentNode:SetOpen(not parentNode:IsOpen(), USER_REQUESTED_OPEN)
-		if buttonControl.cpSection then
-			CSPSWindowCP2Bar:SetHidden(not parentNode:IsOpen())
-		elseif buttonControl.isWerewolf then
-			refreshWerewolfMode(true)
-		end
+		toggleNode(buttonControl:GetParent().node, buttonControl)
 	end
 end
 
-local function showSimpleTT(control, ttInd)
-	ZO_Tooltips_ShowTextTooltip(control, RIGHT, GS(ttInd))
+local function showSimpleTT(control, ttInd, includeShiftKey)
+	local ttText = includeShiftKey and string.format(GS(ttInd), GS("SI_KEYCODE", CSPS.savedVariables.settings.jumpShiftKey or 7)) or GS(ttInd)
+	ZO_Tooltips_ShowTextTooltip(control, RIGHT, ttText)
 end
 	
 
@@ -124,7 +189,7 @@ local function NodeSetup(node, control, data, open, userRequested, enabled)
 	myCtrText:SetHandler("OnMouseUp", 
 		function(_, mouseButton, upInside, ctrl, _, shift) 
 			if mouseButton == 1 and upInside and ctrl and shift then 
-				d(string.format("%s - %s - %s (Morph %s, Rank %s) - ID: %s", i, j, k, mySkill.morph or "-", mySkill.rank or "-", (GetSpecificSkillAbilityInfo(i, j, k, mySkill.morph, mySkill.rank))))
+				cspsPost(string.format("%s - %s - %s (Morph %s, Rank %s) - ID: %s", i, j, k, mySkill.morph or "-", mySkill.rank or "-", (GetSpecificSkillAbilityInfo(i, j, k, mySkill.morph, mySkill.rank))))
 			end 
 		end)
 	myCtrText:SetColor(myColor:UnpackRGBA())
@@ -137,10 +202,10 @@ local function NodeSetup(node, control, data, open, userRequested, enabled)
 	myCtrBtnMinus:SetHidden(not mySkill.purchased or (mySkill.autoGrant and (mySkill.passive and mySkill.rank == 1 or not mySkill.passive and mySkill.morph == 0)))
 	myCtrBtnPlus:SetHidden(mySkill.maxRaMo)
 	
-	myCtrBtnPlus:SetHandler("OnClicked", function(_,_,_,_,shift) CSPS.plusClickSkill(mySkill, shift) end)
+	myCtrBtnPlus:SetHandler("OnClicked", function(_,_,ctrl,alt,shift) CSPS.plusClickSkill(mySkill, ctrl,alt,shift) end)
 	myCtrBtnPlus:SetHandler("OnMouseEnter", function() showSimpleTT(myCtrBtnPlus, CSPS_Tooltiptext_PlusSk) end)
 	
-	myCtrBtnMinus:SetHandler("OnClicked", function(_,_,_,_,shift) CSPS.minusClickSkill(mySkill, shift) end)
+	myCtrBtnMinus:SetHandler("OnClicked", function(_,_,ctrl,alt,shift) CSPS.minusClickSkill(mySkill, ctrl,alt,shift) end)
 	myCtrBtnMinus:SetHandler("OnMouseEnter", function() showSimpleTT(myCtrBtnMinus, CSPS_Tooltiptext_MinusSk) end)
 	
 	
@@ -148,6 +213,8 @@ local function NodeSetup(node, control, data, open, userRequested, enabled)
 	myCtrText:SetText(mySkill.morph and mySkill.morph > 0 and mySkill.morphNames[mySkill.morph] or mySkill.name)
 
 	myCtrMorph:SetText(morphOrRank)
+	
+	if data.callbackFunc then data.callbackFunc() data.callbackFunc = nil end
 end
 
 local function NodeSetupAttr(node, control, data, open, userRequested, enabled)
@@ -163,14 +230,15 @@ local function NodeSetupAttr(node, control, data, open, userRequested, enabled)
 	myCtrBtnMinus:SetHidden(CSPS.attrPoints[data.i] == 0)
 	myCtrBtnPlus:SetHidden(CSPS.attrPoints[1] + CSPS.attrPoints[2] + CSPS.attrPoints[3] >= CSPS.attrSum())
 	
-	myCtrBtnMinus:SetHandler("OnClicked", function(_,_,_,_,shift) CSPS.attrBtnPlusMinus(data.i, -1, shift) end)
-	myCtrBtnPlus:SetHandler("OnClicked", function(_,_,_,_,shift) CSPS.attrBtnPlusMinus(data.i, 1, shift) end)
-	myCtrBtnPlus:SetHandler("OnMouseEnter", function() showSimpleTT(control:GetNamedChild("BtnPlus"), CSPS_Tooltiptext_PlusAttr) end)
-	myCtrBtnMinus:SetHandler("OnMouseEnter", function()showSimpleTT(control:GetNamedChild("BtnMinus"), CSPS_Tooltiptext_MinusAttr) end)
+	myCtrBtnMinus:SetHandler("OnClicked", function(_,_,ctrl,alt,shift) CSPS.attrBtnPlusMinus(data.i, -1, ctrl,alt,shift) end)
+	myCtrBtnPlus:SetHandler("OnClicked", function(_,_,ctrl,alt,shift) CSPS.attrBtnPlusMinus(data.i, 1, ctrl,alt,shift) end)
+	myCtrBtnPlus:SetHandler("OnMouseEnter", function() showSimpleTT(control:GetNamedChild("BtnPlus"), CSPS_Tooltiptext_PlusAttr, true) end)
+	myCtrBtnMinus:SetHandler("OnMouseEnter", function() showSimpleTT(control:GetNamedChild("BtnMinus"), CSPS_Tooltiptext_MinusAttr, true) end)
 
 	myCtrText:SetColor(data.entrColor:UnpackRGBA())
 	myCtrValue:SetColor(data.entrColor:UnpackRGBA())
-
+	
+	if data.callbackFunc then data.callbackFunc() data.callbackFunc = nil end
 end
 
 local function getErrorSumColor(data)
@@ -224,18 +292,17 @@ function CSPS.NodeSectionSetup(node, control, data, open, userRequested, enabled
 		
 	elseif data.variant == TREE_SECTION_SKILLS then -- Skills section
 		myCtrText:SetColor(colTbl.white:UnpackRGBA())
-		
+		sectionNodes[TREE_SECTION_SKILLS] = sectionNodes[TREE_SECTION_SKILLS] or node
 	elseif data.variant == TREE_SECTION_GEAR then -- Gear section
 		myCtrText:SetColor(colTbl.white:UnpackRGBA())
 		CSPS.setupGearSection(control, node, data)
-		
-	elseif data.variant == TREE_SECTION_QS or data.variant == TREE_SECTION_QS_CATEGORY then
+		sectionNodes[TREE_SECTION_GEAR] = sectionNodes[TREE_SECTION_GEAR] or node
+	elseif data.variant == TREE_SECTION_QS then
 		myCtrText:SetColor(colTbl.white:UnpackRGBA())
+		sectionNodes[TREE_SECTION_QS] = sectionNodes[TREE_SECTION_QS] or node
 		CSPS.setupQsSection(control, node, data)
-		
-	
 	elseif data.variant == TREE_SECTION_CHAMPIONPOINTS then -- Champion Points section
-		CSPS.cp2ParentTreeSection = control
+		sectionNodes[TREE_SECTION_CHAMPIONPOINTS] = sectionNodes[TREE_SECTION_CHAMPIONPOINTS] or {node}
 		if (CSPS.applyCP and CSPS.unlockedCP)  or (not CSPS.showApply) then 
 			myCtrText:SetColor(colTbl.white:UnpackRGBA())
 		else
@@ -244,27 +311,26 @@ function CSPS.NodeSectionSetup(node, control, data, open, userRequested, enabled
 		btnToggle.cpSection = true
 		
 	elseif data.variant == TREE_SECTION_ATTRIBUTES then -- Attributes section
+		sectionNodes[TREE_SECTION_ATTRIBUTES] = sectionNodes[TREE_SECTION_ATTRIBUTES] or node
 		myCtrText:SetColor(colTbl.white:UnpackRGBA())
 	end
 	
 	myCtrText:SetText(myText)
+	
+	if data.callbackFunc then data.callbackFunc() data.callbackFunc = nil end
 end
 
-local function NodeSetupCP2Discipline(node, control, data, open, userRequested, enabled) -- cp section (2.0)
-	local myText = data.name
-	myText = string.format("%s (%s/%s)", myText, CSPS.cp2ColorSum[data.i], GetNumSpentChampionPoints(GetChampionDisciplineId(data.i)) + GetNumUnspentChampionPoints(GetChampionDisciplineId(data.i))) -- CSPS.cpColorSum[data.i] instead of ""
-	if (CSPS.applyCPc[data.i] and CSPS.unlockedCP) or (not CSPS.showApply) then 
-		control:GetNamedChild("Name"):SetColor(data.entrColor:UnpackRGBA())
-	else
-		control:GetNamedChild("Name"):SetColor(colTbl.gray:UnpackRGBA())
-	end
-	
+function CSPS.setupTreeSectionConnections(node, control, discipline, entrColor, mayShowConnection, mayShowSaveButton, qsBarIndex)
+
 	local myProfile = CSPS.currentProfile == 0 and CSPS.currentCharData or CSPS.profiles[CSPS.currentProfile]
-	myProfile = myProfile.connections and myProfile.connections[data.i] or false
+	myProfile = myProfile.connections and myProfile.connections[discipline] or false
+	
 	local ctrConnect = GetControl(control, "Connection")
-	ctrConnect:SetColor(data.entrColor:UnpackRGBA())
-	ctrConnect:SetHidden(not myProfile)
-	ctrConnect:SetWidth(not myProfile and 0 or 24)
+	ctrConnect:SetColor(entrColor:UnpackRGBA())
+	
+	ctrConnect:SetHidden(not mayShowConnection or not myProfile)
+	ctrConnect:SetWidth(mayShowConnection and myProfile and 24 or 0)
+	
 	if myProfile then
 		ctrConnect:SetHandler("OnMouseEnter",
 			function()
@@ -274,9 +340,9 @@ local function NodeSetupCP2Discipline(node, control, data, open, userRequested, 
 			function(_, mouseButton, upInside) 
 				if upInside and mouseButton == MOUSE_BUTTON_INDEX_RIGHT then 
 					local theProfile = CSPS.currentProfile == 0 and CSPS.currentCharData or CSPS.profiles[CSPS.currentProfile]
-					theProfile.connections[data.i] = nil
+					theProfile.connections[discipline] = nil
 					myTree:RefreshVisible() 
-					CSPS.cppList:RefreshVisible()
+					CSPS.subProfileList:RefreshVisible()
 				end 
 			end)
 		
@@ -286,19 +352,19 @@ local function NodeSetupCP2Discipline(node, control, data, open, userRequested, 
 		
 		control:GetNamedChild("IndicatorSaveNew"):SetHidden(true)
 		
-		if node:IsOpen() and not data.fillContent then 
-			control:GetNamedChild("BtnSave"):SetHidden(myType > 2)
+		if mayShowSaveButton then 
+			control:GetNamedChild("BtnSave"):SetHidden(myType > 2 and myType < 6)
 			control:GetNamedChild("BtnSave").tooltip = GS(CSPS_Tooltiptext_Save)
 			control:GetNamedChild("BtnSave"):SetHandler("OnClicked", 
 				function()  
-					CSPS.cpProfile(data.i, true)
-					CSPS.cp2ProfileSaveGo(myId, myType)
+					CSPS.showSubProfileDiscipline(discipline, true)
+					CSPS.subProfileSaveGo(myId, myType)
 			end)
 		else
 			control:GetNamedChild("BtnSave"):SetHidden(true)
 		end	
 	else
-		if node:IsOpen() and not data.fillContent then 
+		if mayShowSaveButton then 
 			control:GetNamedChild("BtnSave"):SetHidden(false)
 			control:GetNamedChild("IndicatorSaveNew"):SetHidden(false)
 			control:GetNamedChild("BtnSave").tooltip = GS(CSPS_Tooltiptext_AddProfile)
@@ -306,15 +372,17 @@ local function NodeSetupCP2Discipline(node, control, data, open, userRequested, 
 				function()  
 					AddCustomMenuItem(string.gsub(GS(CSPS_CPP_BtnCustAcc), "\n", " "), 
 						function()
-							CSPS.cpProfType = 1
-							CSPS.cpProfile(data.i, false)
-							CSPS.cp2ProfilePlus(1)
+							CSPS.subProfileType = 1
+							CSPS.showSubProfileDiscipline(discipline, false)
+							CSPS.setSubProfileType() -- check if it fits the discipline or change it 
+							CSPS.subProfilePlus(CSPS.subProfileType, qsBarIndex)
 						end)
 					AddCustomMenuItem(string.gsub(GS(CSPS_CPP_BtnCustChar), "\n", " "), 
 						function() 
-							CSPS.cpProfType = 2
-							CSPS.cpProfile(data.i, false)
-							CSPS.cp2ProfilePlus(2)
+							CSPS.subProfileType = 2
+							CSPS.showSubProfileDiscipline(discipline, false)
+							CSPS.setSubProfileType()
+							CSPS.subProfilePlus(CSPS.subProfileType, qsBarIndex)
 						end)
 					ShowMenu()
 					
@@ -325,59 +393,80 @@ local function NodeSetupCP2Discipline(node, control, data, open, userRequested, 
 		end	
 		
 	end	
+end
+
+local function NodeSetupCP2Discipline(node, control, data, open, userRequested, enabled) -- cp section (2.0)
+	local myText = data.name
+	myText = string.format("%s (%s/%s)", myText, cp.sums[data.discipline], GetNumSpentChampionPoints(data.disciplineId) + GetNumUnspentChampionPoints(data.disciplineId)) -- CSPS.cpColorSum[data.i] instead of ""
+	
+	sectionNodes[TREE_SECTION_CHAMPIONPOINTS][data.discipline + 1] = sectionNodes[TREE_SECTION_CHAMPIONPOINTS][data.discipline + 1] or node
+	
+	if (CSPS.applyCPc[data.discipline] and CSPS.unlockedCP) or (not CSPS.showApply) then 
+		control:GetNamedChild("Name"):SetColor(data.entrColor:UnpackRGBA())
+	else
+		control:GetNamedChild("Name"):SetColor(colTbl.gray:UnpackRGBA())
+	end
+		
+	CSPS.setupTreeSectionConnections(node, control, data.discipline, data.entrColor, not data.fillContent, not data.fillContent and node:IsOpen())
+
 	control:GetNamedChild("Name"):SetText(myText)
+	
+	if data.callbackFunc then data.callbackFunc() data.callbackFunc = nil end
 end
 
 local function NodeSetupCP2Cluster(node, control, data, open, userRequested, enabled)
-	local myId = data.skId
-	local mySum =  CSPS.cp2ClusterSum[myId] or 0
-	local myText = zo_strformat("<<C:1>> (<<2>>)", CSPS.cp2ClustNames[myId], mySum)
-	cp2ClusterControls[myId] = control
-	control:GetNamedChild("Name"):SetText(myText)
+	local clusterData = data.clusterData
+	local myId = clusterData.id
+	cpClusterControls[clusterData.id] = control
+	control:GetNamedChild("Name"):SetText(zo_strformat("<<C:1>> (<<2>>)", clusterData.name, clusterData.sum or 0))
 	local r,g,b = data.entrColor:UnpackRGB()
 	control:GetNamedChild("Marker"):SetCenterColor(r, g, b, 0.25)
 	control:GetNamedChild("Marker"):SetEdgeColor(r, g, b, 0)
-	if CSPS.cp2ClustActive[myId] == false then
-		control:GetNamedChild("Name"):SetColor(colTbl.gray:UnpackRGBA())
-	else
-		control:GetNamedChild("Name"):SetColor(colTbl.white:UnpackRGBA())
+	control:GetNamedChild("Name"):SetColor((clusterData.active and colTbl.white or colTbl.gray):UnpackRGBA())
+	
+	if data.callbackFunc then data.callbackFunc() data.callbackFunc = nil end
+end
+
+local function markLinkNodes(skillData, arg)
+	if not skillData.linked then return end
+	
+	local function markNode(id)
+		if cp.clusterParents[id] then
+			local clusterMark = cpClusterControls[cp.clusterParents[id].id]:GetNamedChild("Marker")
+			clusterMark:SetHidden(not arg)
+		end
+		if cpControls[id] then
+			local myMark = cpControls[id]:GetNamedChild("Marker")
+			myMark:SetHidden(not arg)
+		end
+	end
+	
+	markNode(skillData.id)
+	
+	for _, v in pairs(skillData.linked) do
+		markNode(v)
 	end
 end
 
-local function markLinkNodes(idList, arg)
-	for _, v in pairs(idList) do
-		if CSPS.cp2ClustRoots[v] ~= nil then
-			local myMark2 = cp2ClusterControls[CSPS.cp2ClustRoots[v]]:GetNamedChild("Marker")
-			if myMark2 ~= nil then myMark2:SetHidden(not arg) end
-		end
-		if cp2Controls[v] then
-			local myMark = cp2Controls[v]:GetNamedChild("Marker")
-			if myMark ~= nil then myMark:SetHidden(not arg) end
-		end
-	end
-end
-
-local function NodeSetupCP2Entry(node, control, data, open, userRequested, enabled)
-	--data: entrColor = , i=discplineIndex, j=j,  skId, skType (and l if clusterentry)	
-	local myId = data.skId
-	local myValue = CSPS.cp2Table[myId][2]
-	local myCurrentValue = GetNumPointsSpentOnChampionSkill(myId)
-	local myMax = GetChampionSkillMaxPoints(myId)
-	local myValPercent = myValue / myMax
-	local isUnlocked = CSPS.cp2Table[myId][1]
-	control.ctrValue:SetText(myValue)
+local function NodeSetupCpEntry(node, control, data, open, userRequested, enabled)
+	--data: entrColor = , i=disciplineIndex, j=j,  skId, skType (and l if clusterentry)	
+	local skillData = data.skillData
+	local myCurrentValue = GetNumPointsSpentOnChampionSkill(skillData.id)
+	local myValPercent = skillData.value / skillData.maxValue
+	control.ctrValue:SetText(skillData.value)
+	
 	if myValPercent <= 1 then control.ctrProgress:SetWidth(76 * myValPercent) else control.ctrProgress:SetWidth(76) end
 	
-	if not cp2Controls[myId] then	
-		control.ctrName:SetText(zo_strformat("<<C:1>>", GetChampionSkillName(myId)))
+	if not cpControls[skillData.id] then	
+		control.ctrName:SetText(zo_strformat("<<C:1>>", GetChampionSkillName(skillData.id)))
 		local r,g,b = data.entrColor:UnpackRGB()
 		control.ctrMarker:SetCenterColor(r,g,b, 0.4)
 		control.ctrMarker:SetEdgeColor(0,0,0,0)
 		control.ctrProgress:SetColor(r,g,b, 0.4)
-		if DoesChampionSkillHaveJumpPoints(myId) then
+		if skillData.jumpPoints then
 			control.jP = {}
-			for i, v in pairs({GetChampionSkillJumpPoints(myId)}) do
-				local xPos = v/myMax * 76
+			for i, v in pairs(skillData.jumpPoints) do
+				local xPos = v/skillData.maxValue * 76
 				if not control.jP[i] then
 					control.jP[i] =  WINDOW_MANAGER:CreateControl(nil, control, CT_TEXTURE)
 				end
@@ -385,15 +474,15 @@ local function NodeSetupCP2Entry(node, control, data, open, userRequested, enabl
 				control.jP[i]:SetDimensions(1, 14)
 			end
 		end
-		if data.l ~= nil then
+		if data.clusterId ~= nil then
 			control.ctrName:SetWidth(260)
 			control.ctrMarker:SetWidth(260)
 		end
-		cp2Controls[myId] = control
+		cpControls[skillData.id] = control
 	end
-	for i, v in pairs({GetChampionSkillJumpPoints(myId)}) do
+	for i, v in pairs(skillData.jumpPoints or {}) do
 		if i > 1 then
-			if v > myValue or myValue == 0 then 
+			if v > skillData.value or skillData.value == 0 then 
 				control.jP[i]:SetColor(0.66,0.66,0.66) 
 				control.jP[i]:SetWidth(1)
 			else 
@@ -402,57 +491,39 @@ local function NodeSetupCP2Entry(node, control, data, open, userRequested, enabl
 			end
 		end
 	end	
-	control.ctrValue:SetHandler("OnMouseEnter", function() CSPS.showCpTT(control.ctrValue, myId, myValue) end)
-	control.ctrProgBg:SetHandler("OnMouseEnter", function() CSPS.showCpTT(control.ctrValue, myId, myValue) end)
-	control.ctrName:SetHandler("OnMouseEnter", 
-		function() 
-			if data.skType ~= 3 then
-				markLinkNodes({myId, GetChampionSkillLinkIds(myId)}, true)
-			end
-			CSPS.showCpTT(control.ctrName, myId, myValue)
-		end)
-	control.ctrName:SetHandler("OnMouseExit", 
-		function() 
-			if data.skType ~= 3 then
-				markLinkNodes({myId, GetChampionSkillLinkIds(myId)}, false)
-			end
-			ZO_Tooltips_HideTextTooltip() 
-		end)
-	if data.skType ~= 3 then
-		control.ctrBtnPlus:SetHandler("OnMouseEnter", 
-			function() 
-				markLinkNodes({myId, GetChampionSkillLinkIds(myId)}, true)  
-				showSimpleTT(control.ctrBtnPlus, CSPS_Tooltiptext_PlusCP)
-			end)
-		control.ctrBtnPlus:SetHandler("OnMouseExit", 
-			function() 
-				markLinkNodes({myId, GetChampionSkillLinkIds(myId)}, false) 
-				ZO_Tooltips_HideTextTooltip()
-			end)
+	control.ctrValue:SetHandler("OnMouseEnter", function() CSPS.showCpTT(control.ctrValue, skillData) end)
+	control.ctrProgBg:SetHandler("OnMouseEnter", function() CSPS.showCpTT(control.ctrValue, skillData) end)
+	control.ctrName:SetHandler("OnMouseEnter", function() markLinkNodes(skillData, true) CSPS.showCpTT(control.ctrName, skillData) end)
+	control.ctrName:SetHandler("OnMouseExit", function() markLinkNodes(skillData, false) ZO_Tooltips_HideTextTooltip() end)
+	
+	if skillData.type ~= 3 then
+		control.ctrBtnPlus:SetHandler("OnMouseEnter", function() markLinkNodes(skillData, true) showSimpleTT(control.ctrBtnPlus, CSPS_Tooltiptext_PlusCP, true) end)
+		control.ctrBtnPlus:SetHandler("OnMouseExit", function() markLinkNodes(skillData, false)	ZO_Tooltips_HideTextTooltip() end)
 	else
-		control.ctrBtnPlus:SetHandler("OnMouseEnter", function() showSimpleTT(control.ctrBtnPlus, CSPS_Tooltiptext_PlusCP) end)
+		control.ctrBtnPlus:SetHandler("OnMouseEnter", function() showSimpleTT(control.ctrBtnPlus, CSPS_Tooltiptext_PlusCP, true) end)
 		control.ctrBtnPlus:SetHandler("OnMouseExit", function() ZO_Tooltips_HideTextTooltip() end)
 	end
-	control.ctrBtnMinus:SetHandler("OnMouseEnter", function() showSimpleTT(control.ctrBtnMinus, CSPS_Tooltiptext_MinusCP) end)
+	control.ctrBtnMinus:SetHandler("OnMouseEnter", function() showSimpleTT(control.ctrBtnMinus, CSPS_Tooltiptext_MinusCP, true) end)
 	control.ctrBtnMinus:SetHandler("OnMouseExit", function() ZO_Tooltips_HideTextTooltip() end)
-	local inCol = cpIcInact[data.i]
-	if data.skType == 1  then
-		control.ctrIcon:SetTexture(CSPS.cpColTex[data.i])
+	
+	local inCol = cpIcInact[skillData.discipline]
+	if skillData.type == 1  then
+		control.ctrIcon:SetTexture(CSPS.cpColTex[skillData.discipline])
 		control.ctrIcon:SetColor(1,1,1)
 	else 
 		control.ctrIcon:SetTexture("esoui/art/champion/champion_icon_32.dds")
 		control.ctrIcon:SetTextureCoords(-0.1,1.1,-0.1,1.1)
-		control.ctrIcon:SetColor(unpack(cp2ColorsA[data.i]))
+		control.ctrIcon:SetColor(unpack(cp2ColorsA[skillData.discipline]))
 		control.ctrIcon:SetMouseEnabled(true)
-		control.ctrIcon:SetHandler("OnMouseUp", function(self, mouseButton, upInside) WINDOW_MANAGER:SetMouseCursor(0) if upInside then CSPS.clickCPIcon(myId, mouseButton) end end)
+		control.ctrIcon:SetHandler("OnMouseUp", function(self, mouseButton, upInside) WINDOW_MANAGER:SetMouseCursor(0) if upInside then CSPS.clickCPIcon(skillData, mouseButton) end end)
 		control.ctrIcon:SetHandler("OnDragStart", 
 			function(self, button) 
 				 WINDOW_MANAGER:SetMouseCursor(15)
-				 CSPS.onCpDrag(myId, data.i)
+				 CSPS.onCpDrag(skillData)
 			end)
 		inCol = cpIcInact[1]
 	end
-	if isUnlocked == false then
+	if not skillData.unlocked then
 		control.ctrIcon:SetDesaturation(1)
 		control.ctrIcon:SetColor(inCol, inCol, inCol)		
 		control.ctrName:SetColor(colTbl.gray:UnpackRGBA())
@@ -462,13 +533,13 @@ local function NodeSetupCP2Entry(node, control, data, open, userRequested, enabl
 		control.ctrCircle:SetHidden(true)		
 	else
 		control.ctrIcon:SetDesaturation(0)
-		if CSPS.cp2InHb[myId] == true then
+		if cp.isInHb(skillData.id) == true then
 			control.ctrIcon:SetDesaturation(0)
 			control.ctrIcon:SetColor(1,1,1)
 			control.ctrCircle:SetHidden(false)
-			control.ctrCircle:SetTexture(cpSlT[data.i])
-			if data.i == 1 then control.ctrCircle:SetColor(0.8235, 0.8235, 0) end	-- re-color the not-so-green circle for the green cp...
-		elseif data.skType > 1 and WouldChampionSkillNodeBeUnlocked(myId, myValue) then
+			control.ctrCircle:SetTexture(cpSlT[skillData.discipline])
+			if skillData.discipline == 1 then control.ctrCircle:SetColor(0.8235, 0.8235, 0) end	-- re-color the not-so-green circle for the green cp...
+		elseif skillData.type > 1 and skillData.active then
 			control.ctrCircle:SetHidden(false)
 			control.ctrCircle:SetTexture("esoui/art/champion/actionbar/champion_bar_slot_frame.dds")
 			control.ctrCircle:SetColor(1,1,1)
@@ -476,29 +547,30 @@ local function NodeSetupCP2Entry(node, control, data, open, userRequested, enabl
 			control.ctrCircle:SetHidden(true)			
 		end
 		control.ctrName:SetColor(colTbl.white:UnpackRGBA())
-		if myValue < myCurrentValue then
+		if skillData.value < myCurrentValue then
 			control.ctrValue:SetColor(colTbl.orange:UnpackRGBA())
-		elseif myValue == myCurrentValue and myValue > 0 then
+		elseif skillData.value == myCurrentValue and skillData.value > 0 then
 			control.ctrValue:SetColor(colTbl.green:UnpackRGBA())
 		else
 			control.ctrValue:SetColor(colTbl.white:UnpackRGBA())
 		end
 		
-		control.ctrBtnPlus:SetHidden(myValue >= GetChampionSkillMaxPoints(myId))
-		control.ctrBtnMinus:SetHidden(myValue <= 0)
+		control.ctrBtnPlus:SetHidden(skillData.value >= skillData.maxValue)
+		control.ctrBtnMinus:SetHidden(skillData.value <= 0)
 	end
 	control.ctrName:SetHandler("OnMouseUp", function(self, mouseButton, upInside, ctrl, _, shift) 
 		if upInside then 
 			if mouseButton == 1 and ctrl and shift then
-				d(myId)
+				cspsPost(skillData.id)
 			else
-				CSPS.cpClicked(self, myId, mouseButton) 
+				CSPS.cpClicked(self, skillData, mouseButton) 
 			end
 		end 
 	end)
-	control.ctrBtnPlus:SetHandler("OnClicked", function(_,_,_,_,shift) CSPS.cp2BtnPlusMinus(data.skId, 1, shift) end)
-	control.ctrBtnMinus:SetHandler("OnClicked", function(_,_,_,_,shift) CSPS.cp2BtnPlusMinus(data.skId, -1, shift) end)
+	control.ctrBtnPlus:SetHandler("OnClicked", function(_,_,ctrl,alt,shift) CSPS.cpBtnPlusMinus(skillData, 1, ctrl, alt, shift) end)
+	control.ctrBtnMinus:SetHandler("OnClicked", function(_,_,ctrl,alt,shift) CSPS.cpBtnPlusMinus(skillData, -1,ctrl,alt,shift) end)
 	
+	if data.callbackFunc then data.callbackFunc() data.callbackFunc = nil end
 end
 
 function CSPS.prepareTheTree()
@@ -510,12 +582,48 @@ function CSPS.prepareTheTree()
 
 	myTree:AddTemplate("CSPSCP2HB", NodeSetupCP2Discipline, nil, nil, 24, 0)
 	myTree:AddTemplate("CSPSCP2CL", NodeSetupCP2Cluster, nil, nil, 24, 0)
-	myTree:AddTemplate("CSPSCP2L", NodeSetupCP2Entry, nil, nil, 24, 0)
+	myTree:AddTemplate("CSPSCP2L", NodeSetupCpEntry, nil, nil, 24, 0)
 	myTree:RefreshVisible() 
 end
 
 function CSPS.refreshTree()
 	if myTree then myTree:RefreshVisible() end
+end
+
+function CSPS.createCPTree()
+	cpOvernode = cpOvernode or myTree:AddNode("CSPSLH", {name = GS(CSPS_TxtCpNew), variant=TREE_SECTION_CHAMPIONPOINTS})
+	cpDisciplineNodes = cpDisciplineNodes or {}
+	cpControls = {}
+	cpClusterControls = {}
+	
+	local changeOrder = {2,3,1}
+	for auxId = 1, 3 do
+		local discipline = changeOrder[auxId]
+		
+		local disciplineId = GetChampionDisciplineId(discipline)
+		local fillContent = {}
+		for _, skillData in pairs(cp.sortedLists[discipline]) do
+			if skillData.cluster then
+				local subContent = {}
+				for _, subSkillData in pairs(skillData.cluster) do					
+					table.insert(subContent, {"CSPSCP2L", {entrColor = cpColors[discipline], discipline=discipline, clusterId = skillData.id, skillData = subSkillData}})
+				end
+				table.insert(fillContent, {"CSPSCP2CL", {entrColor = cpColors[discipline], discipline=discipline, clusterData=skillData, fillContent=subContent}})
+			else
+				table.insert(fillContent, {"CSPSCP2L", {entrColor = cpColors[discipline], skillData=skillData}})
+			end
+		end
+		if cpDisciplineNodes[discipline] then
+			if cpDisciplineNodes[discipline]:IsOpen() and not cpDisciplineNodes[discipline].data.fillContent then
+				cpDisciplineNodes[discipline]:SetOpen(false) 
+				ZO_ToggleButton_Toggle(cpDisciplineNodes[discipline].control:GetNamedChild("Toggle"))
+			end
+			cpDisciplineNodes[discipline].children = nil
+		end
+		cpDisciplineNodes[discipline] = cpDisciplineNodes[discipline]  or myTree:AddNode("CSPSCP2HB", {name = zo_strformat("<<C:1>>", GetChampionDisciplineName(disciplineId)), disciplineId=disciplineId, entrColor = cpColors[discipline], discipline=discipline, fillContent=fillContent}, cpOvernode)
+		
+		cpDisciplineNodes[discipline].data.fillContent = fillContent
+	end
 end
 
 function CSPS.createTable()
@@ -550,30 +658,12 @@ function CSPS.createTable()
 	
 		-- Generate tree for CP
 	if CSPS.unlockedCP then
-		local overnode = myTree:AddNode("CSPSLH", {name = GS(CSPS_TxtCpNew), variant=TREE_SECTION_CHAMPIONPOINTS})
-		local cp2Table = CSPS.cp2Table
-		local changeOrder = {2,3,1}
-		for auxId = 1, 3 do
-			local discplineIndex = changeOrder[auxId]
-			local fillContent = {}
-			for j, v in pairs(CSPS.cp2List[discplineIndex]) do
-				if v[2] == 4 then
-					local subContent = {}
-					for l, w in pairs(CSPS.cp2ListCluster[v[1]]) do						
-						table.insert(subContent, {"CSPSCP2L", {entrColor = cpColors[discplineIndex], i=discplineIndex,  j=j, l=l, skId=w[1], skType=w[2]}})
-					end
-					table.insert(fillContent, {"CSPSCP2CL", {entrColor = cpColors[discplineIndex], i=discplineIndex,  j=j,  skId=v[1], fillContent=subContent}})
-				else
-					table.insert(fillContent, {"CSPSCP2L", {entrColor = cpColors[discplineIndex], i=discplineIndex, j=j,  skId=v[1], skType=v[2]}})
-				end
-				
-			end			
-			local nodeoversection = myTree:AddNode("CSPSCP2HB", {name = zo_strformat("<<C:1>>", GetChampionDisciplineName(GetChampionDisciplineId(discplineIndex))), entrColor = cpColors[discplineIndex], i=discplineIndex, fillContent=fillContent}, overnode)
-
-		end
+		CSPS.createCPTree()
 	end
 	
 	if CSPS.doGear then CSPS.setupGearTree() end
+	CSPS.setupQsTree()
+	
 	CSPS.tabEx = true
 end
 

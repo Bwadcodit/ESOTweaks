@@ -1,9 +1,3 @@
-local cpColTex = {
-		"esoui/art/champion/champion_points_stamina_icon-hud-32.dds",
-		"esoui/art/champion/champion_points_magicka_icon-hud-32.dds",
-		"esoui/art/champion/champion_points_health_icon-hud-32.dds",
-}
-
 local skMap = CSPS.SkillFactoryDBExport.skMap
 local cpMap = CSPS.SkillFactoryDBExport.cpMap
 local cp2Map = CSPS.SkillFactoryDBExport.cp2Map
@@ -13,6 +7,10 @@ local clMap = CSPS.SkillFactoryDBExport.classMap
 local alMap = CSPS.SkillFactoryDBExport.allianceMap
 local basisUrl = ""
 local GS = GetString
+local cp = CSPS.cp
+
+local cspsPost = CSPS.post
+local cspsD = CSPS.cspsD
 
 local theLink = ""
 
@@ -32,7 +30,7 @@ end
 
 local function showMundus(myMundusId)
 	local myMundus = "-"
-	if myMundusId ~= nil then 
+	if myMundusId then 
 		myMundus = zo_strformat("<<C:1>>", GetAbilityName(myMundusId)) 
 		CSPS.setMundus(myMundusId) 
 	else
@@ -58,14 +56,12 @@ local function showMundus(myMundusId)
 end
 
 
-local function generateTextSkills(txtIndex)
+local function generateTextSkills(skillTypes)
 	local myText = {}
-	local myStart = {1, 4, 8}
-	myStart = myStart[txtIndex]
-	local myEnd = {3, 7, 8}
-	myEnd = myEnd[txtIndex]
+	local skillTypesT = {}
+	for i, v in pairs(skillTypes) do skillTypesT[v] = true end
 	for i, v in ipairs(CSPS.skillTable) do
-		if i >= myStart and i <= myEnd then
+		if skillTypesT[i] then
 			local typeTable = {GS("SI_SKILLTYPE", i)}
 			local typeHasEntries = false
 			for j, w in ipairs(v) do
@@ -80,7 +76,7 @@ local function generateTextSkills(txtIndex)
 						table.insert(lineTable, myName)
 					end
 				end
-				if lineHasEntries then 
+				if lineHasEntries and GetSkillLineId(i, j) ~= 71 then -- don't include emperor skills
 					table.insert(typeTable, string.format(" - %s", w.name))
 					table.insert(typeTable, table.concat(lineTable, "\n"))
 				end
@@ -124,6 +120,18 @@ local function generateTextOther()
 	CSPSWindowImportExportTextEdit:SetText(myTable)
 end
 
+local function textExport()
+	ClearMenu()
+	for i, v in pairs({{1,2,3}, {4,5,6,7}, {8}}) do
+		local myEntryName = {}
+		for j,w in pairs(v) do table.insert(myEntryName, GS("SI_SKILLTYPE", w)) end
+		AddCustomMenuItem(table.concat(myEntryName, "/"), function() generateTextSkills(v) end)
+	end
+	AddCustomMenuItem("-", function() end)
+	AddCustomMenuItem(GS(CSPS_ImpExp_TextOd), function() generateTextOther() end)
+	ShowMenu()
+end
+
 local function generateLinkSF()	
 	local lang = string.lower(GetCVar("Language.2"))
 	basisUrlTab = {
@@ -153,7 +161,7 @@ local function generateLinkSF()
 					if myId ~= nil then
 						if myId ~= "-" then table.insert(lnkSkTab, string.format("%s:%s", myId,myRank)) end
 					else
-						d(string.format("[CSPS] %s", zo_strformat(GetString(CSPS_ImpEx_ErrSk), skId.name)))
+						cspsPost( zo_strformat(GetString(CSPS_ImpEx_ErrSk), skId.name))
 					end
 				end
 			end
@@ -184,17 +192,17 @@ local function generateLinkSF()
 	end
 	-- Read CP
 	local cpTable = {}
-	for i, v in pairs (CSPS.cp2Table) do
-		local myId = cp2Map[i]
-		if v[2] ~= 0 and myId then 			
-			table.insert(cpTable, string.format("%s:%s", myId, v[2]))
+	for skillId, skillData in pairs (cp.table) do
+		local myId = cp2Map[skillId]
+		if skillData.value ~= 0 and myId then 			
+			table.insert(cpTable, string.format("%s:%s", myId, skillData.value))
 		end
 	end
 	local cpHbTable = {}
-	for i, v in pairs(CSPS.cp2HbTable) do
-		for j, w in pairs(v) do 
-			local myPos = (i-1) * 4 + j
-			local myId = cp2Map[w]
+	for discipline, barData in pairs(cp.bar) do
+		for slotIndex, skillData in pairs(barData) do 
+			local myPos = (discipline-1) * 4 + slotIndex
+			local myId = skillData and cp2Map[skillData.id]
 			if myId then
 				table.insert(cpHbTable, string.format("%s:%s", myPos, myId))
 			end
@@ -222,7 +230,7 @@ local function generateLinkSF()
 	linkTable[3] = string.format("%s,%s", table.concat(hbTab[1], ":"), table.concat(hbTab[2], ":"))  -- Hotbar 2
 	linkTable[4] = "" --setInfo
 	if CSPS.BuildSkillFactorySetList then linkTable[4] = CSPS.BuildSkillFactorySetList() end
-	linkTable[5] = string.format("%s,%s,%s", CSPS.cp2ColorSum[1], CSPS.cp2ColorSum[2], CSPS.cp2ColorSum[3])-- cp-sums green blue red
+	linkTable[5] = string.format("%s,%s,%s", unpack(cp.sums))-- cp-sums green blue red
 	linkTable[6] = table.concat(cpTable, ",") -- cp as id:value
 	linkTable[7] = table.concat(cpHbTable, ",") -- cp hb as pos:id
 	linkTable[8] = "" -- placeholder to close with a ;
@@ -268,9 +276,9 @@ local function importLinkSF()
 	local cp2MapBw = table_invert(cp2Map)
 	local raMapBw = table_invert(raMap)
 	local clMapBw = table_invert(clMap)
-	if lnkParameter[1] == nil or lnkParameter[1] == "-" then d('[CSPS] No Parameter 1') return end
+	if lnkParameter[1] == nil or lnkParameter[1] == "-" then cspsPost('No Parameter 1') return end
 	local lnkSkTab = {SplitString(",", lnkParameter[1])}
-	if #lnkSkTab < 3 or (sfV2 and #lnkSkTab < 8) then d('[CSPS] Missing parameters') return end
+	if #lnkSkTab < 3 or (sfV2 and #lnkSkTab < 8) then cspsPost('Missing parameters') return end
 	
 	local lnkBaseData = {}
 	if sfV2 then 
@@ -348,7 +356,7 @@ local function importLinkSF()
 					end
 				end
 			else
-				d(string.format("[CSPS] %s", zo_strformat(GetString(CSPS_ImpEx_ErrHb), ind1)))
+				cspsPost( zo_strformat(GetString(CSPS_ImpEx_ErrHb), ind1))
 			end
 		end
 		CSPS.hbPopulate()
@@ -378,23 +386,23 @@ local function importLinkSF()
 	local lnkCpTab = false
 	lnkCpTab = sfV2 and lnkParameter[6] ~= nil and lnkParameter[6] ~= "-" and {SplitString(",", lnkParameter[6])}
 	if lnkCpTab and type(lnkCpTab) == "table" and #lnkCpTab > 0 then
-		CSPS.cp2ResetTable()
+		cp.resetTable()
 		for i, v in pairs(lnkCpTab) do
 			local myId, myValue = SplitString(":", v)
 			myId = tonumber(myId)
 			myValue = tonumber(myValue)
 			if myId and myValue then
 				myId = cp2MapBw[myId]
-				if CSPS.cp2Table[myId] then
-					if myValue > GetChampionSkillMaxPoints(myId) then myValue = GetChampionSkillMaxPoints(myId) end
-					CSPS.cp2Table[myId][2] = myValue
+				local skillData = cp.table[myId]
+				if skillData then
+					skillData.value = math.min(myValue, skillData.maxValue)
 				end
 			end
 		end
 		local lnkCpHb = false
 		lnkCpHb = lnkParameter[7] ~= nil and lnkParameter[7] ~= "-" and {SplitString(",", lnkParameter[7])}
 		if lnkCpHb and type(lnkCpHb) == "table" and #lnkCpHb > 0 then
-			CSPS.cp2HbTable = {{}, {}, {}}
+			for i=1, 3 do cp.bar[i] = {} end
 			for i, v in pairs(lnkCpHb) do
 				local myPos, myId = SplitString(":", v)
 				myPos = tonumber(myPos)
@@ -404,23 +412,97 @@ local function importLinkSF()
 					local myDisc = math.floor((myPos-1) / 4)
 					myPos = myPos - (myDisc * 4)
 					myDisc = myDisc + 1
-					CSPS.cp2HbTable[myDisc][myPos] = myId
+					cp.bar[myDisc][myPos] = cp.table[myId]
 				end
 			end
 		end
-		for i=1, 3 do
-			CSPS.cp2UpdateUnlock(i)
-			CSPS.cp2UpdateSum(i)
-			CSPS.cp2ReCheckHotbar(i)
-		end
-		CSPS.cp2UpdateHbMarks()
-		CSPS.cp2UpdateSumClusters()
+
+		cp.updateUnlock()
+		cp.updateSum()
+		cp.recheckHotbar()
+
+		cp.updateSlottedMarks()
+		cp.updateClusterSum()
 	end
 	
 	if not CSPS.tabEx then CSPS.createTable()	end		
 	CSPS.refreshTree() 
 	CSPS.showElement("apply", true)
 	CSPS.showElement("save", true)
+end
+
+local function importCompressed()
+	local compressedString = CSPSWindowImportExportTextEdit:GetText()
+	if compressedString == nil or compressedString == "" then return end
+	local compTable = {SplitString("#", compressedString)}
+	local partTable = CSPS.savedVariables.settings.importExportParts -- skills, hotbar, attributes , mundus, cp, gear, quickslots
+		
+	if not CSPS.tabEx then CSPS.createTable() end
+	
+	local invalidStr = {[""] = true, ["-"] = true}
+	
+	if compTable[1] and not invalidStr[compTable[1]] and partTable.skills then 
+		local prog, pass = SplitString('*', compTable[1])
+		CSPS.tableExtract({part1 = prog}, {part1 = pass})
+	end
+	
+	if compTable[2] and not invalidStr[compTable[2]] and partTable.hotbars then 
+		CSPS.hbTables = CSPS.hbExtract(compTable[2]) 
+		CSPS.hbLinkToSkills(CSPS.hbTables) 
+		CSPS.hbPopulate() 
+	end
+	
+	if compTable[3] and not invalidStr[compTable[3]] and partTable.attributes then CSPS.attrExtract(compTable[3]) end
+	
+	if compTable[4] and not invalidStr[compTable[4]] and partTable.mundus then CSPS.setMundus(tonumber(compTable[4])) end
+	
+	if compTable[5] and not invalidStr[compTable[5]] and partTable.cp then
+		local cpComp, cpHbComp = SplitString("*", compTable[5])
+		cp.extract(cpComp)
+		cp.hotBarExtract(cpHbComp, cp.bar)
+		cp.updateSidebarIcons()
+		cp.updateSlottedMarks()
+
+	end
+	
+	if compTable[6] and not invalidStr[compTable[6]] and partTable.gear and CSPS.doGear then CSPS.setTheGear(CSPS.extractGearString(compTable[6])) end
+	
+	if compTable[7] and not invalidStr[compTable[7]] and partTable.quickslots then CSPS.extractQS(compTable[7], CSPS.getQsBars()) end
+	
+	CSPS.refreshTree() 
+	CSPS.toggleImportExport(false)
+end
+
+local function exportCompressed()
+	local partTable = CSPS.savedVariables.settings.importExportParts -- skills, hotbar, attributes , mundus, cp, gear, quickslots
+	local compTable = {"-", "-", "-", "-", "-", "-", "-"}
+	
+	if partTable.skills then 
+		local skillTable = CSPS.compressLists()
+		
+		local prog = {}
+		for i, v in pairs(skillTable.prog) do table.insert(prog, v) end
+		prog = table.concat(prog, ",")
+		local pass = {}
+		for i, v in pairs(skillTable.pass) do table.insert(pass, v) end
+		pass = table.concat(pass, ",")
+		compTable[1] = string.format("%s*%s", prog ~= "" and prog or "-" , pass ~= "" and pass or "-" )
+	end
+	
+	if partTable.hotbar then compTable[2] = CSPS.hbCompress(CSPS.hbTables) or "-" end
+	if partTable.attributes then compTable[3] = CSPS.attrCompress(CSPS.attrPoints) or "-" end
+	if partTable.mundus then compTable[4] = CSPS.currentMundus or "-" end
+	if partTable.cp then
+		local cpComp = cp.compress(cp.table) or "-"
+		local cpHbComp = cp.hotBarCompress(cp.bar) or "-"
+		compTable[5]= string.format("%s*%s", cpComp, cpHbComp)
+	end
+	
+	if CSPS.doGear and partTable.gear then compTable[6] = CSPS.buildGearString() or "-" end
+		
+	if partTable.quickslots then compTable[7] = CSPS.compressQS(CSPS.getQsBars()) or "-" end
+	
+	CSPSWindowImportExportTextEdit:SetText(table.concat(compTable, "#"))
 end
 
 local transferLevels = {}
@@ -438,7 +520,7 @@ function CSPS.transferProfile(cpPSub)
 		
 		if myTable == nil then return end
 		
-		if myTable.werte == nil then d(string.format("[CSPS] %s", GS(CSPS_NoSavedData))) return end
+		if myTable.werte == nil then cspsPost( GS(CSPS_NoSavedData)) return end
 	elseif cpPSub == 1 then
 		myTable = CSPSSavedVariables[transferLevels[1]][transferLevels[2]]["$AccountWide"]["charData"][transferLevels[3]]["cpProfiles"][transferLevels[4]]
 	elseif cpPSub == 2 then
@@ -455,27 +537,32 @@ function CSPS.transferProfile(cpPSub)
 			local gearCompUnique = myTable.gearCompUnique or ""
 			CSPS.setTheGear(CSPS.extractGearString(gearComp, gearCompUnique))
 		end
+		
+		CSPS.extractQS(myTable.qs, CSPS.getQsBars())
+		
 		CSPS.hbTables = CSPS.hbExtract(hbComp)
 		CSPS.hbLinkToSkills(CSPS.hbTables)
 		CSPS.hbPopulate()
 		CSPS.attrExtract(attrComp)
 		CSPS.refreshSkillSumsAndErrors()
+		
 	end
 	
 	if cpPSub ~= 2 then
 		local cp2Comp = ""
 		if not cpPSub then cp2Comp = myTable.cp2werte or "" else cp2Comp = myTable.cpComp or "" end
-		CSPS.cp2Extract(cp2Comp)
+		cp.resetTable()
+		cp.extract(cp2Comp)
 	end
 	local cp2HbComp = ""
 	if not cpPSub then cp2HbComp = myTable.cp2hbwerte or "" else cp2HbComp = myTable.hbComp or "" end
-	CSPS.cp2HbTable = CSPS.cp2HbExtract(cp2HbComp)
+	cp.hotBarExtract(cp2HbComp, cp.bar)
 	
 	if not CSPS.tabEx then CSPS.createTable() end
-	for i=1,3 do
-		CSPS.cp2HbIcons(i)
-	end
-	CSPS.cp2UpdateHbMarks()
+
+	cp.updateSidebarIcons()
+
+	cp.updateSlottedMarks()
 	
 	 CSPS.refreshTree() 
 	CSPS.unsavedChanges = false
@@ -508,10 +595,10 @@ function CSPS.transferBindings(keepThem)
 	local myTableBd = CSPSSavedVariables[transferLevels[1]][transferLevels[2]]["$AccountWide"]["charData"][transferLevels[3]]["bindings"] or {}
 	local myTableHk = CSPSSavedVariables[transferLevels[1]][transferLevels[2]]["$AccountWide"]["charData"][transferLevels[3]]["cp2hbpHotkeys"] or {}
 	local myTableHb = CSPSSavedVariables[transferLevels[1]][transferLevels[2]]["$AccountWide"]["charData"][transferLevels[3]]["cpHbProfiles"]
-	if myTableHb == nil then d(string.format("[CSPS] %s", GS(CSPS_NoSavedData))) return end
+	if myTableHb == nil then cspsPost( GS(CSPS_NoSavedData)) return end
 	local myMappings = {}
 	local takenInd = 0
-	if not keepThem then CSPS.currentCharData.cpHbProfiles = {} end
+	if not keepThem then ZO_ClearNumericallyIndexedTable(CSPS.currentCharData.cpHbProfiles)  end
 	for i, _ in pairs(CSPS.currentCharData.cpHbProfiles) do
 		if i > takenInd then takenInd = i end
 	end
@@ -520,23 +607,24 @@ function CSPS.transferBindings(keepThem)
 		CSPS.currentCharData.cpHbProfiles[newIndex] = v
 	end
 	for i=1, 20 do
-		CSPS.cp2hbpHotkeys[i] = {}
+		CSPS.spHotkeysC[i] = {}
 	end
 	for i, v in pairs(myTableHk) do
 		for j, w in pairs(v) do
-			CSPS.cp2hbpHotkeys[i][j] = w + takenInd
+			CSPS.spHotkeysC[i][j] = w + takenInd
 		end
 	end
 	ZO_DeepTableCopy(myTableBd,  CSPS.bindings)
-	CSPS.currentCharData.cp2hbpHotkeys = CSPS.cp2hbpHotkeys 
-	CSPS.currentCharData.bindings = CSPS.bindings
+	CSPS.currentCharData.cp2hbpHotkeys = CSPS.spHotkeysC 
 	CSPS.initConnect()
 end
-
 
 function CSPS.updateTransferCombo(myLevel)
 	if myLevel == nil then return end
 	
+	local preselectChoice = false
+	
+	local cpColTex = CSPS.cpColTex
 	local ctrNames = {"Server", "Account", "Char", "Profiles", "CPProfiles", "CPHbProfiles"}
 	local myControl = CSPSWindowImportExportTransfer:GetNamedChild(ctrNames[myLevel])
 	local myButton = CSPSWindowImportExportTransfer:GetNamedChild(ctrNames[myLevel].."Btn")
@@ -578,11 +666,15 @@ function CSPS.updateTransferCombo(myLevel)
 	if myLevel == 1 then	
 		for i, _ in pairs(CSPSSavedVariables) do
 			choices[i] = i
+			if GetWorldName() == i then 
+				preselectChoice = i
+			end
 		end
 	-- Server selected, fill account list
 	elseif myLevel == 2 then
 		for i, _ in pairs(CSPSSavedVariables[transferLevels[1]]) do
 			choices[i] = i
+			if GetUnitDisplayName("player") == i then preselectChoice = i end
 		end
 
 	-- Account selected, fill char list
@@ -646,46 +738,42 @@ function CSPS.updateTransferCombo(myLevel)
 	for i,j in pairs(choices) do
 		myComboBox:AddItem(myComboBox:CreateItemEntry(i, OnItemSelect))
 	end
-	myComboBox:SetSelectedItem(selectPrompt)
+	
+	myComboBox:SetSelectedItem(preselectChoice or selectPrompt)
+	
+	if preselectChoice then OnItemSelect(_, preselectChoice) end
 end
 
 function CSPS.generateLink()
+	local formatImpExp = CSPS.savedVariables.settings.formatImpExp
 	if not CSPS.tabEx then CSPSWindowImportExportTextEdit:SetText(GetString(CSPS_ImpEx_NoData)) return end
-	if CSPS.formatImpExp == "txtCP2_1" then
-		CSPS.checkTextExportCP(1)
-		return
-	elseif CSPS.formatImpExp == "txtCP2_2" then
-		CSPS.checkTextExportCP(2)
-		return
-	elseif CSPS.formatImpExp == "txtCP2_3" then
-		CSPS.checkTextExportCP(3)
-		return
-	end
-	if not CSPS.tabEx then CSPSWindowImportExportTextEdit:SetText(GetString(CSPS_ImpEx_NoData)) return end
-	if CSPS.formatImpExp == "sf" then 
-		generateLinkSF()
-		showLink()
-	elseif CSPS.formatImpExp == "txtSk1" then
-		generateTextSkills(1)
-	elseif CSPS.formatImpExp == "txtSk2" then
-		generateTextSkills(2)
-	elseif CSPS.formatImpExp == "txtSk3" then
-		generateTextSkills(3)
-	elseif CSPS.formatImpExp == "txtOd" then
-		generateTextOther()
-	end
+	local exportFunctions = {
+		txtCP2_1 = function() CSPS.exportTextCP(1) end,
+		txtCP2_2 = function() CSPS.exportTextCP(2) end,
+		txtCP2_3 = function() CSPS.exportTextCP(3) end,
+		sf = function() generateLinkSF() showLink() end,
+		txtExport = textExport,
+		csps = exportCompressed,
+	}
+	
+	if exportFunctions[formatImpExp] then exportFunctions[formatImpExp]() end
 end
 
 function CSPS.importLink(ctrl, shift, alt, button)
-	if CSPS.formatImpExp == "sf" then 
-		importLinkSF()
-	elseif CSPS.formatImpExp == "csvCP" then
-		CSPS.importListCP()
-	elseif CSPS.formatImpExp == "txtCP2_1" then -- (discipline, convertMe, sumUp, createDynamicProfile, accountWide)
-		CSPS.importTextCP(1, button == 1 and ctrl, shift, button == 2, ctrl)
-	elseif CSPS.formatImpExp == "txtCP2_2" then
-		CSPS.importTextCP(2, button == 1 and ctrl, shift, button == 2, ctrl)
-	elseif CSPS.formatImpExp == "txtCP2_3" then
-		CSPS.importTextCP(3, button == 1 and ctrl, shift, button == 2, ctrl)
-	end
+	local importFunctions = {
+		sf = importLinkSF,
+		csvCP = CSPS.importListCP,
+		txtCP2_1 = function()
+			CSPS.importTextCP(1, button == 1 and ctrl, shift, button == 2, ctrl)
+			-- (discipline, convertMe, sumUp, createDynamicProfile, accountWide)
+		end,
+		txtCP2_2 = function()
+			CSPS.importTextCP(2, button == 1 and ctrl, shift, button == 2, ctrl)
+		end,
+		txtCP2_3 = function()
+			CSPS.importTextCP(3, button == 1 and ctrl, shift, button == 2, ctrl)
+		end,
+		csps = 	importCompressed,
+	}
+	importFunctions[CSPS.savedVariables.settings.formatImpExp]()
 end

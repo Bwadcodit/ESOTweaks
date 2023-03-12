@@ -79,10 +79,12 @@ end
 
 -- plus and minus functions for skills from the list
 
-function CSPS.minusClickSkill(theSkill, shift)
+function CSPS.minusClickSkill(theSkill, ctrl, alt, shift)
+	local myShiftKey = CSPS.savedVariables.settings.jumpShiftKey or 7
+	myShiftKey = myShiftKey == 7 and shift or myShiftKey == 4 and ctrl or myShiftKey == 5 and alt or false
 	if not theSkill.passive then		-- progression skill?
 		theSkill.morph = theSkill.morph or 0
-		if shift or theSkill.morph == 0 then -- delete if not morphed
+		if myShiftKey or theSkill.morph == 0 then -- delete if not morphed
 			theSkill.purchased = false
 			for myBar = 1, 3 do
 				if theSkill.hb[myBar] ~= nil then CSPS.hbSkillRemove(myBar, theSkill.hb[myBar]) end
@@ -91,7 +93,7 @@ function CSPS.minusClickSkill(theSkill, shift)
 			theSkill.morph = theSkill.morph - 1 -- if morphed change/remove morph
 		end
 	else		-- Passive
-		if not shift and theSkill.rank > 1 then -- if rank > 1 substract 1
+		if not myShiftKey and theSkill.rank > 1 then -- if rank > 1 substract 1
 			theSkill.rank = theSkill.rank - 1
 		else
 			theSkill.purchased = false -- otherwise delete
@@ -160,17 +162,20 @@ function CSPS.plusClickSkillLine(skillType, skillLineIndex, shift)
 	CSPS.refreshTree()
 end
 
-function CSPS.plusClickSkill(theSkill, shift)
+function CSPS.plusClickSkill(theSkill, ctrl, alt, shift)
+	local myShiftKey = CSPS.savedVariables.settings.jumpShiftKey or 7
+	myShiftKey = myShiftKey == 7 and shift or myShiftKey == 4 and ctrl or myShiftKey == 5 and alt or false
+	
 	if theSkill.purchased == false then	-- Skill is not purchased?
 			theSkill.purchased = true
-			theSkill.rank = theSkill.passive and (shift and 42 or 1) or nil	-- 42 will later be reduced to the maxRank
+			theSkill.rank = theSkill.passive and (myShiftKey and 42 or 1) or nil	-- 42 will later be reduced to the maxRank
 			theSkill.morph = not theSkill.passive and 0 or nil
 	else
 		
 		if not theSkill.passive then
 			theSkill.morph = theSkill.morph + 1
-		elseif not shift then
-			theSkill.rank = theSkill.rank + 1
+		else
+			theSkill.rank = myShiftKey and 42 or theSkill.rank + 1
 		end
 	end
 	theSkill:setPoints()
@@ -395,10 +400,13 @@ function CSPS.readCurrentSkills()
 end
 
 function CSPS.hbLinkToSkills(hbTables)
-	for i, v in pairs(hbTables) do
-		for j, w in pairs(v) do
-			if w[1] ~= 1 or w[2] < 4 then
-				skillTable[w[1]][w[2]][w[3]].hb[i] = j
+	for hbIndex, singleHotbarTable in pairs(hbTables) do
+		for slotIndex, skillParams in pairs(singleHotbarTable) do
+			local skillType, skillLine, skillIndex = unpack(skillParams)
+			if #skillParams > 0 and (skillType ~= 1 or skillLine < 4) then
+				local skillEntry = skillTable[skillType][skillLine][skillIndex]
+				skillEntry.hb = skillEntry.hb or {}
+				skillEntry.hb[hbIndex] = slotIndex
 			end
 		end
 	end

@@ -589,6 +589,18 @@ local sfSetIds = {
 	[677] = 15415, --Chimera\'s Rebuke 
 	[678] = 15416, --Old Growth Brewer 
 	[679] = 15417, --Claw of the Forest Wraith
+	[680] = 0, --Ritemaster\’s Bond / Bindung des Ritenmeisters   [Bal Sunnar, Stonefalls, Stonefalls]
+	[681] = 0, --Nix-Hound\’s Howl / Nixhund-Heulen   [Bal Sunnar, Stonefalls, Stonefalls]
+	[682] = 0, --Telvanni Enforcer / Telvanni-Vollstrecker   [Bal Sunnar, Stonefalls, Stonefalls]
+	[683] = 0, --Roksa the Warped / Roksa die Verkrümmte   [Bal Sunnar, Stonefalls, Stonefalls]
+	[684] = 0, --Runecarver\’s Blaze / Lodern des Runenschnitzers   [Scrivener's Hall, The Rift, The Rift]
+	[685] = 0, --Apocryphal Inspiration / Apocryphische Inspiration   [Scrivener's Hall, The Rift, The Rift]
+	[686] = 0, --Abyssal Brace / Abgründiges Wappnen   [Scrivener's Hall, The Rift, The Rift]
+	[687] = 0, --Ozezan the Inferno / Ozezan das Inferno   [Scrivener's Hall, The Rift, The Rift]
+	[688] = 0, --Snake in the Stars / Schlange inmitten der Sterne   [Cyrodiil]
+	[689] = 0, --Shell Splitter / Panzerspalten   [Cyrodiil]
+	[690] = 0, --Judgement of Akatosh  / Urteil von Akatosh   [Cyrodiil]
+	
 }
 
 local sfTraits = {

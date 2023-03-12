@@ -28,14 +28,7 @@ function CSPS.profilePlus()
 	CSPS.UpdateProfileCombo()	
 end
 
-function CSPS.profileRename()
-	if CSPS.currentProfile ~= 0 then
-		local myWarning = (not CSPSWindowCPProfiles:IsHidden()) and GS(CSPS_MSG_NoCPProfiles) or ""
-		ZO_Dialogs_ShowDialog(CSPS.name.."_RenameProfile", nil, {mainTextParams = {CSPS.profiles[CSPS.currentProfile].name, myWarning}, initialEditText = CSPS.profiles[CSPS.currentProfile].name})
-	end
-end
-
-function CSPS.renameProfileGo(txt)
+local function renameProfileGo(txt)
 	for i, v in pairs(CSPS.profiles) do
 		if v.name == txt then return end
 	end
@@ -43,10 +36,23 @@ function CSPS.renameProfileGo(txt)
 	CSPS.UpdateProfileCombo()
 end
 
+function CSPS.profileRename()
+	if CSPS.currentProfile ~= 0 then
+		local myWarning = not CSPS.savedVariables.settings.suppressSaveOther and (not CSPSWindowSubProfiles:IsHidden()) and GS(CSPS_MSG_NoCPProfiles) or ""
+		
+		local myName = CSPS.profiles[CSPS.currentProfile].name
+		
+		ZO_Dialogs_ShowDialog(CSPS.name.."_TextInputDiag", 
+			{confirmFunc = function(txt) if not txt or txt == "" then return end renameProfileGo(txt) end},
+			{mainTextParams = {zo_strformat(GS(CSPS_MSG_RenameProfile), myName, myWarning)}, initialEditText = myName})
+	end
+end
+
+
 function CSPS.profileMinus()
 	if CSPS.currentProfile ~= 0 then
 		
-		local myWarning = (not CSPSWindowCPProfiles:IsHidden()) and GS(CSPS_MSG_NoCPProfiles) or ""
+		local myWarning = not CSPS.savedVariables.settings.suppressSaveOther and (not CSPSWindowSubProfiles:IsHidden()) and GS(CSPS_MSG_NoCPProfiles) or ""
 		ZO_Dialogs_ShowDialog(CSPS.name.."_OkCancelDiag", 
 			{returnFunc = function() CSPS.deleteProfileGo() end},  
 			{mainTextParams = {zo_strformat(GS(CSPS_MSG_DeleteProfile), CSPS.profiles[CSPS.currentProfile].name, GS(CSPS_MSG_DeleteProfileStan), myWarning)}, titleParams = {GS(CSPS_MyWindowTitle)}})
@@ -80,14 +86,23 @@ local function applyAll(excludeSkills, excludeAttributes, excludeGreenCP, exclud
 		CSPS.toggleCP(2, not excludeBlueCP)
 		CSPS.toggleCP(3, not excludeRedCP)
 		
-		CSPS.cp2ApplyGo(true)
+		cp.applyGo(true)
 	end
 	
 	if not excludeGear then CSPS.equipAllFittingGear() end
-	if not excludeQuickslots then CSPS.loadConnectedQuickSlots() end
+	if not excludeQuickslots then 
+		CSPS.loadConnectedQuickSlots() 
+		CSPS.applyQS()
+	end
 end
 
-function CSPS.btnApplyAll()
+CSPS.applyAll = applyAll
+
+function CSPS.btnApplyAll(mouseButton)
+	if mouseButton == 2 then
+		CSPS.openLAM()
+		return
+	end
 	local toExclude = CSPS.savedVariables.settings.applyAllExclude
 	applyAll(toExclude.skills, toExclude.attr, toExclude.cp, toExclude.cp, toExclude.cp, toExclude.hb, toExclude.gear, toExclude.qs)
 end
@@ -108,6 +123,8 @@ function CSPS.showApplyAllTooltip(control)
 		end
 		InformationTooltip:AddLine(toExcludeTexts[v], "ZoFontGame", r, g, b, CENTER, MODIFY_TEXT_TYPE_NONE, TEXT_ALIGN_CENTER, true)
 	end
+	ZO_Tooltip_AddDivider(InformationTooltip)
+	InformationTooltip:AddLine(string.format("|t26:26:esoui/art/miscellaneous/icon_rmb.dds|t: %s", GS(SI_GAMEPAD_OPTIONS_MENU)))
 end
 
 function CSPS.loadAndApplyByName(profileName, excludeSkills, excludeAttributes, excludeGreenCP, excludeBlueCP, excludeRedCP, excludeHotbar, excludeGear, excludeQuickslots)

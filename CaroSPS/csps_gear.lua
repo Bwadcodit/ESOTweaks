@@ -145,6 +145,10 @@ function CSPS.getGearSlotsHands()
 	return gearSlotsHands
 end
 
+function CSPS.getSortedGearSlots()
+	return gearSlots
+end
+
 local function buildGlyphTables()
 	enchantIds = {}
 	enchantNames = {}
@@ -787,7 +791,7 @@ end
 
 
 
-function CSPS.buildGearString(saveUnique)
+function CSPS.buildGearString()
 	local myGearString = {}
 	local myGearStringUnique = {}
 	for _, gearSlot in pairs(gearSlots) do
@@ -809,12 +813,12 @@ function CSPS.buildGearString(saveUnique)
 					slotTable.trait or 0,
 					slotTable.quality or 0,
 					slotTable.enchant or 0) or 0)
-			if saveUnique then 
-				table.insert(myGearStringUnique, slotTable and slotTable.itemUniqueID or 0)
-			end
+			
+			table.insert(myGearStringUnique, slotTable and slotTable.itemUniqueID or 0)
+			
 		end
 	end
-	myGearStringUnique = saveUnique and table.concat(myGearStringUnique, ";") or nil
+	myGearStringUnique = table.concat(myGearStringUnique, ";") or nil
 	myGearString = table.concat(myGearString, ";")
 	
 	return myGearString, myGearStringUnique
@@ -860,14 +864,19 @@ local function findSetItem(mySlot, findNew)
 	for _, bagId in pairs(bagIds) do
 		fitsExactly[bagId] = {}
 		couldFit[bagId] = {}
+	end
+	
+	for _, bagId in pairs(bagIds) do
 		local isBackpack = bagId == BAG_BACKPACK 
 		
 		local lastFitBag = lastFits and lastFits[isBackpack]
-		if not findNew and lastFitBag and lastFitBag.itemLink == GetItemLink(lastFitBag.bagId, lastFitBag.slotIndex, 1) then
-			fitsExactly[lastFitBag.bagId] = {lastFitBag}
-			return fitsExactly, couldFit
-		elseif not findNew then
-			lastFits[isBackpack] = false
+		if not findNew then
+			if lastFitBag and lastFitBag.itemLink == GetItemLink(lastFitBag.bagId, lastFitBag.slotIndex, 1) then
+				fitsExactly[lastFitBag.bagId] = {lastFitBag}
+				return fitsExactly, couldFit
+			else
+				lastFits[isBackpack] = false
+			end
 		end
 		
 		for slotIndex = 0, GetBagSize(bagId) do
@@ -875,7 +884,10 @@ local function findSetItem(mySlot, findNew)
 			if uniqueIdToFind then
 				local itemUniqueID = Id64ToString(GetItemUniqueId(bagId, slotIndex))
 				if itemUniqueID == uniqueIdToFind then
-					fitsExactly = {[bagId] = {{slotIndex = slotIndex, itemLink = itemLink}}}
+					fitsExactly[bagId] = {{slotIndex = slotIndex, itemLink = itemLink}}
+					for _, otherBag in pairs(bagIds) do
+						if otherBag ~= bagId then fitsExactly[otherBag] = {} end
+					end
 					return fitsExactly, couldFit, true -- third parameter to indicated we found the unique item
 				end
 			end
@@ -1200,9 +1212,8 @@ local function showSetItemTooltip(control, setId, gearSlot, itemType,  traitType
 			end
 		end
 	end
+	InformationTooltip:AddLine(GS(CSPS_QS_TT_Edit))
 end
-
-CSPS.showSetItemTooltip = showSetItemTooltip
 
 function CSPS.extractGearString(myGearString, myGearStringUnique)
 	local myGear = {}
@@ -1251,11 +1262,6 @@ function CSPS.extractGearString(myGearString, myGearStringUnique)
 	end
 	return myGear
 end
-
-function extractAndLoadGearString(myGearString, myGearStringUnique)
-	CSPS.extractGearString(myGearString, myGearStringUnique)
-end
-
 
 local function setMara(gearSlot, itemLink, itemUniqueID)
 	theGear[gearSlot] = {mara = true, setId = 44904, link = itemLink, itemUniqueID = itemUniqueID}
@@ -1398,9 +1404,10 @@ local function NodeSetupGear(node, control, data, open, userRequested, enabled)
 				end
 			end
 			
-			control.tooltipFunction = function()
-				if not theGear[mySlot] then return end
+			control.tooltipFunction = function(self)
+				if not theGear[mySlot] then ZO_Tooltips_ShowTextTooltip(self, TOP, GS(CSPS_QS_TT_Edit)) return end
 				showPoisonTooltip(control.ctrEnchantment, mySlot, myTable.firstId, myTable.secondId)
+				InformationTooltip:AddLine(GS(CSPS_QS_TT_Edit))
 			end
 			
 			control.tooltipExitFunction = function()
@@ -1470,6 +1477,8 @@ local function NodeSetupGear(node, control, data, open, userRequested, enabled)
 	else
 		--control:SetHidden(true)
 		--control:SetHeight(0)
+		control.tooltipFunction = function(self) ZO_Tooltips_ShowTextTooltip(self, TOP, GS(CSPS_QS_TT_Edit)) end
+		control.tooltipExitFunction = function() ZO_Tooltips_HideTextTooltip() end
 		control.ctrSetName:SetText("-")
 		control.ctrIcon:SetTexture(string.format("esoui/art/characterwindow/%s.dds", gearSlotIcons[mySlot]))
 		control.ctrTrait:SetHidden(true)
@@ -1481,6 +1490,8 @@ local function NodeSetupGear(node, control, data, open, userRequested, enabled)
 	if mySlot == EQUIP_SLOT_BACKUP_OFF and theGear[EQUIP_SLOT_BACKUP_MAIN] and theGear[EQUIP_SLOT_BACKUP_MAIN].type and isTwoHanded[theGear[EQUIP_SLOT_BACKUP_MAIN].type] or
 		mySlot == EQUIP_SLOT_OFF_HAND and theGear[EQUIP_SLOT_MAIN_HAND] and theGear[EQUIP_SLOT_MAIN_HAND].type and isTwoHanded[theGear[EQUIP_SLOT_MAIN_HAND].type] then
 		control.ctrBtnEdit:SetHidden(true)
+		control.ctrIcon:SetMouseEnabled(false)
+		control.ctrSetName:SetMouseEnabled(false)
 	else
 		control.ctrBtnEdit:SetHandler("OnClicked", function()
 			if CSPS.gearWindow and not CSPS.gearWindow:IsHidden() and gearSelector.gearSlot == mySlot then 
@@ -1491,6 +1502,8 @@ local function NodeSetupGear(node, control, data, open, userRequested, enabled)
 			CSPS.showGearWin(control.ctrBtnEdit, mySlot)
 		end)
 		control.ctrBtnEdit:SetHidden(false)
+		control.ctrIcon:SetMouseEnabled(true)
+		control.ctrSetName:SetMouseEnabled(true)		
 	end
 end
 
@@ -1649,7 +1662,6 @@ function CSPS.setupGearTree()
 			end)
 	end
 	
-	myTree:RefreshVisible()
 end
 
 function CSPS.getCurrentGear()	

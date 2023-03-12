@@ -5,23 +5,7 @@ CSPS = {
 	applyCP = false,
 	applyCPc = {false, false, false},
 	showApply = false,
-	cp2Table = {},
-	cp2HbTable = {{}, {}, {}},
-	cp2Comp = "",
-	cp2HbComp = "",
-	cp2InHb = {},
-	cp2ClusterSum = {},
-	cp2hbpHotkeys = {{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},{},},
-	--cp2HotbarControls = {},
-	cp2RootLists = {},
-	cp2List = {[1] = {}, [2] = {}, [3] = {}},
-	cp2ListCluster = {},
-	cp2Disci = {},
-	cp2ClustRoots = {},
-	cp2ClustNames = {},
-	cp2ClustActive = {},
-	cp2BarLabels = false,
-	cp2ColorSum = {0,0,0},
+	cp = {table = {}, bar = {{},{},{}}, sums = {0,0,0}}, -- will be filled in csps_cp2.lua
 	cpProfiles = {},
 	cpColors = {
 		ZO_ColorDef:New(0.65098, 0.84706, 0.32157), -- 166/255, 216/255, 82/255
@@ -29,6 +13,7 @@ CSPS = {
 		ZO_ColorDef:New(0.870588, 0.396078, 0.192157), --222/255, 101/255, 49/255 
 		ZO_ColorDef:New(0.83137, 0.196078, 0.87451), --212/255, 50/255, 223/255	-- quickslots
 		ZO_ColorDef:New(0.784314, 0.635294, 0.392157), --(200/255, 162/255, 100/255 -- skills?
+		ZO_ColorDef:New(0.337255, 0.529412, 0.427451), -- gear 86, 135, 109 --gear
 	},
 	colors = {
 		white = ZO_ColorDef:New(1,1,1),
@@ -38,19 +23,18 @@ CSPS = {
 		gray = ZO_ColorDef:New(0.21, 0.21, 0.21),
 	},
 	cp2ColorsA = {{70/255,107/255,7/255}, {23/255,101/255,135/255}, {166/255,58/255,11/255}},
-	cpForHB = {0, 0},
 	cpAutoOpen = false,
 	cpImportCap = false,
 	cpImportReverse = false,
-	cpCustomBar = false,
 	useCustomIcons = false,
 	hbTables = {{},{}, {}},
 	attrPoints = {0, 0, 0},
 	unlockedCP = true,
 	kaiserFranz = 1,
+	subProfileDiscipline = 1,
+	subProfileType = 1,
 	ec = {correct = 1, wrongMorph = 2, rankHigher = 3, skillLocked = 4, rankLocked = 5, morphLocked = 6},
-	showHotbar = true,
-	formatImpExp = "sf",
+	showHotbar = false,
 	bindings = {},
 	profiles = {
 	},
@@ -63,21 +47,95 @@ local GS = GetString
 local sdm = SKILLS_DATA_MANAGER
 
 local skillTable = CSPS.skillTable
-local skillTypes = {SKILL_TYPE_CLASS, SKILL_TYPE_WEAPON, SKILL_TYPE_ARMOR, SKILL_TYPE_WORLD, SKILL_TYPE_GUILD, SKILL_TYPE_AVA, SKILL_TYPE_RACIAL, SKILL_TYPE_TRADESKILL}
 local cspsDoDebug = false
 
 local ec = CSPS.ec
+local cp = CSPS.cp
 
-function CSPS.cspsD(debugMessage)
+local function anyEntryNotFalse(table1, checkForSubTables)
+	if not table1 then return false end
+	for i, v in pairs(table1) do
+		if v then
+			if type(v) == "table" and checkForSubTables then 
+				if anyEntryNotFalse(v) then return true end 
+			else 
+				return true 
+			end
+		end
+	end
+	return false
+end
+
+local hf = {
+	tableParamsFit = function(table1, table2, paramList)
+		for i, v in pairs(paramList) do
+			if table1[v] ~= table2[v] then return false end
+		end
+		return true
+	end,
+	anyEntryNotFalse = anyEntryNotFalse,
+	anyEntryFalse = function(table1, maxIndex)
+		if maxIndex then
+			for i=1, maxIndex do
+				if not table1[i] then return true end
+			end
+			return false
+		end
+		for i, v in pairs(table1) do
+			if v == false then return true end
+		end
+	end,
+	getEmptyEntries = function(table1, maxIndex)
+		local returnTable = {}
+		for i=1, maxIndex do if not table1[i] then table.insert(returnTable, i) end end
+		return returnTable
+	end,
+	fillNumericTable = function(fillTable, maxIndex, fillValue, fillWithEmptyTables, deleteHigher, deleteNonNumeric)
+		if deleteHigher or deleteNonNumeric then
+			for i, v in pairs(fillTable) do
+				if type(i) ~= number then
+					if deleteNonNumeric then fillTable[i] = nil end
+				else
+					if i > maxIndex and deleteHigher then fillTable[i] = nil end
+				end
+			end
+		end
+		for i=1, maxIndex do
+			if fillTable[i] == nil then fillTable[i] = fillWithEmptyTables and {} or fillValue end
+		end
+	end,
+	
+}
+
+CSPS.helperFunctions = hf
+
+function CSPS.cspsD(...)
 	if not cspsDoDebug then return end
-	d(debugMessage)
+	if #{...} == 1 and type((...)) ~= "table" then d(string.format("|c9e0911[CSPS-DEBUG]|r %s", tostring((...)))) return end
+	d("|c9e0911[CSPS-DEBUG]:|r")
+	d(...)
 end
 
 local cspsD = CSPS.cspsD
 
 function CSPS.debug(arg)
-	cspsDoDebug = arg
+	if arg ~= nil then cspsDoDebug = arg else cspsDoDebug = not cspsDoDebug end
+	d("|c9e0911[CSPS IS DEBUGGING]:|r"..tostring(cspsDoDebug))
 end
+
+local function cspsPost(myMessage, noFormatter)
+	if type(myMessage) ~= "table" then 
+		myMessage = noFormatter and myMessage or string.format("|c9e0911[CSPS]|r %s", tostring(myMessage))
+		CHAT_SYSTEM:AddMessage(myMessage)
+		return
+	end
+	local addFormatter = not noFormatter
+	for i, v in pairs(myMessage) do
+		cspsPost(v, noFormatter)
+	end
+end
+
+CSPS.post = cspsPost
 
 function CSPS.isMagOrStam()
 	local magStam = 0
@@ -98,8 +156,10 @@ function CSPS.isMagOrStam()
 end
 
 
-function CSPS.attrBtnPlusMinus(i, x, shift)
-	if shift then x = x * 10 end
+function CSPS.attrBtnPlusMinus(i, x, ctrl,alt,shift)
+	local myShiftKey = CSPS.savedVariables.settings.jumpShiftKey or 7
+	myShiftKey = myShiftKey == 7 and shift or myShiftKey == 4 and ctrl or myShiftKey == 5 and alt or false
+	if myShiftKey then x = x * 10 end
 	CSPS.attrPoints[i] = CSPS.attrPoints[i] + x
 	if CSPS.attrPoints[i] < 0 then CSPS.attrPoints[i] = 0 end
 	local diff = CSPS.attrPoints[1] + CSPS.attrPoints[2] + CSPS.attrPoints[3] - CSPS.attrSum()
@@ -123,7 +183,6 @@ function CSPS:Initialize()
 		wasConverted = false,
 		settings = {
 			applyCP = false,
-			showHotbar = false,
 		},
 		charData = {
 			[currentCharId] = {},
@@ -132,6 +191,8 @@ function CSPS:Initialize()
 	local svProfile = GetWorldName()
 	
 	CSPS.doGear = LibSets and true or false
+	CSPSWindowBuildGearProfiles:SetHidden(not CSPS.doGear)
+	if not CSPS.doGear then CSPSWindowBuildGearProfiles:SetWidth(0) end
 	
 	CSPS.savedVariables = ZO_SavedVars:NewAccountWide(svName, svVersion, svNamesSpace, svDefaults, svProfile, nil) -- savedvars account wide, server dependent
 	-- CSPS.kaiserFranz: id for the emperor skill line (named after emperor Franz, the 52nd of his name)
@@ -167,22 +228,34 @@ function CSPS:Initialize()
 		CSPS.applyCP = false
 	end
 				
+				
 	CSPS.currentCharData.profiles = CSPS.currentCharData.profiles or {}
-	CSPS.currentCharData.bindings = CSPS.currentCharData.bindings or {} 
+	CSPS.currentCharData.bindings = CSPS.currentCharData.bindings or {} -- connections between hotkey-groups and situations etc.
+	CSPS.savedVariables.bindings = CSPS.savedVariables.bindings or {}
+	
 	CSPS.profiles = CSPS.currentCharData.profiles
 	CSPS.bindings = CSPS.currentCharData.bindings
+	CSPS.bindingsA = CSPS.savedVariables.bindings
+	
 	CSPS.currentCharData.cpHbProfiles = CSPS.currentCharData.cpHbProfiles  or {}
+	CSPS.savedVariables.cpHbProfiles = CSPS.savedVariables.cpHbProfiles  or {}
 	
 	local mySettings = CSPS.savedVariables.settings
 	
-	CSPSWindowImportExportTextEdit:SetMaxInputChars(3000)
+	CSPS.setupImportExportTextEdit()
+	
 	local formatImpExp = mySettings.formatImpExp or "sf"
 	CSPS.toggleImpExpSource(formatImpExp, true)
 	
+	mySettings.importExportParts = mySettings.importExportParts or {skills = true, hotbar = true, attributes = true, mundus = true, cp = true, gear = true, quickslots = true}
+	CSPS.toggleCPImpExpParts()
+	
 	CSPS.cpImportCap =  mySettings.cpImportCap or false
+	CSPS.cpImportLang = mySettings.cpImportLang or false
 	CSPS.cpImportReverse = mySettings.cpImportReverse or false
 	
 	CSPS.toggleCPCapImport(CSPS.cpImportCap)
+	CSPS.toggleCPImportLanguage(CSPS.cpImportLang)
 	CSPS.toggleCPReverseImport(CSPS.cpImportReverse)
 	
 	CSPS.InitLocalText()
@@ -191,37 +264,51 @@ function CSPS:Initialize()
 		CSPS.convertOldSVs()
 	end
 		
-	CSPS.cp2CreateTable()
+	cp.CreateTable()
+	cp.createList()
 	
 	CSPS.InitializeMundusMenu()
 	
 	CSPS:RestorePosition()
 	CSPS.prepareTheTree()
 	
+	CSPS.currentCharData.cp2hbpHotkeys = CSPS.currentCharData.cp2hbpHotkeys or {}
+	CSPS.spHotkeysC = CSPS.currentCharData.cp2hbpHotkeys
+	CSPS.savedVariables.spHotkeys = CSPS.savedVariables.spHotkeys or {}
+	CSPS.spHotkeysA = CSPS.savedVariables.spHotkeys
+	
+	if #CSPS.spHotkeysC < 20 then
+		for i=1, 20 do
+			table.insert(CSPS.spHotkeysC, {})
+			if #CSPS.spHotkeysC == 20 then break end
+		end
+	end
+	
+	if #CSPS.spHotkeysA < 20 then
+		for i=1, 20 do
+			table.insert(CSPS.spHotkeysA, {})
+			if #CSPS.spHotkeysA == 20 then break end
+		end
+	end
+	
+	mySettings.accountWideShiftKey = mySettings.accountWideShiftKey or 7
 	
 	CSPS.initConnect()
 	
 	CSPS.showElement("checkCP")
 	CSPS.showElement("apply", false)
 
-		
-	CSPS.cp2hbpHotkeys = CSPS.currentCharData.cp2hbpHotkeys or CSPS.cp2hbpHotkeys
-	if #CSPS.cp2hbpHotkeys < 20 then
-		for i=1, 20 do
-			table.insert(CSPS.cp2hbpHotkeys, {})
-			if #CSPS.cp2hbpHotkeys == 20 then break end
-		end
-	end
 	
-	local strictOrder = mySettings.strictOrder or false
-	CSPS.toggleStrictOrder(strictOrder)
+	CSPS.toggleStrictOrder(mySettings.strictOrder or false)
 	--local cpRemindMe = mySettings.cpReminder or false
 	CSPS.toggleCPAutoOpen()
 	CSPS.toggleArmoryAutoOpen()
 	CSPS.toggleCP(0, mySettings.applyCP and CSPS.unlockedCP)
-	CSPS.toggleHotbar(mySettings.showHotbar)	
-	local cpCustomBar = mySettings.cpCustomBar or false
-	CSPS.toggleCPCustomBar(cpCustomBar)
+	mySettings.showHotbar = nil
+	
+	CSPS.showElement("hotbar", not mySettings.hideHotbar)
+	
+	CSPS.toggleCPCustomBar()
 	CSPS.toggleCPCustomIcons()
 	CSPSWindowBtnApplyAll:SetHidden(not mySettings.showApplyAll)
 	
@@ -234,7 +321,7 @@ function CSPS:Initialize()
 	
 	CSPS.setupLam()
 		
-	EVENT_MANAGER:RegisterForEvent(CSPS.name.."OnCpPurchase", EVENT_CHAMPION_PURCHASE_RESULT, CSPS.onCPChange)
+	EVENT_MANAGER:RegisterForEvent(CSPS.name.."OnCpPurchase", EVENT_CHAMPION_PURCHASE_RESULT, cp.onCPChange)
 	EVENT_MANAGER:RegisterForEvent(CSPS.name.."OnPlayerActivated", EVENT_PLAYER_ACTIVATED, function() CSPS.onPlayerActivated() end)
 	EVENT_MANAGER:UnregisterForEvent(CSPS.name.."OnAddOnLoaded", EVENT_ADD_ON_LOADED)
 end
@@ -252,16 +339,17 @@ function CSPS.showBuild(initOpen)
 	CSPS.showElement("apply", false)
 	CSPS.showElement("save", true)
 	CSPS.populateTable()
-	CSPS.cp2ReadCurrent()
+	cp.readCurrent()
 	CSPS.hbRead()
 	CSPS.hbPopulate()
 	CSPS.readCurrentQS()
-	if not CSPS.tabEx then CSPS.createTable() end
-	
-	for i=1,3 do
-		CSPS.cp2HbIcons(i)
+	if not CSPS.tabEx then 
+		CSPS.createTable() 
 	end
-	CSPS.cp2UpdateHbMarks()
+	
+	cp.updateSidebarIcons()
+	cp.updateSlottedMarks()
+	
 	if CSPS.doGear then
 		CSPS.getCurrentGear()
 	end
@@ -273,7 +361,7 @@ end
 function CSPS.saveBuild()
 	local myName = GS(CSPS_Txt_StandardProfile)
 	if CSPS.currentProfile ~= 0 then myName = CSPS.profiles[CSPS.currentProfile].name end
-	local myWarning = (not CSPSWindowCPProfiles:IsHidden()) and GS(CSPS_MSG_NoCPProfiles) or ""
+	local myWarning = not CSPS.savedVariables.settings.suppressSaveOther and (not CSPSWindowSubProfiles:IsHidden()) and GS(CSPS_MSG_NoCPProfiles) or ""
 	
 	ZO_Dialogs_ShowDialog(CSPS.name.."_OkCancelDiag", 
 		{returnFunc = function() CSPS.saveBuildGo()   end},  
@@ -285,15 +373,13 @@ function CSPS.saveBuildGo()
 	local skillTableClean = CSPS.compressLists()
 	local hbComp = CSPS.hbCompress(CSPS.hbTables)
 	local attrComp = CSPS.attrCompress(CSPS.attrPoints)
-	local cp2Comp = ""
-	local cp2HbComp = ""
-	cp2Comp = CSPS.cp2Compress(CSPS.cp2Table) 
-	cp2HbComp = CSPS.cp2HbCompress(CSPS.cp2HbTable)
+	local cpComp = cp.compress(cp.table) 
+	local cpHbComp = cp.hotBarCompress(cp.bar)
 	local gearComp, gearCompUnique = nil
 	if CSPS.doGear then
-		gearComp, gearCompUnique = CSPS.buildGearString(CSPS.savedVariables.settings.saveSpecificGear)
+		gearComp, gearCompUnique = CSPS.buildGearString()
 	end
-		
+	
 	-- local myKeys = generateKeys()
 	local profileToSave = {}
 	if CSPS.currentProfile == 0 then
@@ -306,11 +392,12 @@ function CSPS.saveBuildGo()
 	profileToSave.hbwerte = hbComp
 	profileToSave.attribute = attrComp
 	
-	profileToSave.cp2werte = cp2Comp
-	profileToSave.cp2hbwerte = cp2HbComp
+	profileToSave.cp2werte = cpComp
+	profileToSave.cp2hbwerte = cpHbComp
 	profileToSave.mundus = CSPS.currentMundus
 	profileToSave.gearComp = gearComp
 	profileToSave.gearCompUnique = gearCompUnique
+	profileToSave.qs = CSPS.compressQS(CSPS.getQsBars())
 	profileToSave.lastSaved = os.time()
 	
 	CSPS.currentCharData.profiles = CSPS.profiles
@@ -337,7 +424,7 @@ end
 
 function CSPS.populateTable(doNotFill)
 	CSPS.populateAttributes()
-	CSPS.cp2ResetTable()
+	cp.resetTable()
 	CSPS.refreshTree()
 	--- Read Current Skills
 	if #skillTable == 0 then CSPS.createSkillTable() else CSPS.resetSkills() end	
@@ -401,11 +488,11 @@ function CSPS.compressLists(skillTableToCompress)
 end
 
 
-function CSPS.skTableExtract(progTab, passTab, ignoreClass)
+function CSPS.skTableExtract(progTab, passTab, ignoreClass, changeSilent)
 	local racialChange = false
 	if type(progTab) == "table"  or type(passTab) == "table" then 
-		if progTab == nil then progTab = {} end
-		if passTab == nil then passTab = {} end
+		progTab = progTab or {} 
+		passTab = passTab or {}
 		if not progTab["part1"] and not passTab["part1"] then return CSPS.oldSkExtract(progTab, passTab) end
 		local morphs, upgrades = {}, {}
 		
@@ -455,10 +542,10 @@ function CSPS.skTableExtract(progTab, passTab, ignoreClass)
 				end	
 			end
 		end	
-		if racialChange then d(zo_strformat("[CSPS] <<C:1>>!", GS(SI_SERVICETOKENTYPE2))) end
-		return morphs, upgrades
+		if racialChange and not changeSilent then d(zo_strformat("[CSPS] <<C:1>>!", GS(SI_SERVICETOKENTYPE2))) end
+		return morphs, upgrades, racialChange
 	else
-		return {}, {}
+		return {}, {}, racialChange
 	end
 end
 
@@ -519,7 +606,7 @@ function CSPS.hbExtract(hbComp, classId)
 							local myAbId = tonumber(aSkill)
 							skTyp, skLin, skId = GetSpecificSkillAbilityKeysByAbilityId(aSkill)
 						end
-						if skTyp ~=1 or skLin < 4 or classId then hbTables[hbIndex][hbPosition] = {skTyp, skLin, skId} end
+						if skTyp and skLin and skId and (skTyp ~=1 or skLin < 4 or classId) then hbTables[hbIndex][hbPosition] = {skTyp, skLin, skId} end
 					end
 				end
 			end
@@ -533,13 +620,13 @@ end
 function CSPS.loadBuild()
 	CSPS.showElement("apply", true)
 	CSPS.showElement("save", true)
-	if CSPS.currentCharData.werte == nil and CSPS.profiles == {} then d(string.format("[CSPS] %s", GS(CSPS_NoSavedData))) return end
+	if CSPS.currentCharData.werte == nil and CSPS.profiles == {} then cspsPost(GS(CSPS_NoSavedData)) return end
 		
 	local myProfile = CSPS.currentProfile == 0 and CSPS.currentCharData or CSPS.profiles[CSPS.currentProfile]
 
 	local skillTableClean = myProfile.werte
-	local cp2Comp = myProfile.cp2werte or ""
-	local cp2HbComp = myProfile.cp2hbwerte or ""
+	local cpComp = myProfile.cp2werte or ""
+	local cpHbComp = myProfile.cp2hbwerte or ""
 	local attrComp = myProfile.attribute
 	local hbComp = myProfile.hbwerte
 	local gearComp = myProfile.gearComp or ""
@@ -552,26 +639,33 @@ function CSPS.loadBuild()
 	local hasConnections = {}
 	local cpProfilesToLoad = {}
 	local cpPresetsToLoad = {}
-	
+		
 	for myDiscipline=1, 3 do
 		if myProfile.connections[myDiscipline] then 
 			hasConnections[myDiscipline] = true 
 		end
 	end
 	
-	CSPS.cp2Extract(cp2Comp, hasConnections)
-	CSPS.cp2HbTable = CSPS.cp2HbExtract(cp2HbComp, hasConnections)
+	CSPS.extractQS(myProfile.qs, CSPS.getQsBars())
+	CSPS.loadConnectedQuickSlots() 
+		
+	cp.extract(cpComp, hasConnections)
+	cp.hotBarExtract(cpHbComp, cp.bar, hasConnections)
 
-	for myDiscipline=1, 3 do
+	local outdatedPresets = false
+	
+		for myDiscipline=1, 3 do
 		if myProfile.connections[myDiscipline] then 
 			local myType, myId = SplitString("-", myProfile.connections[myDiscipline])
 			if myType == "4" then 
-				CSPS.loadCPPreset(tonumber(myType), tonumber(myId), myDiscipline, true)
+				outdatedPresets = CSPS.loadCPPreset(tonumber(myType), tonumber(myId), myDiscipline, true) or outdatedPresets
 			else
 				CSPS.loadCPProfile(tonumber(myType), tonumber(myId), myDiscipline)
 			end
 		end
 	end
+
+	if outdatedPresets then cspsPost(GS(CSPS_CPOldPreset)) end
 
 	CSPS.hbTables = CSPS.hbExtract(hbComp)
 	CSPS.hbLinkToSkills(CSPS.hbTables)
@@ -579,10 +673,9 @@ function CSPS.loadBuild()
 	CSPS.attrExtract(attrComp)
 	if not CSPS.tabEx then CSPS.createTable() end
 	
-	for i=1,3 do
-		CSPS.cp2HbIcons(i)
-	end
-	CSPS.cp2UpdateHbMarks()
+	cp.updateSidebarIcons()
+	
+	cp.updateSlottedMarks()
 	
 	if CSPS.doGear then
 		CSPS.setTheGear(CSPS.extractGearString(gearComp, gearCompUnique))

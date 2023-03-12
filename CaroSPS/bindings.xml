@@ -5,65 +5,66 @@
 				<Down>CSPSWindow:SetHidden(not CSPSWindow:IsHidden())</Down>
 			</Action>
 			<Action name="CSPS_CPHK1">
-				<Down>CSPS.groupApply(1)</Down>
+				<Up>CSPS.groupShortkeyUp(1)</Up>
 			</Action>
 			<Action name="CSPS_CPHK2">
-				<Down>CSPS.groupApply(2)</Down>
+				<Up>CSPS.groupShortkeyUp(2)</Up>
 			</Action>
 			<Action name="CSPS_CPHK3">
-				<Down>CSPS.groupApply(3)</Down>
+				<Up>CSPS.groupShortkeyUp(3)</Up>
 			</Action>
 			<Action name="CSPS_CPHK4">
-				<Down>CSPS.groupApply(4)</Down>
+				<Up>CSPS.groupShortkeyUp(4)</Up>
 			</Action>
 			<Action name="CSPS_CPHK5">
-				<Down>CSPS.groupApply(5)</Down>
+				<Up>CSPS.groupShortkeyUp(5)</Up>
 			</Action>
 			<Action name="CSPS_CPHK6">
-				<Down>CSPS.groupApply(6)</Down>
+				<Up>CSPS.groupShortkeyUp(6)</Up>
 			</Action>
 			<Action name="CSPS_CPHK7">
-				<Down>CSPS.groupApply(7)</Down>
+				<Up>CSPS.groupShortkeyUp(7)</Up>
 			</Action>
 			<Action name="CSPS_CPHK8">
-				<Down>CSPS.groupApply(8)</Down>
+				<Up>CSPS.groupShortkeyUp(8)</Up>
 			</Action>
 			<Action name="CSPS_CPHK9">
-				<Down>CSPS.groupApply(9)</Down>
+				<Up>CSPS.groupShortkeyUp(9)</Up>
 			</Action>
 			<Action name="CSPS_CPHK10">
-				<Down>CSPS.groupApply(10)</Down>
+				<Up>CSPS.groupShortkeyUp(10)</Up>
 			</Action>			
 			<Action name="CSPS_CPHK11">
-				<Down>CSPS.groupApply(11)</Down>
+				<Up>CSPS.groupShortkeyUp(11)</Up>
 			</Action>
 			<Action name="CSPS_CPHK12">
-				<Down>CSPS.groupApply(12)</Down>
+				<Up>CSPS.groupShortkeyUp(12)</Up>
 			</Action>
 			<Action name="CSPS_CPHK13">
-				<Down>CSPS.groupApply(13)</Down>
+				<Up>CSPS.groupShortkeyUp(13)</Up>
 			</Action>
 			<Action name="CSPS_CPHK14">
-				<Down>CSPS.groupApply(14)</Down>
+				<Up>CSPS.groupShortkeyUp(14)</Up>
 			</Action>
 			<Action name="CSPS_CPHK15">
-				<Down>CSPS.groupApply(15)</Down>
+				<Up>CSPS.groupShortkeyUp(15)</Up>
 			</Action>
 			<Action name="CSPS_CPHK16">
-				<Down>CSPS.groupApply(16)</Down>
+				<Up>CSPS.groupShortkeyUp(16)</Up>
 			</Action>
 			<Action name="CSPS_CPHK17">
-				<Down>CSPS.groupApply(17)</Down>
+				<Up>CSPS.groupShortkeyUp(17)</Up>
 			</Action>
 			<Action name="CSPS_CPHK18">
-				<Down>CSPS.groupApply(18)</Down>
+				<Up>CSPS.groupShortkeyUp(18)</Up>
 			</Action>
 			<Action name="CSPS_CPHK19">
-				<Down>CSPS.groupApply(19)</Down>
+				<Up>CSPS.groupShortkeyUp(19)</Up>
 			</Action>
 			<Action name="CSPS_CPHK20">
-				<Down>CSPS.groupApply(20)</Down>
+				<Up>CSPS.groupShortkeyUp(20)</Up>
 			</Action>			
+			
 		</Category>
 	</Layer>
 </Bindings>

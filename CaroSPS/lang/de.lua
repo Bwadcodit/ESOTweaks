@@ -53,14 +53,13 @@ local L = {}
 	L.CSPS_Tooltiptext_MinusSkType = "Entferne alle Fertigkeiten dieses Typs."
 	L.CSPS_Tooltiptext_MinusSkLine = "Entferne alle Fertigkeiten dieser Fertigkeitslinie."
 	L.CSPS_Tooltiptext_PlusSkLine = "Füge alle Passiven hinzu und setze sie auf ihren höchsten Rang"
-	L.CSPS_Tooltiptext_MinusAttr = "Attributspunkt abziehen (Umschalttaste für Zehnersprünge)"
-	L.CSPS_Tooltiptext_PlusAttr = "Attributspunkt hinzufügen (Umschalttaste für Zehnersprünge)"
+	L.CSPS_Tooltiptext_MinusAttr = "Attributspunkt abziehen (%s für Zehnersprünge)"
+	L.CSPS_Tooltiptext_PlusAttr = "Attributspunkt hinzufügen (%s für Zehnersprünge)"
 	L.CSPS_Tooltiptext_SaveProfile = "Dieses Profil speichern..."
 	L.CSPS_Tooltiptext_CPProfile = "CP-Profile" -- also used for the profile-section title
-	L.CSPS_Tooltiptext_PlusCP = "Championpunkt hinzufügen (Umschalttaste für Zehnersprünge/nächste Stufe)"
-	L.CSPS_Tooltiptext_MinusCP = "Championpunkt abziehen (Umschalttaste für Zehnersprünge/nächste Stufe)"
+	L.CSPS_Tooltiptext_PlusCP = "Championpunkt hinzufügen (%s für Zehnersprünge/nächste Stufe)"
+	L.CSPS_Tooltiptext_MinusCP = "Championpunkt abziehen (%s für Zehnersprünge/nächste Stufe)"
 	L.CSPS_Tooltiptext_CpHbHk = "Klicke hier, um die zugewiesene Schnelltaste anzupassen."
-	L.CSPS_Tooltiptext_LoadAndApply = "Laden und direkt anwenden"
 	L.CSPS_Tooltip_CPBar = "Weise hier eine Championfertigkeit zu, indem du das entsprechende Icon aus der Liste hinüberziehst. Mit Rechtsklick hebst du die Zuweisung auf."
 	L.CSPS_Tooltip_CPPUpdate = "Zuletzt aktualisiert: <<2>>.<<1>>.<<3>>"
 	L.CSPS_Tooltip_CPPWebsite = "Für aktuelle Informationen besuche:\n<<1>>"
@@ -70,7 +69,7 @@ local L = {}
 	L.CSPS_Tooltip_ReverseLabel = "Die normale Reihenfolge beim Textimport lautet: Wert, Name\nAktiviere diese Checkbox, um die Reihenfolge umzudrehen: Name, Wert"
 	L.CSPS_Tooltip_CapLabel = "Ist diese Checkbox aktiv, wird das Addon den Import abbrechen, sobald die maximal verfügbare Anzahl an Championpunkten auf diesem Account erreicht wurde."
 	L.CSPS_Tooltip_ImpExp_CleanUp = "Dies wird alle Sonderzeichen aus dem Text entfernen. Außerdem werden Zahlenpaare mit Bindestrich aus dem Text entfernt, die z.B. auf AlcastHQ zur Angabe von benötigten Punkten verwendet werden, jedoch beim Importieren zu Fehlern führen können."
-	L.CSPS_Tooltip_SelectBarProfile = "Wähle ein Championleisten-Profil"
+	L.CSPS_Tooltip_SelectBarProfile = "|t26:26:esoui/art/miscellaneous/icon_lmb.dds|t: Wähle ein Unterprofil (%s)\n|t26:26:esoui/art/miscellaneous/icon_rmb.dds|t: Unterprofile bearbeiten" 
 	
 	L.CSPS_Tooltip_AddBind1 = "Fügst du diese Verknüpfung hinzu, wird die aktuelle Gruppe automatisch beim Laden des gewählten Dressing-Room-Sets angewendet."
 	L.CSPS_Tooltip_AddBind2 = "Fügst du diese Verknüpfung hinzu, wird die aktuelle Gruppe automatisch beim Laden des gewählten Alpha-Gear-Sets angewendet."
@@ -78,10 +77,13 @@ local L = {}
 	
 	L.CSPS_Tooltip_CPAutoOpen = "Wähle aus, ob das Addon automatisch beim öffnen des Championpunkt-Fensters mitgeladen werden soll."
 	
+	L.CSPS_Tooltiptext_DeleteBinding = "Verknüpfung aufheben"
+	
 	L.CSPS_Tooltip_AddConnection = "Mit aktuellem Profil verknüpfen"
 	L.CSPS_Tooltip_RemoveConnection = "Verknüpfung mit aktuellem Profil aufheben"
-	L.CSPS_Tooltip_ShowConnection = "Verknüpft mit CP-Profil: %s\n\n Veränderungen in dieser Championdisziplin werden angewendet aber nicht gespeichert. Beim Laden des aktuellen Charakterprofils wird automatisch das verknüpfte CP-Profil geladen.\n\n|t26:26:esoui/art/miscellaneous/icon_rmb.dds|t: Verknüpfung aufheben"
+	L.CSPS_Tooltip_ShowConnection = "Verknüpft mit Unterprofil: %s\n\n Veränderungen in dieser Disziplin werden angewendet aber nicht gespeichert. Beim Laden des aktuellen Charakterprofils wird automatisch das verknüpfte Unterprofil geladen.\n\n|t26:26:esoui/art/miscellaneous/icon_rmb.dds|t: Verknüpfung aufheben"
 	
+	L.CSPS_Tooltiptext_LoadAndApply = "Laden und direkt anwenden"
 	L.CSPS_MORPH = "<<1[Kein Morph/Morph 1/Morph $d]>>"
 	L.CSPS_MyRank = "Rang %s"
 	
@@ -113,8 +115,11 @@ local L = {}
 	L.CSPS_CPNoChanges = "Keine Änderung der Championpunkte notwendig"
 	L.CSPS_CPBar_GroupHeading = "Aktuelle Gruppe: %s/%s"
 	L.CSPS_CPBar_GroupKeybind = "Tastenbelegung: %s"
-	L.CSPS_CPBar_Manage = "CP-Leisten verwalten"
+	L.CSPS_Manage_Connections = "Verknüpfungen verwalten"
 	L.CSPS_CPLoadGroup = "Lade Gruppe:"
+	L.CSPS_CPOldPreset = "Die mit dem geladenen Profil verknüpften CP-Voreinstellungen sind als veraltet gekennzeichnet und werden nicht weiter gepflegt. Es wird empfohlen, stattdessen auf eine der neueren verfügbaren Voreinstellungen zu wechseln."
+	L.CSPS_BuildProfile = "Vollständiges Profil"
+	
 	L.CSPS_CPValueTooHigh = "Der Wert übersteigt das Maximum für diese Championfertigkeit."
 	
 	L.CSPS_CPPDescr_JoaTFarming = "Diese Voreinstellungen sind optimiert für die Nutzung mit dem Addon \"Jack of all Trades\" und legen einen Schwerpunkt auf das Ressourcensammeln (Kampf, Angeln und Verbrechen werden mit höherem CP-Level ergänzt)."
@@ -132,58 +137,58 @@ local L = {}
 	L.CSPS_CPBar_LocCurr = "Aktueller Ort"
 	L.CSPS_CPBar_Location = "Ort"
 	L.CSPS_CPBar_LocType = "Nach Kategorie"
-	L.CSPS_CPBar_LocName = "Aktueller Ort (genauer Name)"
-	
-	L.CSPS_CPBar_SelectGroup1 = "Wähle eine Seite..." -- Dressing room
-	L.CSPS_CPBar_SelectGroup2 = "Wähle ein Profil..." -- Alpha gear
-	L.CSPS_CPBar_SelectGroup3 = "Wähle eine Kategorie..." -- Location
-	
-	L.CSPS_CPBar_SelectSet1 = "Wähle ein Set..." -- Dressing room
-	L.CSPS_CPBar_SelectSet2 = "Wähle ein Build..." -- Alpha gear
-	L.CSPS_CPBar_SelectSet3 = "Wähle einen Ort..." -- Location
 	
 	L.CSPS_CPBar_AddBindings = "Wähle aus, wann diese Gruppe automatisch geladen werden soll:"
-	L.CSPS_CPBar_AddBind = "Hinzufügen..."
 	L.CSPS_CPBar_BindingsHeader = "Verknüpfungen für diese Gruppe:"
+	L.CSPS_Binding_Overwritten = "Überschrieben durch: Gruppe %s (%s)"
+	L.CSPS_Bindings_Empty = "Gruppe leeren"
+	L.CSPS_Binding_Conflict = "Konflikt mit einer bestehenden Verknüpfung zu Gruppe %s.\n|t26:26:esoui/art/miscellaneous/icon_rmb.dds|t: Bestehende Verknüpfung entfernen."
 	
 	L.CSPS_CPBar_EditProfiles = "Profile bearbeiten"
 	L.CSPS_CPBar_Apply = "Diese Gruppe laden und direkt anwenden..."
 	L.CSPS_CPBar_NoDR = "Du hast entweder kein <<1>> installiert oder die installierte Version wird nicht unterstützt."
 	
+	L.CSPS_QS_ApplyWait = "Wende Schnelleiste an: %s (Wartezeit: %s)"
+	L.CSPS_QS_TT_Edit = "|t26:26:esoui/art/miscellaneous/icon_rmb.dds|t: Bearbeiten"
+	L.CSPS_QS_TT_Select = "|t26:26:esoui/art/miscellaneous/icon_lmb.dds|t: Auswählen"
+	L.CSPS_QS_TT_TestIt = "|t26:26:esoui/art/miscellaneous/icon_rmb.dds|t: Aktion jetzt ausführen"
+	L.CSPS_SubProfiles_Edit = "Unterprofile bearbeiten"
 
 	L.CSPS_Help_Oversection1 = "Allgemeine Funktionen"
-	L.CSPS_Help_Head1 = "Daten speichern:"
-	L.CSPS_Help_Sect1 = "1. Klicke auf ‚Lese aktuelle Daten aus'. (|t28:28:esoui/art/help/help_tabicon_feedback_up.dds|t)\n2. Klicke optional bei deinen Fertigkeiten auf Plus/Minus, um sie anzupassen. (Du kannst die Fertigkeiten auch später noch bearbeiten.)\n3. Klicke auf ‚Speichere angezeigte Daten‘. (|t28:28:esoui/art/mail/mail_tabicon_compose_up.dds|t)\nAlle Daten (Fertigkeiten, Attribute und CP) werden gespeichert."
-	L.CSPS_Help_Head2 = "Gespeicherte Daten laden:"
-	L.CSPS_Help_Sect2 = "1. Klicke auf ‚Lade gespeicherte Daten‘. (|t28:28:esoui/art/mail/mail_tabicon_inbox_up.dds|t)\n2. Klicke optional bei deinen Fertigkeiten/Attributen/Championpunkten auf Plus/Minus, um sie anzupassen.\n3. Klicke auf einen der drei ‚Anwenden‘-Knöpfe am oberen Rand (|t28:28:esoui/art/buttons/accept_up.dds|t), um deine Fertigkeiten, Attribute oder Championpunkte anzuwenden.\nDeine ausgewählten Daten werden angewendet.\nBitte beachte, dass beim Anwenden von Fertigkeiten deine Fertigkeitenleisten separat angewendet werden müssen. Stelle sicher, dass deine Fertigkeitenleisten am unteren Rand des Addons angezeigt werden. Falls nicht, klicke auf 'Optionen' (oben rechts, |t28:28:esoui/art/skillsadvisor/advisor_tabicon_settings_up.dds|t) und aktiviere die Fertigkeitenleisten. Dann klicke am unteren Rand des Addons auf 'Anwenden' (zwischen den beiden Leisten, |t28:28:esoui/art/buttons/accept_up.dds|t) und wechsle einmal die aktive Fertigkeitenleiste."
+	L.CSPS_Help_Head1 = "Daten speichern"
+	L.CSPS_Help_Sect1 = "1. Klicke auf ‚Lese aktuelle Daten aus'. (|t24:24:esoui/art/help/help_tabicon_feedback_up.dds|t)\n2. Klicke optional bei deinen Fertigkeiten auf Plus/Minus, um sie anzupassen. (Du kannst die Fertigkeiten auch später noch bearbeiten.)\n3. Klicke auf ‚Speichere angezeigte Daten‘. (|t24:24:esoui/art/mail/mail_tabicon_compose_up.dds|t)\nAlle Fertigkeiten, Attribute, CP, Schnellleisten und Ausrüstungsgegenstände (erfordert LibSets) werden gespeichert."
+	L.CSPS_Help_Head2 = "Gespeicherte Daten laden"
+	L.CSPS_Help_Sect2 = "1. Klicke auf ‚Lade gespeicherte Daten‘. (|t24:24:esoui/art/mail/mail_tabicon_inbox_up.dds|t)\n2. Klicke optional bei deinen Fertigkeiten etc. auf Plus/Minus, um sie anzupassen.\n3. Klicke auf einen der ‚Anwenden‘-Knöpfe am oberen Rand (|t24:24:esoui/art/buttons/accept_up.dds|t) oder oberhalb der verschiedenen Kategorien, um deine Fertigkeiten, Attribute etc. anzuwenden.\nDeine ausgewählten Daten werden angewendet.\nBitte beachte, dass beim Anwenden von Fertigkeiten deine Fertigkeitenleisten separat angewendet werden müssen. Stelle sicher, dass deine Fertigkeitenleisten am unteren Rand des Addons angezeigt werden. Falls nicht, klicke auf 'Optionen' (oben rechts, |t24:24:esoui/art/skillsadvisor/advisor_tabicon_settings_up.dds|t) und aktiviere die Fertigkeitenleisten. Dann klicke am unteren Rand des Addons auf 'Anwenden' (|t24:24:esoui/art/buttons/accept_up.dds|t)."
 	L.CSPS_Help_Head3 = "Profile erstellen"
-	L.CSPS_Help_Sect3 = "Du kannst alle deine Daten (Fertigkeiten/Attribute/Championpunkte) in verschiedenen Profilen speichern.\n1. Wähle ein vorhandenes Profil über das Dropdown-Menü oben links oder erstelle über den Plus-Knopf rechts davon ein neues Profil.\n2. Mit Ausnahme des Standard-Profils kannst du Deine Profile auch beliebig umbenennen oder löschen (|t28:28:esoui/art/buttons/edit_up.dds|t , |t28:28:esoui/art/buttons/minus_up.dds|t).\n3. Um deine Speicherstände klein zu halten, empfiehlt es sich, in Profilen nur diejenigen Skills zu speichern, die tatsächlich verändert werden sollen. Nutze die entsprechenden Minusknöpfe, um ganze Fertigkeitslinien aus deinem Profil zu entfernen.\n4. Denke daran, dein Profil anschließend zu speichern. (|t28:28:esoui/art/mail/mail_tabicon_compose_up.dds|t)"
+	L.CSPS_Help_Sect3 = "Du kannst alle deine Daten (Fertigkeiten/Attribute/Championpunkte) in verschiedenen Profilen speichern.\n1. Wähle ein vorhandenes Profil über das Dropdown-Menü oben links oder erstelle über den Plus-Knopf rechts davon ein neues Profil.\n2. Mit Ausnahme des Standard-Profils kannst du Deine Profile auch beliebig umbenennen oder löschen (|t24:24:esoui/art/buttons/edit_up.dds|t , |t24:24:esoui/art/buttons/minus_up.dds|t).\n3. Um deine Speicherstände klein zu halten, empfiehlt es sich, in Profilen nur diejenigen Skills zu speichern, die tatsächlich verändert werden sollen. Nutze die entsprechenden Minusknöpfe, um ganze Fertigkeitslinien aus deinem Profil zu entfernen.\n4. Denke daran, dein Profil anschließend zu speichern. (|t24:24:esoui/art/mail/mail_tabicon_compose_up.dds|t)"
 	L.CSPS_Help_Head4 = "Profile anwenden/Respec"
-	L.CSPS_Help_Sect4 = "Um ein Profil mit Attributs- oder Fertigkeitenveränderungen anzuwenden, musst du zuerst an einen entsprechenden Schrein gehen und spenden.\nIn der Regel reicht es, wenn du die Fertigkeitenveränderungen zurücksetzt. Bleibe im Veränderungsmodus und wende dein Profil an. Bestätigt dann die Änderungen im Fertigkeitenfenster. Bitte beachte, dass das Addon die entsprechenden Fertigkeiten als Konflikte behandelt, bis du die Veränderung bestätigt hast."
-	L.CSPS_Help_Oversection5 = "Champion-\npunkte"
-	L.CSPS_Help_Head5 = "Championpunkte allgemein"
-	L.CSPS_Help_Sect5 = "Du kannst deine Championpunkte gemeinsam mit deinen Fertigkeiten und Attributen in Profilen speichern. Alternativ gibt es die Möglichkeit separate Profile für Championpunkte anzulegen.\n1. Klicke auf einen der drei Knöpfe oben rechts, je nach Championdisziplin (|t28:28:esoui/art/champion/champion_points_magicka_icon-hud-32.dds|t, |t28:28:esoui/art/champion/champion_points_health_icon-hud-32.dds|t, |t28:28:esoui/art/champion/champion_points_stamina_icon-hud-32.dds|t).\n2. Wähle aus, ob du deine Championfertigkeiten nur für diesen Charakter oder für den ganzen Account speichern möchtest und ob das Profil den gesamten Championbaum oder nur die aktuell aktive Leiste beinhalten soll.\n3. Statt eigene Profile zu erstellen, kannst du an dieser Stelle auch Voreinstellungen für verschiedene Rollen/Disziplinen laden." 
-	L.CSPS_Help_Head6 = "CP-Leisten automatisieren" 
-	L.CSPS_Help_Sect6 = "1. Erstelle zuerst Profile für Championleisten (siehe Championpunkte allgemein).\n2. Klicke auf 'Einstellungen'. (|t28:28:esoui/art/skillsadvisor/advisor_tabicon_settings_up.dds|t)\n3. Klicke auf 'CP-Leisten verwalten'.\n4. Wähle oben mit |t28:28:esoui/art/buttons/large_leftarrow_up.dds|t und |t28:28:esoui/art/buttons/large_rightarrow_up.dds|t eine Gruppe aus (es stehen 20 Gruppen zur Verfügung). Jeder Gruppe kann über die ESO-Steuerungsoptionen eine Taste zugewiesen werden.\n5. Deine ausgewählten CP-Leisten werden in der aktuellen Gruppe gespeichert und können mit der festgelegten Taste oder einer der im Folgenden einzeln erklärten Automatisierungsfunktionen geslottet werden."
-	L.CSPS_Help_Head7 = "Verknüpfung mit Orten"
-	L.CSPS_Help_Sect7 = "Du kannst im Fenster zum Verwalten der CP-Leisten einstellen, ob diese Leisten beim Betreten eines bestimmten Ortes, z.B. Arenen oder Raids, automatisch geladen werden sollen.\n	1. Klicke im unteren Bereich auf 'Ort'. \n 	2. Wähle den Ort aus, für den die oben ausgewählte Gruppe automatisch geladen werden soll, z.B. 'Sonnspitz'. \n 3. Klicke auf 'Bestätigen'. \n 	Sobald du Sonnspitz betrittst, werden nun die gespeicherten CP-Leisten geladen."
-	L.CSPS_Help_Head8 = "Dressing Room/Alpha Gear"
-	L.CSPS_Help_Sect8 = "Du kannst in diesem Fenster außerdem gespeicherte CP-Leisten zu deinen Dressing-Room- oder Alpha-Gear-Leisten hinzufügen. \n 1. Klicke auf 'Dressing Room' oder 'Alpha Gear'. \n 2. Wähle dein gespeichertes Rüstungs-/Waffenset aus, zu dem die CP-Leisten gehören. \n 3. Klicke auf 'Bestätigen'. \n Ziehst du nun über die in Dressing Room/Alpha Gear festgelegte Taste dieses Set an, werden die gespeicherten CP-Leisten ebenfalls ausgerüstet."
-	L.CSPS_Help_Head9 = "Eigene Championsymbole"
-	L.CSPS_Help_Sect9 = "Zur besseren Unterscheidung können in der Championleiste unterschiedliche Icons für die verschiedenen Championfertigkeiten angezeigt werden. Klicke hierfür auf 'Optionen' (oben rechts, |t28:28:esoui/art/skillsadvisor/advisor_tabicon_settings_up.dds|t) und aktiviere dort die Einstellung 'Eigene CP-Symbole'."
-	L.CSPS_Help_Head10 = "Separate Championleiste"
-	L.CSPS_Help_Sect10 = "Um deine ausrüstbaren Championfertigkeiten besser im Blick zu haben, kannst du eine separate Championleiste als Teil der Spieloberfläche anzeigen lassen. Klicke hierfür auf 'Optionen' (oben rechts, |t28:28:esoui/art/skillsadvisor/advisor_tabicon_settings_up.dds|t) und aktiviere dort die Einstellung 'Separate CP-Leiste'. Du kannst hier außerdem wählen, ob die Fertigkeiten alle in einer Reihe (1x12), in drei Reihen (3x4) oder nur begrenzt auf die Handwerks-Fertigkeiten (1x4) angezeigt werden sollen."
-	L.CSPS_Help_Oversection11 = "Import/\nExport"
-	L.CSPS_Help_Head11 = "Import/Export allgemein"
-	L.CSPS_Help_Sect11 = "1. Klicke auf 'Einstellungen'. (|t28:28:esoui/art/skillsadvisor/advisor_tabicon_settings_up.dds|t)\n2. Klicke auf 'Import/Export'. Es öffnet sich eine Ansicht.\n3. Wähle nun im Dropdown-Menü oben rechts, welche Daten und in welchem Format du importieren und/oder exportieren möchtest.\n4. Je nach Format hast du nun unterschiedliche Optionen.\n5. Um Daten zu importieren, musst du diese zuerst in die Zwischenablage kopieren und anschließend über Strg+V in das Import-Textfeld einfügen."
-	L.CSPS_Help_Head12 = "Textbasierter Championpunkt-Import (1/3)"
-	L.CSPS_Help_Sect12 = "1. Wähle für diese Option zuerst aus, welche Championdisziplin du importieren möchtest.\n2. Der zu importierende Text sollte die (englischen) Namen von Championfertigkeiten und dazugehörige Werte als Zahlen enthalten.\n3. Das Standard-Format besteht aus jeweils einer Zahl für den Wert, gefolgt vom dazugehörigen Namen der Fertigkeit. (z.B. '10 Tireless Dicipline' oder '(10) → Tireless Dicipline').  Du kannst diese Reihenfolge umkehren, indem du am unteren Fensterrand die entsprechende Option auswählst. Achte in jedem Fall darauf, dass der eingefügte Text keine anderen Zahlen als die Werte der Championpunkte enthält. Falls du z.B. von AlcastHQ importierst, wird der Text vermutlich CP-Bereiche wie '0-120' enthalten. Klicke auf 'Text bereinigen' unten rechts, um diese zu entfernen."
-	L.CSPS_Help_Head13 = "Textbasierter Championpunkt-Import (2/3)"
-	L.CSPS_Help_Sect13 = "4. Enthält der Text Championfertigkeiten, die man auf der Championleiste ausrüsten kann, wird das Addon diese der Reihenfolge nach ausrüsten. Möchtest du nur bestimmte Fertigkeiten ausrüsten, kennzeichne diese im Text mit dem Zusatzbegriff 'slot' (muss neben dem Namen notiert werden, nicht neben dem Wert).\n5. Falls das Addon einen oder mehrere Namen nicht zuordnen kann, hast du nun die Möglichkeit, die entsprechenden Fertigkeiten manuell durch Anklicken in der Liste auszuwählen. Erst wenn alle nicht erkannten Fertigkeiten entweder zugeordnet und bestätigt oder verworfen wurden, wird der Import-Vorgang abgeschlossen."
-	L.CSPS_Help_Head14 = "Textbasierter Championpunkt-Import (3/3)"
-	L.CSPS_Help_Sect14 = "Wenn dein Text mehrere Werte für dieselbe Championfertigkeit enthält, wird nur der letzte Wert importiert. Halte die Umschalttaste gedrückt, während du auf Importieren klickst, um diese Werte stattdessen zu addieren.\nVerwende Rechtsklick um ein dynmaisches Profil zu erzeugen und halte optional Strg gedrückt um es accountweit zu speichern. Championfertigkeiten, die in einem dynamischen Profil gespeichert sind, werden von oben nach unten angewendet, bis die maximale Anzahl aktuell verfügbarer Championpunkte erreicht ist."
-	L.CSPS_Help_Head15 = "Schritt für Schritt - Import von AlcastHQ oder JustLootIt"
-	L.CSPS_Help_Sect15 = "1. Klicke auf das blaue, rote oder grüne CP-Symbol oben rechts (je nachdem, welche CP-Farbe du importieren möchtest).\n2. Klicke auf 'Aus Text importieren'.\n3. Füge den Text von der Website im Importfeld ein (Strg+V).\n4. Stelle sicher, dass das Wort 'slot' nur hinter Championpunkten zu finden ist, die tatsächlich ausgerüstet werden sollen.\n5. Klicke auf 'Text bereinigen' unten rechts.\n6. Markiere daneben die Checkbox mit der Beschriftung 'Reihenfolge umkehren', da sowohl AlcastHQ als auch JustLootIt den Namen vor dem Wert auflisten.\n7. Klicke auf 'Text importieren'.\n8. Die Championpunkte sind nun ins Addon geladen. Du kannst sie nun in ein neues Profil speichern, indem du auf 'Eigene (Account)' oder 'Eigene (Char)' klickst und dann auf das Plus direkt darunter. Oder du wendest sie direkt an, indem du auf den Anwenden-Knopf unterhalb des CP-Profil-Bereichs klickst."
+	L.CSPS_Help_Sect4 = "Um ein Profil mit Attributs- oder Fertigkeitenveränderungen anzuwenden, musst du zuerst an einen entsprechenden Schrein gehen und spenden.\nIn der Regel reicht es, wenn du die Fertigkeitenveränderungen zurücksetzt. Bleibe im Veränderungsmodus und wende dein Profil an. Bestätigt dann die Änderungen im Fertigkeitenfenster. Bitte beachte, dass das Addon die entsprechenden Fertigkeiten als Konflikte behandelt, bis du die Veränderung bestätigt hast. Alternativ kannst du auch am Arsenal eine leere Zusammenstellung laden, bevor du dein Profil anwendest. Beachte, dass dein Mundus nicht durch Addons gesetzt werden kann."
+	L.CSPS_Help_Head5 = "Eigene Championsymbole"
+	L.CSPS_Help_Sect5 = "Zur besseren Unterscheidung können in der Championleiste unterschiedliche Icons für die verschiedenen Championfertigkeiten angezeigt werden. Klicke hierfür auf 'Optionen' (oben rechts, |t24:24:esoui/art/skillsadvisor/advisor_tabicon_settings_up.dds|t) und aktiviere dort die Einstellung 'Eigene CP-Symbole'."
+	L.CSPS_Help_Head6 = "Separate Championleiste"
+	L.CSPS_Help_Sect6 = "Um deine ausrüstbaren Championfertigkeiten besser im Blick zu haben, kannst du eine separate Championleiste als Teil der Spieloberfläche anzeigen lassen. Klicke hierfür auf 'Optionen' (oben rechts, |t24:24:esoui/art/skillsadvisor/advisor_tabicon_settings_up.dds|t) und aktiviere dort die Einstellung 'Separate CP-Leiste'. Du kannst hier außerdem wählen, ob die Fertigkeiten alle in einer Reihe (1x12), in drei Reihen (3x4) oder nur begrenzt auf die Handwerks-Fertigkeiten (1x4) angezeigt werden sollen."
+	L.CSPS_Help_Oversection7 = "Unterprofile"
+	L.CSPS_Help_Head7 = "Unterprofile allgemein"
+	L.CSPS_Help_Sect7 = "Es gibt die Möglichkeit separate Profile für die verschiedenen Kategorien deiner Profile wie Fertigkeiten, Schnellleisten oder Championpunkte anzulegen.\n1. Klicke auf einen der Knöpfe oben rechts, je nach Kategorie (|t24:24:esoui/art/champion/champion_points_magicka_icon-hud-32.dds|t, |t24:24:esoui/art/champion/champion_points_health_icon-hud-32.dds|t, |t24:24:esoui/art/champion/champion_points_stamina_icon-hud-32.dds|t ...).\n2. Wähle aus, ob du dein Unterprofil nur für diesen Charakter speichern oder es für den ganzen Account verfügbar machen möchtest.\n3. Statt eigene Profile zu erstellen, kannst du für Championpunkte auch Voreinstellungen für verschiedene Rollen/Disziplinen laden." 
+	L.CSPS_Help_Head8 = "Verknüpfungen (Automatisierung)" 
+	L.CSPS_Help_Sect8 = "Du kannst Unterprofile für ChampionpunktLeisten und/oder Schnellzugriffsleisten zu Gruppen zusammenfassen, die per Tastenbelegung oder automatisiert geladen werden. Du kannst auf diese Art auch komplette Charakterprofile laden, dies wird jedoch nicht empfohlen, da dabei evtl. Gold verbraucht wird oder der Vorgang ggf. fehlschlagen kann. Diese Möglichkeit muss zuerst in den Addon-Einstellungen freigeschaltet werden. Du kannst je 20 Gruppen für den aktuellen Charakter und 20 kontoübergreifende Gruppen speichern. Jeder Gruppe kann über die ESO-Steuerungsoptionen eine Taste zugewiesen werden. Existieren eine kontoübergreifende und eine charakterbezogene Gruppe mit derselben Nummer wird das Addon bevorzugt die charakterbezogene Gruppe laden."
+	L.CSPS_Help_Head9 = "Verknüpfungsverwaltung"
+	L.CSPS_Help_Sect9 = "1. Um deine Automatisierungen einzurichten klicke auf 'Einstellungen'. (|t24:24:esoui/art/skillsadvisor/advisor_tabicon_settings_up.dds|t)\n2. Klicke auf 'Verknüpfungen verwalten'.\n3. Wähle oben mit |t24:24:esoui/art/buttons/large_leftarrow_up.dds|t und |t24:24:esoui/art/buttons/large_rightarrow_up.dds|t eine Gruppe aus. \n4. Deine ausgewählten Unterprofile werden in der aktuellen Gruppe gespeichert und können mit der festgelegten Taste oder einer der im Folgenden einzeln erklärten Automatisierungsfunktionen angewendet werden."
+	L.CSPS_Help_Head10 = "Verknüpfung mit Orten"
+	L.CSPS_Help_Sect10 = "Du kannst in der Verknüpfungsverwaltung einstellen, ob deine Unterprofile beim Betreten eines bestimmten Ortes, z.B. Arenen oder Raids, automatisch geladen werden sollen.\n	1. Klicke im unteren Bereich auf 'Ort'. \n 	2. Wähle den Ort aus, für den die oben ausgewählte Gruppe automatisch geladen werden soll, z.B. 'Sonnspitz'. \n 3. Sobald du Sonnspitz betrittst, werden nun die gespeicherten Unterprofile geladen."
+	L.CSPS_Help_Head11 = "Dressing Room/Alpha Gear/Wizard's Wardrobe"
+	L.CSPS_Help_Sect11 = "Du kannst in diesem Fenster außerdem gespeicherte Unterprofile zu deinen Dressing-Room-, Alpha-Gear- oder Wizard's Wardrobe-Sets hinzufügen. \n1. Klicke auf 'DR', 'AG' oder 'WW'. \n2. Wähle dein gespeichertes Rüstungs-/Waffenset aus, zu dem die Unterprofile gehören sollen. \n3. Ziehst du nun über die in Dressing Room/Alpha Gear/Wizard's Wardrobe festgelegte Taste dieses Set an, werden die gespeicherten Unterprofile ebenfalls angewendet."
+	L.CSPS_Help_Oversection12 = "Import/\nExport"
+	L.CSPS_Help_Head12 = "Import/Export allgemein"
+	L.CSPS_Help_Sect12 = "1. Klicke auf 'Einstellungen'. (|t24:24:esoui/art/skillsadvisor/advisor_tabicon_settings_up.dds|t)\n2. Klicke auf 'Import/Export'. Es öffnet sich eine Ansicht.\n3. Wähle nun im Dropdown-Menü oben rechts, welche Daten und in welchem Format du importieren und/oder exportieren möchtest.\n4. Je nach Format hast du nun unterschiedliche Optionen.\n5. Um Daten zu importieren, musst du diese zuerst in die Zwischenablage kopieren und anschließend über Strg+V in das Import-Textfeld einfügen."
+	L.CSPS_Help_Head13 = "Textbasierter Championpunkt-Import (1/3)"
+	L.CSPS_Help_Sect13 = "1. Wähle für diese Option zuerst aus, welche Championdisziplin du importieren möchtest.\n2. Der zu importierende Text sollte die (englischen) Namen von Championfertigkeiten und dazugehörige Werte als Zahlen enthalten.\n3. Das Standard-Format besteht aus jeweils einer Zahl für den Wert, gefolgt vom dazugehörigen Namen der Fertigkeit. (z.B. '10 Tireless Dicipline' oder '(10) → Tireless Dicipline').  Du kannst diese Reihenfolge umkehren, indem du am unteren Fensterrand die entsprechende Option auswählst. Achte in jedem Fall darauf, dass der eingefügte Text keine anderen Zahlen als die Werte der Championpunkte enthält. Falls du z.B. von AlcastHQ importierst, wird der Text vermutlich CP-Bereiche wie '0-120' enthalten. Klicke auf 'Text bereinigen' unten rechts, um diese zu entfernen."
+	L.CSPS_Help_Head14 = "Textbasierter Championpunkt-Import (2/3)"
+	L.CSPS_Help_Sect14 = "4. Enthält der Text Championfertigkeiten, die man auf der Championleiste ausrüsten kann, wird das Addon diese der Reihenfolge nach ausrüsten. Möchtest du nur bestimmte Fertigkeiten ausrüsten, kennzeichne diese im Text mit dem Zusatzbegriff 'slot' (muss neben dem Namen notiert werden, nicht neben dem Wert).\n5. Falls das Addon einen oder mehrere Namen nicht zuordnen kann, hast du nun die Möglichkeit, die entsprechenden Fertigkeiten manuell durch Anklicken in der Liste auszuwählen. Erst wenn alle nicht erkannten Fertigkeiten entweder zugeordnet und bestätigt oder verworfen wurden, wird der Import-Vorgang abgeschlossen."
+	L.CSPS_Help_Head15 = "Textbasierter Championpunkt-Import (3/3)"
+	L.CSPS_Help_Sect15 = "Wenn dein Text mehrere Werte für dieselbe Championfertigkeit enthält, wird nur der letzte Wert importiert. Halte die Umschalttaste gedrückt, während du auf Importieren klickst, um diese Werte stattdessen zu addieren.\nVerwende Rechtsklick um ein dynmaisches Profil zu erzeugen und halte optional Strg gedrückt um es accountweit zu speichern. Championfertigkeiten, die in einem dynamischen Profil gespeichert sind, werden von oben nach unten angewendet, bis die maximale Anzahl aktuell verfügbarer Championpunkte erreicht ist."
+	L.CSPS_Help_Head16 = "Schritt für Schritt - Import von AlcastHQ oder JustLootIt"
+	L.CSPS_Help_Sect16 = "1. Klicke auf das blaue, rote oder grüne CP-Symbol oben rechts (je nachdem, welche CP-Farbe du importieren möchtest).\n2. Klicke auf 'Aus Text importieren'.\n3. Füge den Text von der Website im Importfeld ein (Strg+V).\n4. Stelle sicher, dass das Wort 'slot' nur hinter Championpunkten zu finden ist, die tatsächlich ausgerüstet werden sollen.\n5. Klicke auf 'Text bereinigen' unten rechts.\n6. Markiere daneben die Checkbox mit der Beschriftung 'Reihenfolge umkehren', da sowohl AlcastHQ als auch JustLootIt den Namen vor dem Wert auflisten.\n7. Klicke auf 'Text importieren'.\n8. Die Championpunkte sind nun ins Addon geladen. Du kannst sie nun in ein neues Profil speichern, indem du auf 'Eigene (Account)' oder 'Eigene (Char)' klickst und dann auf das Plus direkt darunter. Oder du wendest sie direkt an, indem du auf den Anwenden-Knopf unterhalb des CP-Profil-Bereichs klickst."
 
 	-- Dialogs
 	L.CSPS_MSG_ConfirmSave = "Die angezeigten Daten wirklich als Profil '<<1>>' speichern? Das überschreibt existierende Speicherstände.<<2>>"
@@ -209,12 +214,12 @@ local L = {}
 	L.CSPS_MSG_NoCPProfiles = "\n\n|cff7723ACHTUNG!|r\nDies ist nicht der optimale Weg um reine CP-Profile zu speichern! Nutze hierfür die entsprechenden Knöpfe im Extrabereich für CP-Profile, erreichbar über die drei Buttons oben rechts (|t28:28:esoui/art/champion/champion_points_magicka_icon-hud-32.dds|t, |t28:28:esoui/art/champion/champion_points_health_icon-hud-32.dds|t, |t28:28:esoui/art/champion/champion_points_stamina_icon-hud-32.dds|t)"
 	L.CSPS_MSG_CPPaths = "Der günstigste Weg um '<<C:1>>' freizuschalten:\n\n<<2>>"
 	L.CSPS_MSG_CPPathOpt = "|c<<1>>Möglichkeit <<2>> (<<3>>)|r:" -- 1 color 2 number 3 points
-	L.CSPS_MSG_ExpTextLang = "Deine Spielsprache ist nicht Englisch. Du wirst den exportierten Text daher später nicht wieder importieren können. Möchtest Du stattdessen normalisierte Bezeichnungen verwenden, die später wieder importiert werden können?"
 
 	--	Errorcodes
 	L.CSPS_ErrorNumber1 = "Diese Fertigkeit wurde bereits gelernt."
 	L.CSPS_ErrorNumber2 = "Diese Fertigkeit hat bereits eine andere Veränderung als die gewünschte. Bitte setze zuerst deine Fertigkeiten/Veränderungen zurück."
 	L.CSPS_ErrorNumber3 = "Der aktuelle Rang dieser Fertigkeit ist höher als der gespeicherte. Bitte setze zuerst deine Fertigkeiten zurück."
+	L.CSPS_LoadingError = "Bitte überprüfen: <<C:1>>"
 	
 	-- Options
 	L.CSPS_ShowHb = "Fertigkeitenleiste einblenden"
@@ -224,8 +229,6 @@ local L = {}
 	L.CSPS_CPCustomBarLayout = "Layout"
 	L.CSPS_ArmoryAutoOpen = "Am Arsenal öffnen"
 	L.CSPS_Tooltip_ArmoryAutoOpen = "Wähle aus, ob das Addon automatisch beim Benutzen des Arsenals geöffnet werden soll."
-	L.CSPS_SaveSpecificGear = "Speichere spezifische Ausrüstungsgegenstände"
-	L.CSPS_Tooltip_SaveSpecificGear = "Speichert den spezifischen getragenen Gegenstand und nicht nur die entsprechenden Daten. Die Speicherdaten benötigen minimal mehr Platz und der spezifische Gegenstand wird überschrieben, wenn du seine Eigenschaften im Addon bearbeitest. Diese Funktion wird sicherstellen, dass du beim Anwenden eines Profiles exakt denselben Gegenstand ausrüstest, wie beim Laden. Aktiviere sie, wenn Probleme beim Anwenden der Ausrüstung auftreten."
 	L.CSPS_BtnApplyAll = "Alles anwenden"
 	L.CSPS_ShowBtnApplyAll = "Zeige 'Alles anwenden'-Knopf"
 	L.CSPS_ShowDateInProfileName = "Zeige 'Zuletzt gespeichert' hinter den Profilnamen"
@@ -238,7 +241,20 @@ local L = {}
 	L.CSPS_ShowGearMarkerDataBasedTooltip = "Falls Gegenstände anhand ihrer Eigenschaften anstelle ihrer einzigartigen ID gespeichert werden, kannst du einstellen, dass das Addons Gegenstände markiert, auf die diese Eigenschaften zutreffen. Andernfalls werden ausschließlich Gegenstände markiert, die 'spezifisch' anhand ihrer einzigartigen ID gespeichert wurden."
 	L.CSPS_SavedSpecific = "Gespeichert in: %s"
 	L.CSPS_SavedData = "Passt zu: %s"
-
+	
+	L.CSPS_LAM_ShowCpPresetNotifications = "Hinweise beim Laden von CP-Profilen"
+	L.CSPS_LAM_ShowCpNotSaved = "Nicht angewandte Championpunkt-Änderungen"
+	L.CSPS_LAM_ShowSaveOther = "Speichern eines allgemeinen Profils, während das Fenster für Teilprofile geöffnet ist"
+	L.CSPS_LAM_KB_Descr = "Du kannst für deine Unterprofile Gruppen anlegen, die du per Tastendruck laden kannst. Du kannst jeweils 20 kontoübergreifende und 20 charakterbezogene Gruppen speichern. Du kannst bis zu 20 Schnelltasten festlegen um deine Gruppen schnell zu laden und direkt anzuwenden. Beim Drücken einer Schnelltaste wird immer die dazugehörige charakterbezogene Gruppe geladen. Enhält diese keine Einträge, wird stattdessen die kontoübergreifende Gruppe mit demselben Index geladen. Im folgenden Menü kannst du eine Zusatztaste festlegen, die du gedrückt halten kannst, um das Laden einer kontoübergreifenden Gruppe zu erzwingen, auch wenn eine charakterbezogene Gruppe mit demselben Index verfügbar wäre."
+	L.CSPS_LAM_KB_ShiftMode = "Taste um zwingend die kontoübergreifende Gruppe anstelle der charakterbezogenen zu laden"
+	L.CSPS_LAM_ShowOutdatedPresets = "Zeige veraltete Voreinstellungen in der Profilliste"
+	L.CSPS_LAM_ShowBindBuild = "Zeige Gesamtprofile im Verknüpfungsmanager (Achtung: Automatisierungsfunktionen können fehlschlagen, wenn das Anwenden von Profilen ohne Schrein etc. nicht möglich ist)"
+	L.CSPS_LAM_JumpShiftKey = "Taste für Zehnersprünge beim Anpassen von Attributen/Championpunkten und um Unterprofile mit Charakterprofilen zu verbinden"
+	L.CSPS_LAM_SortCP = "Reihenfolge der Championpunkte"
+	L.CSPS_LAM_SortCP_1 = "Standard"
+	L.CSPS_LAM_SortCP_2 = "Alphabetisch"
+	L.CSPS_LAM_SortCP_3 = "Alphabetisch, passive Fertigkeiten separat"
+	
 	-- Presets
 	L.CSPS_MSG_SwitchCP = "Setze Punkte in |c<<1>>'<<2>>'|r anstelle einer der anderen ausrüstbaren Fertigkeiten, wann immer du davon profitierst."
 	L.CSPS_MSG_SituationalCP = "Je nach Situation empfiehlt es sich, eine oder mehrere ausrüstbare Fertigkeiten gegen eine der folgenden auszutauschen:"
@@ -260,8 +276,8 @@ local L = {}
 	L.CSPS_ImpEx_NoData = "Keine Daten gefunden. Bitte lade zuerst Daten für deinen Charakter, bevor du versuchst, einen Link zu erzeugen."
 	L.CSPS_ImpEx_ErrHb = "Fehler beim Importieren von Fertigkeitenleiste <<1>>."
 	L.CSPS_ImpEx_ErrSk = "Fertigkeit konnte nicht zugeordnet werden: <<1>>."
-	L.CSPS_ImpExp_TextSk = "Textausgabe: Fertigkeiten"
-	L.CSPS_ImpExp_TextOd = "Textausgabe: Andere Daten"
+	L.CSPS_ImpExp_TextSk = "Textausgabe"
+	L.CSPS_ImpExp_TextOd = "Andere Daten"
 	L.CSPS_ImpEx_HbTxt = "Fertigkeitenleiste"
 	L.CSPS_ImpEx_CsvCP = "Kommaseparierte Championpunktliste"
 	L.CSPS_ImpEx_TxtCP2_1 = "CP |cA6D852(grün, textbasiert)|r"
@@ -270,7 +286,8 @@ local L = {}
 	L.CSPS_ImpExp_TxtOrder1 = "Wert→Name(/Slot)"
 	L.CSPS_ImpExp_TxtOrder2 = "Name(/Slot)→Wert"
 	L.CSPS_ImpExp_TxtOrder3 = "Name→Wert(→Slot)"
-	L.CSPS_ImpEx_CapLabel = "Beachte die Anzahl tatsächlich verfügbarer Punkte."
+	L.CSPS_ImpEx_CapLabel = "Punkte begrenzen"
+	L.CSPS_ImpEx_LangTT = "Nutze %s anstelle von Englisch als Sprache für die Namen der Championfertigkeiten (nicht aktivieren, wenn CP von englischen Seiten importiert werden sollen)"
 	L.CSPS_ImpExp_CleanUp = "Text bereinigen"
 	L.CSPS_ImpExp_Transfer = "Übertragen..."
 	L.CSPS_ImpExp_TransferLoad = "Laden"
@@ -284,9 +301,7 @@ local L = {}
 	
 	L.CSPS_Tooltip_Transfer_CopyReplace = "|cDE6531Alle aktuell für diesen Charakter gespeicherten CP-Schnellleisten und Verknüpfungen werden überschrieben.|r"
 	L.CSPS_Tooltip_Transfer_CopyAdd = "Übertrage die CP-Schnellleisten als zusätzliche Profile, behalte aber die aktuellen.\n|cDE6531Alle aktuell für diesen Character gesetzten Verknüpfungen werden überschrieben.|r"
-	
-	
-	
+		
 	L.CSPS_CPImp_Success = "Erfolgreich zugewiesen:"
 	L.CSPS_CPImp_Unmapped = "Noch ausstehend:"
 	L.CSPS_CPImp_BtnApply = "Punkte zuweisen"
@@ -295,7 +310,6 @@ local L = {}
 	L.CSPS_CPImp_New = "|c<<1>> (<<2>>/<<3>>)  Setze <<4>> Punkte in: <<C:5>>|r"
 	L.CSPS_CPImp_Note = "Klicke auf eine Fertigkeit in der unteren Liste um sie auszuwählen. Beachte, dass die bisher gewählten Punkte erst gesetzt werden, wenn alle ausstehenden Fertigkeiten entweder zugeordnet oder verworfen wurden."
 	L.CSPS_CPImp_NoMatch = "Es konnten keine verwendbaren Daten gefunden werden."
-
 	
 for stringId, stringValue in pairs(L) do
 	SafeAddString(_G[stringId], stringValue, 0)

@@ -1,8 +1,11 @@
 local GS = GetString
 local LAM = LibAddonMenu2
+local cspsPost = CSPS.post
+local cspsD = CSPS.cspsD
 	
 function CSPS.setupLam()
-	CSPS.savedVariables.settings.applyAllExclude = CSPS.savedVariables.settings.applyAllExclude or {}
+	local options = CSPS.savedVariables.settings
+	options.applyAllExclude = options.applyAllExclude or {}
 	
 	local panelData = {
 		type = "panel",
@@ -24,9 +27,9 @@ function CSPS.setupLam()
 			name = GS(CSPS_CPAutoOpen),
 			width = "full",
 			tooltip = GS(CSPS_Tooltip_CPAutoOpen),
-			getFunc = function() return CSPS.savedVariables.settings.cpAutoOpen end,
+			getFunc = function() return options.cpAutoOpen end,
 			setFunc = function(value) 
-					CSPS.savedVariables.settings.cpAutoOpen = value
+					options.cpAutoOpen = value
 					CSPS.toggleCPAutoOpen()
 				end,
 		},
@@ -35,35 +38,68 @@ function CSPS.setupLam()
 			name = GS(CSPS_ArmoryAutoOpen),
 			width = "full",
 			tooltip = GS(CSPS_Tooltip_ArmoryAutoOpen),
-			getFunc = function() return CSPS.savedVariables.settings.armoryAutoOpen end,
+			getFunc = function() return options.armoryAutoOpen end,
 			setFunc = function(value) 
-					CSPS.savedVariables.settings.armoryAutoOpen = value
+					options.armoryAutoOpen = value
 					CSPS.toggleArmoryAutoOpen()
 				end,
 		},
 		{
 			type = "checkbox",
+			name = GS(CSPS_ShowHb),
+			width = "full",
+			tooltip = GS(CSPS_ShowHb),
+			getFunc = function() return not options.hideHotbar end,
+			setFunc = function(value) options.hideHotbar = not value CSPS.showElement("hotbar", value) end,
+		},
+		{
+			type = "checkbox",
 			name = GS(CSPS_ShowDateInProfileName),
 			width = "full",
-			getFunc = function() return not CSPS.savedVariables.settings.suppressLastModified end,
+			getFunc = function() return not options.suppressLastModified end,
 			setFunc = function(value) 
-					CSPS.savedVariables.settings.suppressLastModified = not value
+					options.suppressLastModified = not value
 					CSPS.UpdateProfileCombo()
 				end,
 		},
+		{
+			type = "dropdown",
+			name = GS(CSPS_LAM_JumpShiftKey),
+			tooltip = GS(CSPS_LAM_JumpShiftKey),
+			width = "full",
+			choices = {GS(SI_KEYCODE7), GS(SI_KEYCODE4), GS(SI_KEYCODE5)},
+			choicesValues = {7,4,5}, -- shift / ctrl / alt
+			default = 7,
+			getFunc = function() return options.jumpShiftKey or 7 end,
+			setFunc = function(value) options.jumpShiftKey = value end,
+		},		
 		{
 			type = "header",
 			name = GS(SI_STAT_GAMEPAD_CHAMPION_POINTS_LABEL),
 			width = "full",
 		},	
 		{
+			type = "dropdown",
+			name = GS(CSPS_LAM_SortCP),
+			width = "full",
+			choices = {GS(CSPS_LAM_SortCP_1), GS(CSPS_LAM_SortCP_2), GS(CSPS_LAM_SortCP_3)},
+			choicesValues = {1,2,3},
+			sort = "value-up",
+			default = 1,
+			getFunc = function() return options.sortCPs or 1 end,
+			setFunc = function(value) 
+				options.sortCPs = value 
+				CSPS.cp.reSortList()
+			end,
+		},
+		{
 			type = "checkbox",
 			name = GS(CSPS_CPCustomIcons),
 			width = "full",
 			tooltip = GS(CSPS_Tooltip_CPCustomIcons),
-			getFunc = function() return CSPS.savedVariables.settings.useCustomIcons end,
+			getFunc = function() return options.useCustomIcons end,
 			setFunc = function(value) 
-					CSPS.savedVariables.settings.useCustomIcons = value
+					options.useCustomIcons = value
 					CSPS.toggleCPCustomIcons()
 				end,
 		},
@@ -72,10 +108,10 @@ function CSPS.setupLam()
 			name = GS(CSPS_CPCustomBar),
 			width = "full",
 			tooltip = GS(CSPS_Tooltip_CPCustomBar),
-			getFunc = function() return CSPS.savedVariables.settings.cpCustomBar end,
+			getFunc = function() return options.cpCustomBar end,
 			setFunc = function(value) 
-					if not CSPS.savedVariables.settings.cpCustomBar or not value then
-						CSPS.savedVariables.settings.cpCustomBar = value and 1 or false
+					if not options.cpCustomBar or not value then
+						options.cpCustomBar = value and 1 or false
 						CSPS.toggleCPCustomBar()
 					end
 				end,
@@ -88,66 +124,127 @@ function CSPS.setupLam()
 			choicesValues = {3,2,1},
 			sort = "value-up",
 			default = 3,
-			disabled = function() return(not CSPS.savedVariables.settings.cpCustomBar) end,
-			getFunc = function() return CSPS.savedVariables.settings.cpCustomBar or 1 end,
+			disabled = function() return(not options.cpCustomBar) end,
+			getFunc = function() return options.cpCustomBar or 1 end,
 			setFunc = function(value) 
-				CSPS.savedVariables.settings.cpCustomBar = value 
+				options.cpCustomBar = value 
 				CSPS.toggleCPCustomBar() 
 			end,
 		},
 		{
-			type = "header",
+			type = "checkbox",
+			name = GS(CSPS_LAM_ShowOutdatedPresets),
+			width = "full",
+			tooltip = GS(CSPS_LAM_ShowOutdatedPresets),
+			getFunc = function() return options.showOutdatedPresets end,
+			setFunc = function(value) options.showOutdatedPresets = value end,
+		},
+		{
+			type = "submenu",
 			name = GS(SI_GAMEPAD_DYEING_EQUIPMENT_HEADER),
-			width = "full",
-		},	
-		{
-			type = "slider",
-			name = GS(CSPS_AcceptedLevelDifference),
-			width = "full",
-			tooltip = GS(CSPS_AcceptedLevelDifferenceTooltip),
-			min = 0,
-			max = 50,
-			decimals = 0, 
-			getFunc = function() return CSPS.savedVariables.settings.maxLevelDiff or 10 end,
-			setFunc = function(value) 
-					CSPS.savedVariables.settings.maxLevelDiff = value
-					CSPS.getTreeControl():RefreshVisible()
-				end,
-			disabled = function() return not CSPS.doGear end,
+			icon = "esoui/art/armory/builditem_icon.dds",
+			controls = {
+				{
+					type = "slider",
+					name = GS(CSPS_AcceptedLevelDifference),
+					width = "full",
+					tooltip = GS(CSPS_AcceptedLevelDifferenceTooltip),
+					min = 0,
+					max = 50,
+					decimals = 0, 
+					getFunc = function() return options.maxLevelDiff or 10 end,
+					setFunc = function(value) 
+							options.maxLevelDiff = value
+							CSPS.getTreeControl():RefreshVisible()
+						end,
+					disabled = function() return not CSPS.doGear end,
+				},
+				
+				{
+					type = "checkbox",
+					name = GS(CSPS_ShowGearMarkers),
+					width = "full",
+					tooltip = GS(CSPS_ShowGearMarkersTooltip),
+					getFunc = function() return options.showGearMarkers end,
+					setFunc = function(value) 
+							CSPS.setGearMarkerOption(value)
+						end,
+					disabled = function() return not CSPS.doGear end,
+				},
+				{
+					type = "checkbox",
+					name = GS(CSPS_ShowGearMarkerDataBased),
+					width = "full",
+					tooltip = GS(CSPS_ShowGearMarkerDataBasedTooltip),
+					getFunc = function() return options.showGearMarkerDataBased end,
+					setFunc = function(value) 
+							CSPS.setGearMarkerOptionData(value)
+						end,
+					disabled = function() return not (CSPS.doGear and options.showGearMarkers) end,
+				},	
+			}				
 		},
 		{
-			type = "checkbox",
-			name = GS(CSPS_SaveSpecificGear),
-			width = "full",
-			tooltip = GS(CSPS_Tooltip_SaveSpecificGear),
-			getFunc = function() return CSPS.savedVariables.settings.saveSpecificGear end,
-			setFunc = function(value) 
-					CSPS.savedVariables.settings.saveSpecificGear = value
-				end,
-			disabled = function() return not CSPS.doGear end,
+			type = "submenu",
+			name = GS(SI_GAME_MENU_KEYBINDINGS),
+			icon = "esoui/art/tutorial/tutorial_idexicon_uibasics_up.dds",
+			controls = {
+				{
+					type = "description",
+					text = GS(CSPS_LAM_KB_Descr),
+				},
+				{
+					type = "dropdown",
+					name = GS(CSPS_LAM_KB_ShiftMode),
+					tooltip = GS(CSPS_LAM_KB_ShiftMode),
+					width = "full",
+					choices = {GS(SI_ALLIANCE0), GS(SI_KEYCODE7), GS(SI_KEYCODE4), GS(SI_KEYCODE5)},
+					choicesValues = {0,7,4,5}, -- shift / ctrl / alt
+					default = 7,
+					getFunc = function() return options.accountWideShiftKey or 7 end,
+					setFunc = function(value) options.accountWideShiftKey = value CSPS.barManagerRefreshGroup() end,
+				},		
+				{
+					type = "checkbox",
+					name = GS(CSPS_LAM_ShowBindBuild),
+					tooltip = GS(CSPS_LAM_ShowBindBuild),
+					width = "full",
+					getFunc = function() return options.showBuildProfilesInBindingManager end,
+					setFunc = function(value) options.showBuildProfilesInBindingManager = value end,
+				},	
+			}
 		},
 		{
-			type = "checkbox",
-			name = GS(CSPS_ShowGearMarkers),
-			width = "full",
-			tooltip = GS(CSPS_ShowGearMarkersTooltip),
-			getFunc = function() return CSPS.savedVariables.settings.showGearMarkers end,
-			setFunc = function(value) 
-					CSPS.setGearMarkerOption(value)
-				end,
-			disabled = function() return not CSPS.doGear end,
+			type = "submenu",
+			name = GS(SI_SOCIAL_OPTIONS_NOTIFICATIONS),
+			icon = "esoui/art/campaign/campaign_tabicon_summary_up.dds",
+			controls = {
+				{
+					type = "checkbox",
+					name = GS(CSPS_LAM_ShowCpPresetNotifications),
+					tooltip = GS(CSPS_LAM_ShowCpPresetNotifications),
+					width = "full",
+					getFunc = function() return not options.suppressCpPresetNotifications end,
+					setFunc = function(value) options.suppressCpPresetNotifications = not value	end,
+				},
+				{
+					type = "checkbox",
+					name = GS(CSPS_LAM_ShowCpNotSaved),
+					tooltip = GS(CSPS_LAM_ShowCpNotSaved),
+					width = "full",
+					getFunc = function() return not options.suppressCpNotSaved end,
+					setFunc = function(value) options.suppressCpNotSaved = not value	end,
+				},
+				{
+					type = "checkbox",
+					name = GS(CSPS_LAM_ShowSaveOther),
+					tooltip = GS(CSPS_LAM_ShowSaveOther),
+					width = "full",
+					getFunc = function() return not options.suppressSaveOther end,
+					setFunc = function(value) options.suppressSaveOther = not value	end,
+				},
+			}
 		},
-		{
-			type = "checkbox",
-			name = GS(CSPS_ShowGearMarkerDataBased),
-			width = "full",
-			tooltip = GS(CSPS_ShowGearMarkerDataBasedTooltip),
-			getFunc = function() return CSPS.savedVariables.settings.showGearMarkerDataBased end,
-			setFunc = function(value) 
-					CSPS.setGearMarkerOptionData(value)
-				end,
-			disabled = function() return not (CSPS.doGear and CSPS.savedVariables.settings.showGearMarkers) end,
-		},		
 		{
 			type = "submenu",
 			name = GS(CSPS_BtnApplyAll),
@@ -157,9 +254,9 @@ function CSPS.setupLam()
 					type = "checkbox",
 					name = GS(CSPS_ShowBtnApplyAll),
 					width = "full",
-					getFunc = function() return CSPS.savedVariables.settings.showApplyAll end,
+					getFunc = function() return options.showApplyAll end,
 					setFunc = function(value) 
-							CSPS.savedVariables.settings.showApplyAll = value
+							options.showApplyAll = value
 							CSPSWindowBtnApplyAll:SetHidden(not value)
 						end,
 				},
@@ -172,61 +269,61 @@ function CSPS.setupLam()
 					type = "checkbox",
 					name = GS(SI_CHARACTER_MENU_SKILLS),
 					width = "full",
-					getFunc = function() return not CSPS.savedVariables.settings.applyAllExclude.skills end,
+					getFunc = function() return not options.applyAllExclude.skills end,
 					setFunc = function(value) 
-							CSPS.savedVariables.settings.applyAllExclude.skills = not value
+							options.applyAllExclude.skills = not value
 						end,
-					disabled = function() return not CSPS.savedVariables.settings.showApplyAll end,
+					disabled = function() return not options.showApplyAll end,
 				},
 				{
 					type = "checkbox",
 					name = GS(SI_CHARACTER_MENU_STATS),
 					width = "full",
-					getFunc = function() return not CSPS.savedVariables.settings.applyAllExclude.attr end,
+					getFunc = function() return not options.applyAllExclude.attr end,
 					setFunc = function(value) 
-							CSPS.savedVariables.settings.applyAllExclude.attr = not value
+							options.applyAllExclude.attr = not value
 						end,
-					disabled = function() return not CSPS.savedVariables.settings.showApplyAll end,
+					disabled = function() return not options.showApplyAll end,
 				},
 				{
 					type = "checkbox",
 					name = GS(SI_STAT_GAMEPAD_CHAMPION_POINTS_LABEL),
 					width = "full",
-					getFunc = function() return not CSPS.savedVariables.settings.applyAllExclude.cp end,
+					getFunc = function() return not options.applyAllExclude.cp end,
 					setFunc = function(value) 
-							CSPS.savedVariables.settings.applyAllExclude.cp = not value
+							options.applyAllExclude.cp = not value
 						end,
-					disabled = function() return not CSPS.savedVariables.settings.showApplyAll end,
+					disabled = function() return not options.showApplyAll end,
 				},
 				{
 					type = "checkbox",
 					name = GS(SI_INTERFACE_OPTIONS_ACTION_BAR),
 					width = "full",
-					getFunc = function() return not CSPS.savedVariables.settings.applyAllExclude.hb end,
+					getFunc = function() return not options.applyAllExclude.hb end,
 					setFunc = function(value) 
-							CSPS.savedVariables.settings.applyAllExclude.hb = not value
+							options.applyAllExclude.hb = not value
 						end,
-					disabled = function() return not CSPS.savedVariables.settings.showApplyAll end,
+					disabled = function() return not options.showApplyAll end,
 				},
 				{
 					type = "checkbox",
 					name = GS(SI_GAMEPAD_DYEING_EQUIPMENT_HEADER),
 					width = "full",
-					getFunc = function() return not CSPS.savedVariables.settings.applyAllExclude.gear end,
+					getFunc = function() return not options.applyAllExclude.gear end,
 					setFunc = function(value) 
-							CSPS.savedVariables.settings.applyAllExclude.gear = not value
+							options.applyAllExclude.gear = not value
 						end,
-					disabled = function() return not CSPS.savedVariables.settings.showApplyAll or not CSPS.doGear end,
+					disabled = function() return not options.showApplyAll or not CSPS.doGear end,
 				},
 				{
 					type = "checkbox",
 					name = GS(SI_HOTBARCATEGORY10),
 					width = "full",
-					getFunc = function() return not CSPS.savedVariables.settings.applyAllExclude.qs end,
+					getFunc = function() return not options.applyAllExclude.qs end,
 					setFunc = function(value) 
-							CSPS.savedVariables.settings.applyAllExclude.qs = not value
+							options.applyAllExclude.qs = not value
 						end,
-					disabled = function() return not CSPS.savedVariables.settings.showApplyAll end,
+					disabled = function() return not options.showApplyAll end,
 				},
 			}
 		},
@@ -235,7 +332,7 @@ function CSPS.setupLam()
 	if not LibSets then 
 		for i, v in pairs(optionsData) do
 			if v.name == GS(SI_GAMEPAD_DYEING_EQUIPMENT_HEADER) then
-				table.insert(optionsData, i + 1, 
+				table.insert(v.controls, 1, 
 					{
 						type = "description",
 						text = CSPS.colors.orange:Colorize(GS(CSPS_RequiresLibSets))

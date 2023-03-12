@@ -53,12 +53,12 @@ local L = {}
 	L.CSPS_Tooltiptext_MinusSkType = "Remove all skills from this type."
 	L.CSPS_Tooltiptext_MinusSkLine = "Remove all skills from this skill line."
 	L.CSPS_Tooltiptext_PlusSkLine = "Add all passive skills and set them to their highest rank"
-	L.CSPS_Tooltiptext_MinusAttr = "Remove attribute point (hold Shift for 10 points)"
-	L.CSPS_Tooltiptext_PlusAttr = "Add attribute point (hold Shift for 10 points)"
+	L.CSPS_Tooltiptext_MinusAttr = "Remove attribute point (hold %s for 10 points)"
+	L.CSPS_Tooltiptext_PlusAttr = "Add attribute point (hold %s for 10 points)"
 	L.CSPS_Tooltiptext_SaveProfile = "Save this profile..."
 	L.CSPS_Tooltiptext_CPProfile = "CP profiles" -- also used for the profile-section title
-	L.CSPS_Tooltiptext_PlusCP = "Add champion point (hold Shift for 10 points / next stage)"
-	L.CSPS_Tooltiptext_MinusCP = "Remove champion point (hold Shift for 10 points / next stage)"
+	L.CSPS_Tooltiptext_PlusCP = "Add champion point (hold %s for 10 points / next stage)"
+	L.CSPS_Tooltiptext_MinusCP = "Remove champion point (hold %s for 10 points / next stage)"
 	L.CSPS_Tooltiptext_CpHbHk = "Click here to change the hotkey for this profile."
 	L.CSPS_Tooltip_CPBar = "Drag & drop a skill from the list to slot it here. Use rightclick to remove a slotted skill."
 	L.CSPS_Tooltip_CPPUpdate = "Last updated: <<1>>/<<2>>/<<3>>"
@@ -68,7 +68,7 @@ local L = {}
 	
 	L.CSPS_Tooltip_ReverseLabel = "The standard order for importing of text is: Number, Name.\nCheck this box to reverse the order to: Name, Number."
 	L.CSPS_Tooltip_CapLabel = "If this checkbox is activated the addon won't try to import more champion points than available on this account."
-	L.CSPS_Tooltip_SelectBarProfile = "Select a bar profile"
+	L.CSPS_Tooltip_SelectBarProfile = "|t26:26:esoui/art/miscellaneous/icon_lmb.dds|t: Choose a sub-profile (%s)\n|t26:26:esoui/art/miscellaneous/icon_rmb.dds|t: Edit sub-profiles" 
 	L.CSPS_Tooltip_ImpExp_CleanUp = "This will remove all special characters from the text. It will also remove all dash-separated pairs of numbers that may be used to indicate needed champion point ranges (e.g. on AlcastHQ) but will cause errors in the import process."
 	
 	L.CSPS_Tooltip_AddBind1 = "If you add this condition, everytime you load the selected dressing room set, the current group will be automatically applied."
@@ -81,7 +81,7 @@ local L = {}
 	
 	L.CSPS_Tooltip_AddConnection = "Connect to current profile"
 	L.CSPS_Tooltip_RemoveConnection = "Remove connection to current profile"
-	L.CSPS_Tooltip_ShowConnection = "Connected to champion point profile: %s\n\n Changes made to this champion discipline can be applied to your character but not saved to the current build profile. Loading the build will automatically try to load the connected champion point profile.\n\n|t26:26:esoui/art/miscellaneous/icon_rmb.dds|t: Remove connection"
+	L.CSPS_Tooltip_ShowConnection = "Connected to sub profile: %s\n\n Changes made to this discipline can be applied to your character but not saved to the current build profile. Loading the build will automatically try to load the connected sub profile.\n\n|t26:26:esoui/art/miscellaneous/icon_rmb.dds|t: Remove connection"
 	
 	L.CSPS_Tooltiptext_LoadAndApply = "Load and apply"
 	L.CSPS_MORPH = "<<1[No Morph/Morph 1/Morph $d]>>"
@@ -115,8 +115,10 @@ local L = {}
 	L.CSPS_CPNoChanges = "No champion point changes necessary"
 	L.CSPS_CPBar_GroupHeading = "Current group: %s/%s"
 	L.CSPS_CPBar_GroupKeybind = "Current keybind: %s"
-	L.CSPS_CPBar_Manage = "Manage champion bars"
+	L.CSPS_Manage_Connections = "Manage bindings"
 	L.CSPS_CPLoadGroup = "Loading group:"
+	L.CSPS_CPOldPreset = "The CP-presets connected to the loaded profile are marked as out-of-date. You can still use them but it is recommended to switch to some of the newer available presets."
+	L.CSPS_BuildProfile = "Build profile"
 	
 	L.CSPS_CPValueTooHigh = "Value is higher than the maximum for this skill."
 	
@@ -134,59 +136,59 @@ local L = {}
 	L.CSPS_CPBar_LocTrial = "Trial/Arena"
 	L.CSPS_CPBar_LocCurr = "Current location"
 	L.CSPS_CPBar_LocType = "By Type"
-	L.CSPS_CPBar_LocName = "Current location (exact name)"
 	L.CSPS_CPBar_Location = "Location"
-		
-	L.CSPS_CPBar_SelectGroup1 = "Select a page..." -- Dressing room
-	L.CSPS_CPBar_SelectGroup2 = "Select a profile..." -- Alpha gear
-	L.CSPS_CPBar_SelectGroup3 = "Select a category..." -- Location
-	
-	L.CSPS_CPBar_SelectSet1 = "Select a set..." -- Dressing room
-	L.CSPS_CPBar_SelectSet2 = "Select a build..." -- Alpha gear
-	L.CSPS_CPBar_SelectSet3 = "Select a location..." -- Location
 	
 	L.CSPS_CPBar_AddBindings = "Add conditions for this group to be applied automatically..."
-	L.CSPS_CPBar_AddBind = "Add binding"
 	L.CSPS_CPBar_BindingsHeader = "Existing conditions for this group:"
+	L.CSPS_Bindings_Empty = "Empty group"
+	L.CSPS_Binding_Overwritten = "Overwritten by: Group %s (%s)"
+	L.CSPS_Binding_Conflict = "There is a conflict with an existing binding to group %s.\n|t26:26:esoui/art/miscellaneous/icon_rmb.dds|t: remove the existing binding."
 	
 	L.CSPS_CPBar_EditProfiles = "Edit profiles"
 	L.CSPS_CPBar_Apply = "Load and apply this group..."
 	L.CSPS_CPBar_NoDR = "You either don't have <<1>> installed or you have a version that's not supported right now."
-	
 
+	L.CSPS_QS_ApplyWait = "Applying hotbar: %s (Waiting time: %s)"
+	L.CSPS_QS_TT_Edit = "|t26:26:esoui/art/miscellaneous/icon_rmb.dds|t: Change"
+	L.CSPS_QS_TT_Select = "|t26:26:esoui/art/miscellaneous/icon_lmb.dds|t: Select"
+	L.CSPS_QS_TT_TestIt = "|t26:26:esoui/art/miscellaneous/icon_rmb.dds|t: Use action now"
+	L.CSPS_SubProfiles_Edit = "Edit sub-profiles"
+	
 	L.CSPS_Help_Oversection1 = "General functions"
-	L.CSPS_Help_Head1 = "Saving data:"
-	L.CSPS_Help_Sect1 = "1. Click on 'Read current data' (|t28:28:esoui/art/help/help_tabicon_feedback_up.dds|t).\n2. Optionally, click on the plus/minus next to your skills to adjust them (You will be able to edit your skills later, too.)\n3. Click on 'Save shown data'. (|t28:28:esoui/art/mail/mail_tabicon_compose_up.dds|t)\nAll skills, attributes and CP are saved."
-	L.CSPS_Help_Head2 = "Loading saved data:"
-	L.CSPS_Help_Sect2 = "1. Click on 'Load saved data'. (|t28:28:esoui/art/mail/mail_tabicon_inbox_up.dds|t)\n2. Optionally, click on the plus/minus next to your skills to adjust them.\n3. Click on one of the apply buttons (|t28:28:esoui/art/buttons/accept_up.dds|t) at the top to apply your skills, attributes or champion points.\nYour selected data is applied.\nWhen applying skills, please note that your hotbars have to be applied separately. Make sure your hotbars are displayed at the bottom of the addon. If not, click on 'Options' (top right corner, |t28:28:esoui/art/skillsadvisor/advisor_tabicon_settings_up.dds|t) and enable the hotbars. Then click apply at the bottom of the addon (between the two hotbars, |t28:28:esoui/art/buttons/accept_up.dds|t) and swap your bar."
+	L.CSPS_Help_Head1 = "Saving data"
+	L.CSPS_Help_Sect1 = "1. Click on 'Read current data' (|t24:24:esoui/art/help/help_tabicon_feedback_up.dds|t).\n2. Optionally, click on the plus/minus next to your skills to adjust them (You will be able to edit your skills later, too.)\n3. Click on 'Save shown data'. (|t24:24:esoui/art/mail/mail_tabicon_compose_up.dds|t)\nAll skills, attributes, CP, quickslots and gear (requires LibSets) are saved."
+	L.CSPS_Help_Head2 = "Loading saved data"
+	L.CSPS_Help_Sect2 = "1. Click on 'Load saved data'. (|t24:24:esoui/art/mail/mail_tabicon_inbox_up.dds|t)\n2. Optionally, click on the plus/minus next to your skills to adjust them.\n3. Click on one of the apply buttons (|t24:24:esoui/art/buttons/accept_up.dds|t) at the top or right above each of the sections to apply your skills, attributes etc.\nYour selected data is applied.\nWhen applying skills, please note that your hotbars have to be applied separately. Make sure your hotbars are displayed at the bottom of the addon. If not, click on 'Options' (top right corner, |t24:24:esoui/art/skillsadvisor/advisor_tabicon_settings_up.dds|t) and enable the hotbars. Then click apply at the bottom of the addon (|t24:24:esoui/art/buttons/accept_up.dds|t)."
 	L.CSPS_Help_Head3 = "Creating profiles"
-	L.CSPS_Help_Sect3 = "You can save all your data (skills, attributes, champion points) to different profiles.\n1. Choose an existing profile via the dropdown menu in the top left corner of the addon window or create a new profile by clicking on the plus button right next to it.\n2. Aside from the standard one you are free to rename and delete all your created profiles (|t28:28:esoui/art/buttons/edit_up.dds|t , |t28:28:esoui/art/buttons/minus_up.dds|t).\n3. To keep your saved data as small as possible, it is recommended to save only those skills to a profile that should actually be changed when applying it. Use the corresponding minus buttons do remove whole skill lines from your profile.\n4. Don't forget to save your profile once you're finished editing it. (|t28:28:esoui/art/mail/mail_tabicon_compose_up.dds|t)"
+	L.CSPS_Help_Sect3 = "You can save all your data (skills, attributes, champion points) to different profiles.\n1. Choose an existing profile via the dropdown menu in the top left corner of the addon window or create a new profile by clicking on the plus button right next to it.\n2. Aside from the standard one you are free to rename and delete all your created profiles (|t24:24:esoui/art/buttons/edit_up.dds|t , |t24:24:esoui/art/buttons/minus_up.dds|t).\n3. To keep your saved data as small as possible, it is recommended to save only those skills to a profile that should actually be changed when applying it. Use the corresponding minus buttons to remove whole skill lines from your profile.\n4. Don't forget to save your profile once you're finished editing it. (|t24:24:esoui/art/mail/mail_tabicon_compose_up.dds|t)"
 	L.CSPS_Help_Head4 = "Applying profiles / respeccing"
-	L.CSPS_Help_Sect4 = "To apply a profile with skill or attribute points, first go to a shrine and spend some gold to rededicate your skills/attributes.\nIn most cases you won't have to reset all your skills - the morphs should be enough. Stay in rededication mode to apply your changes. Confirm your changes in the eso skills window once you're done. Please note that the addon will treat your changes as conflicts as long as the game is still in respeccing mode and the changes have not been confirmed."
-	L.CSPS_Help_Oversection5 = "Champion-\npoints"
-	L.CSPS_Help_Head5 = "Champion points in general"
-	L.CSPS_Help_Sect5 = "You can save your champion points together with your skills and attributes. Alternatively you have the option to create separate champion profiles.\n1. Click on one of the three buttons in the top right corner, depending on the champion discipline you want to save (|t28:28:esoui/art/champion/champion_points_magicka_icon-hud-32.dds|t, |t28:28:esoui/art/champion/champion_points_health_icon-hud-32.dds|t, |t28:28:esoui/art/champion/champion_points_stamina_icon-hud-32.dds|t).\n2. Choose whether you want to save your champion points just for the current character or for the whole account or whether the profile should contain the whole champion discipline or just the active champion bar.\n3. Instead of creating your own profiles you can also load presets that are included in the addon." 
-	L.CSPS_Help_Head6 = "Champion bar automation" 
-	L.CSPS_Help_Sect6 = "1. First create profiles for your champion bars (read 'Champion points in general' for more information).\n2. Click on 'Options'. (|t28:28:esoui/art/skillsadvisor/advisor_tabicon_settings_up.dds|t)\n3. Click on 'Manage champion bars'.\n4. Use the arrows at the top |t28:28:esoui/art/buttons/large_leftarrow_up.dds|t und |t28:28:esoui/art/buttons/large_rightarrow_up.dds|t to choose a group (there are 20 groups to fill with profiles). Each group can be assigned a key bind via the control settings.\n5. The selected champion bars can now be loaded and applied via the defined keybind or via one of the automatization options explained in the following sections."
-	L.CSPS_Help_Head7 = "Bind to locations"
-	L.CSPS_Help_Sect7 = "In the champion bar manager you can choose if a group of champion bars should be applied once you enter a certain location, e.g. a specific trial or arena.\n	1. Click on 'Location'.\n  2. Choose the location, where the current group should be applied automatically, e.g. 'Sunspire'. \n 3. Click on 'Apply'.\nNow the addon will load the selected profiles everytime you enter sunspire."
-	L.CSPS_Help_Head8 = "Dressing Room/Alpha Gear"
-	L.CSPS_Help_Sect8 = "You also can bind the champion bar profiles to Dressing Room or Alpha Gear sets using the champion bar manager.\n1. Click on 'Dressing Room' or 'Alpha Gear'.\n2. Choose an gear/skill set to which you want to bind your champion bar profile.\n3. Click 'Apply'.\nNow everytime you equip the selected gear/skill set via Dressing Room or Alpha Gear the bound champion bar will also be slotted."
-	L.CSPS_Help_Head9 = "Custom CP icons"
-	L.CSPS_Help_Sect9 = "To make the champion slots easier to distinguish, the addon can use different icons for each slottable skill. Click on 'Options' (top right corner, |t28:28:esoui/art/skillsadvisor/advisor_tabicon_settings_up.dds|t) and activate the checkbox 'Custom CP icons'."
-	L.CSPS_Help_Head10 = "Separate champion bar"
-	L.CSPS_Help_Sect10 = "The addon can show your slotted champion skills in a separate bar as part of the in-game overlay, to help you keep track of which ones are currently active.  Click on 'Options' (top right corner, |t28:28:esoui/art/skillsadvisor/advisor_tabicon_settings_up.dds|t) and activate the checkbox 'Separate CP bar'. Here you can also choose wether the slots should be displayed all in one row (1x12), in three rows (3x4) or if only the skills from the craft tree should be shown (1x4)."
-	L.CSPS_Help_Oversection11 = "Import/\nExport"
-	L.CSPS_Help_Head11 = "Import/Export in general"
-	L.CSPS_Help_Sect11 = "1. Click on 'Options'. (|t28:28:esoui/art/skillsadvisor/advisor_tabicon_settings_up.dds|t)\n2. Click on 'Import/Export'. The import/export window opens.\n3. Use the dropdown menu in the top-right corner to choose the data and format you want to import and/or export.\n4. Depending on the chosen format you now have different options.\n5. To import data you first have to copy it to the clipboard and then paste it to the import textfield (Ctrl+V)."
-	L.CSPS_Help_Head12 = "Text-based champion point import (1/3)"
-	L.CSPS_Help_Sect12 = "1. For this option, first choose which champion discipline you wish to import.\n2. The import text should contain the (English) names of champion skills and the corresponding values as numbers.\n3. The standard format is a number for the value, followed by the name of the skill (e.g. '10 Tireless Discipline' or '(10) → Tireless Discipline'). You can switch this order by clicking on the checkbox at the bottom of the page. Please note that the text should not contain any numbers beside the actual champion points (if you are importing from AlcastHQ the text might contain CP-ranges like '0-120' - click on the 'Clean-up' button in the bottom right corner to eliminate those)."
-	L.CSPS_Help_Head13 = "Text-based champion point import (2/3)"
-	L.CSPS_Help_Sect13 = "4. If the text contains slottable champion skills the addon will apply them starting from the top. If you want only certain skills to be slotted, mark them in the text with the additional keyword 'slot' (has to be placed next to the name, not next to the value).\n5. If the addon doesn't recognize one or more skill names, you have the possibility to choose them manually from the list. The process won't be completed until all values have either been assigned or discarded."
-	L.CSPS_Help_Head14 = "Text-based champion point import (3/3)"
-	L.CSPS_Help_Sect14 = "If your text contains multiple values for the same champion skill, only the last value will be imported. Hold shift while clicking the import button to sum up those values instead.\nUse rightclick to create a dynamic profile, additionally hold Ctrl to make it accountwide. Champion points saved in a dynamic profile will be applied from top to bottom until the maximum number of champion points currently available is reached."
-	L.CSPS_Help_Head15 = "Step by step - import from AlcastHQ or JustLootIt"
-	L.CSPS_Help_Sect15 = "1. Click on the blue, red or green CP icon at the top right corner (depending on which CP color you wish to import).\n2. Click on 'Import from text' (Ctrl+V).\n3. Paste the text from the website to the import-textfield.\n4. Make sure that the word 'slot' is only behind skills you actually want to slot.\n5. Click on 'Clean-up text' at the bottom right.\n6. Check the 'Reverse order' box (because both AlcastHQ and JustLootIt list the name before the value).\n7. Click on 'Import Text'.\n8. The points are now loaded into the addon. You can now either save them to a new profile by clicking on 'Custom (Account)' or 'Custom (Char)' and then on the plus button beneath those buttons, or apply them by clicking on the apply button below the CP profile section."
+	L.CSPS_Help_Sect4 = "To apply a profile with skill or attribute points, first go to a shrine and spend some gold to rededicate your skills/attributes.\nIn most cases you won't have to reset all your skills - the morphs should be enough. Stay in rededication mode to apply your changes. Confirm your changes in the eso skills window once you're done. Please note that the addon will treat your changes as conflicts as long as the game is still in respeccing mode and the changes have not been confirmed. Alternatively you can use an empty build at the armory before you apply your profile. Please note that addons can't change your boon."
+	L.CSPS_Help_Head5 = "Custom CP icons"
+	L.CSPS_Help_Sect5 = "To make the champion slots easier to distinguish, the addon can use different icons for each slottable skill. Click on 'Options' (top right corner, |t24:24:esoui/art/skillsadvisor/advisor_tabicon_settings_up.dds|t) and activate the checkbox 'Custom CP icons'."
+	L.CSPS_Help_Head6 = "Separate champion bar"
+	L.CSPS_Help_Sect6 = "The addon can show your slotted champion skills in a separate bar as part of the in-game overlay, to help you keep track of which ones are currently active.  Click on 'Options' (top right corner, |t24:24:esoui/art/skillsadvisor/advisor_tabicon_settings_up.dds|t) and activate the checkbox 'Separate CP bar'. Here you can also choose whether the slots should be displayed all in one row (1x12), in three rows (3x4) or if only the skills from the craft tree should be shown (1x4)."
+	L.CSPS_Help_Oversection7 = "Sub profiles"
+	L.CSPS_Help_Head7 = "Sub profiles in general"
+	L.CSPS_Help_Sect7 = "You have the option to create separate sub profiles for different aspects of your build like skills, quickslots or champion points.\n1. Click on one of the buttons in the top right corner, depending on the discipline you want to save (|t24:24:esoui/art/champion/champion_points_magicka_icon-hud-32.dds|t, |t24:24:esoui/art/champion/champion_points_health_icon-hud-32.dds|t, |t24:24:esoui/art/champion/champion_points_stamina_icon-hud-32.dds|t ...).\n2. Choose whether you want to save your sub profile just for the current character or make it available to the whole account.\n3. For champion points instead of creating your own profiles you can also load presets that are included in the addon." 
+	L.CSPS_Help_Head8 = "Automation (binding groups)" 
+	L.CSPS_Help_Sect8 = "You can create binding groups that are loaded via keybind or automatically including champion point hotbar profiles and/or quickslots. You can also load complete build profiles, but it's not recommended because applying complete profiles might cost gold or won't work at all. The option to do so must be activated in the addon's settings. You can define up to 20 groups account-wide and 20 groups character-based. Each group can be assigned a key bind via the control settings. If there exists both an account-wide and a character-based group with the same keybind the addon will always load the character-based one." 
+	L.CSPS_Help_Head9 = "Setting up binding groups"
+	L.CSPS_Help_Sect9 = "1. To set up automatization click on 'Options'. (|t24:24:esoui/art/skillsadvisor/advisor_tabicon_settings_up.dds|t)\n2. Click on 'Manage bindings'.\n3. Use the arrows at the top |t24:24:esoui/art/buttons/large_leftarrow_up.dds|t und |t24:24:esoui/art/buttons/large_rightarrow_up.dds|t to choose a group.\n4. The selected sub profiles can now be loaded and applied via the defined keybind or via one of the automatization options explained in the following sections."
+	L.CSPS_Help_Head10 = "Bind to locations"
+	L.CSPS_Help_Sect10 = "In the binding manager you can choose if a binding group should be applied once you enter a certain location, e.g. a specific trial or arena.\n	1. Click on 'Location'.\n  2. Choose the location, where the current group should be applied automatically, e.g. 'Sunspire'. \n 3. Now the addon will load the selected profiles everytime you enter sunspire."
+	L.CSPS_Help_Head11 = "Dressing Room/Alpha Gear/Wizard's Wardrobe"
+	L.CSPS_Help_Sect11 = "You also can bind the binding groups to Dressing Room, Alpha Gear or Wizard's Wardrobe sets using the binding manager.\n1. Click on 'DR', 'AG' or 'WW'.\n2. Choose a gear/skill set to which you want to bind your champion bar profile.\n3. Now everytime you equip the selected gear/skill set via Dressing Room, Alpha Gear or Wizard's Wardrobe the binding group will also be applied."
+	L.CSPS_Help_Oversection12 = "Import/\nExport"
+	L.CSPS_Help_Head12 = "Import/Export in general"
+	L.CSPS_Help_Sect12 = "1. Click on 'Options'. (|t24:24:esoui/art/skillsadvisor/advisor_tabicon_settings_up.dds|t)\n2. Click on 'Import/Export'. The import/export window opens.\n3. Use the dropdown menu in the top-right corner to choose the data and format you want to import and/or export.\n4. Depending on the chosen format you now have different options.\n5. To import data you first have to copy it to the clipboard and then paste it to the import textfield (Ctrl+V)."
+	L.CSPS_Help_Head13 = "Text-based champion point import (1/3)"
+	L.CSPS_Help_Sect13 = "1. For this option, first choose which champion discipline you wish to import.\n2. The import text should contain the (English) names of champion skills and the corresponding values as numbers.\n3. The standard format is a number for the value, followed by the name of the skill (e.g. '10 Tireless Discipline' or '(10) → Tireless Discipline'). You can switch this order by clicking on the checkbox at the bottom of the page. Please note that the text should not contain any numbers beside the actual champion points (if you are importing from AlcastHQ the text might contain CP-ranges like '0-120' - click on the 'Clean-up' button in the bottom right corner to eliminate those)."
+	L.CSPS_Help_Head14 = "Text-based champion point import (2/3)"
+	L.CSPS_Help_Sect14 = "4. If the text contains slottable champion skills the addon will apply them starting from the top. If you want only certain skills to be slotted, mark them in the text with the additional keyword 'slot' (has to be placed next to the name, not next to the value).\n5. If the addon doesn't recognize one or more skill names, you have the possibility to choose them manually from the list. The process won't be completed until all values have either been assigned or discarded."
+	L.CSPS_Help_Head15 = "Text-based champion point import (3/3)"
+	L.CSPS_Help_Sect15 = "If your text contains multiple values for the same champion skill, only the last value will be imported. Hold shift while clicking the import button to sum up those values instead.\nUse rightclick to create a dynamic profile, additionally hold Ctrl to make it account-wide. Champion points saved in a dynamic profile will be applied from top to bottom until the maximum number of champion points currently available is reached."
+	L.CSPS_Help_Head16 = "Step by step - import from AlcastHQ or JustLootIt"
+	L.CSPS_Help_Sect16 = "1. Click on the blue, red or green CP icon at the top right corner (depending on which CP color you wish to import).\n2. Click on 'Import from text' (Ctrl+V).\n3. Paste the text from the website to the import-textfield.\n4. Make sure that the word 'slot' is only behind skills you actually want to slot.\n5. Click on 'Clean-up text' at the bottom right.\n6. Check the 'Reverse order' box (because both AlcastHQ and JustLootIt list the name before the value).\n7. Click on 'Import Text'.\n8. The points are now loaded into the addon. You can now either save them to a new profile by clicking on 'Custom (Account)' or 'Custom (Char)' and then on the plus button beneath those buttons, or apply them by clicking on the apply button below the CP profile section."
 	
 	-- Dialogs
 	L.CSPS_MSG_ConfirmSave = "Really save the shown data as profile '<<1>>'? This will overwrite existing data.<<2>>"
@@ -212,7 +214,6 @@ local L = {}
 	L.CSPS_MSG_NoCPProfiles = "\n\n|cff7723WARNING!|r\nThis is not the best way to save champion profiles! If you want to save a profile for champion points only, use the three buttons in the top right corner to open the champion profile section. There you will find separate buttons for creating and saving profiles. (|t28:28:esoui/art/champion/champion_points_magicka_icon-hud-32.dds|t, |t28:28:esoui/art/champion/champion_points_health_icon-hud-32.dds|t, |t28:28:esoui/art/champion/champion_points_stamina_icon-hud-32.dds|t)"
 	L.CSPS_MSG_CPPaths = "The cheapest paths to unlock '<<C:1>>':\n\n<<2>>"
 	L.CSPS_MSG_CPPathOpt = "|c<<1>>Option <<2>> (<<3>>)|r:" -- 1 color 2 number 3 points
-	L.CSPS_MSG_ExpTextLang = "If the current game language isn't English, you won't be able to import this list later. Do you wish to use normalized import-friendly skill names instead?"
 	
 	--	Errorcodes
 	L.CSPS_ErrorNumber1 = "The skill has already been learned."
@@ -228,8 +229,6 @@ local L = {}
 	L.CSPS_CPCustomBarLayout = "Layout"
 	L.CSPS_ArmoryAutoOpen = "Open with armory"
 	L.CSPS_Tooltip_ArmoryAutoOpen = "Check this box, if the addon should be shown every time you use the armory."
-	L.CSPS_SaveSpecificGear = "Save specific gear items"
-	L.CSPS_Tooltip_SaveSpecificGear = "Saves the specific item you are wearing instead of the item data. Saved Variables will need a little more space and it will be overwritten for items you are editing inside the addon. This function will make sure to equip the exact same item you were wearing when saving your build. Try to use this option if you encounter problems finding your saved gear."
 	L.CSPS_BtnApplyAll = "Apply everything"
 	L.CSPS_ShowBtnApplyAll = "Display 'apply everything' button"
 	L.CSPS_ShowDateInProfileName = "Show last modified in profile name"
@@ -242,6 +241,19 @@ local L = {}
 	L.CSPS_ShowGearMarkerDataBasedTooltip = "If items are saved by their properties instead of their unique ID, the addon can mark items fitting the data. Otherwise it will only mark the items that were saved as 'specific'."
 	L.CSPS_SavedSpecific = "Saved in: %s"
 	L.CSPS_SavedData = "Fits to: %s"
+	
+	L.CSPS_LAM_ShowCpPresetNotifications = "Notifications when loading champion point presets"
+	L.CSPS_LAM_ShowCpNotSaved = "Champion points changes have not been applied"
+	L.CSPS_LAM_ShowSaveOther = "Saving a general profile while sub-profile section is open"
+	L.CSPS_LAM_KB_Descr = "You can combine your sub-profiles to groups, that you can apply via hotkey. 20 groups you can define accountwide and 20 that are bound to the current character. You can define up to 20 hotkeys to quickly load and apply those groups. Pressing a hotkey will load the character-based group if it isn't empty. Otherwise it will load the account-wide group with the same number. You can define a separate key to force the addon to load the account-wide group instead of the character-based one."
+	L.CSPS_LAM_KB_ShiftMode = "Key to force loading account-wide instead of character-based group for hotkey"
+	L.CSPS_LAM_ShowOutdatedPresets = "Show outdated presets in the profile list"
+	L.CSPS_LAM_ShowBindBuild = "Show build profiles in the binding manager (please note: automatization might not work when trying to load a profile that needs a shrine etc. to be applied)"
+	L.CSPS_LAM_JumpShiftKey = "Key to jump 10 points when adjusting attributes or champion points and to connect sub profiles to build profiles"
+	L.CSPS_LAM_SortCP = "Order of champion points"
+	L.CSPS_LAM_SortCP_1 = "Standard"
+	L.CSPS_LAM_SortCP_2 = "Alphabetical"
+	L.CSPS_LAM_SortCP_3 = "Alphabetical, passive skills separately"
 	
 	-- Presets
 	L.CSPS_MSG_SwitchCP = "Invest points into |c<<1>>'<<2>>'|r instead of one of the other slottables whenever you might profit from it."
@@ -264,8 +276,8 @@ local L = {}
 	L.CSPS_ImpEx_NoData = "No data found. First load data for your character before you attempt to generate a link."
 	L.CSPS_ImpEx_ErrHb = "Error on import for hotbar <<1>>."
 	L.CSPS_ImpEx_ErrSk = "Skill could not be mapped: <<1>>."
-	L.CSPS_ImpExp_TextSk = "Text export: Skills"
-	L.CSPS_ImpExp_TextOd = "Text export: Other data"
+	L.CSPS_ImpExp_TextSk = "Text export"
+	L.CSPS_ImpExp_TextOd = "Other data"
 	L.CSPS_ImpEx_HbTxt = "Hotbar"
 	L.CSPS_ImpEx_CsvCP = "Comma separated CP list"
 	L.CSPS_ImpEx_TxtCP2_1 = "CP |cA6D852(green, from text)|r" 
@@ -274,7 +286,8 @@ local L = {}
 	L.CSPS_ImpExp_TxtOrder1 = "Value → Name(/Slot)"
 	L.CSPS_ImpExp_TxtOrder2 = "Name(/Slot)→Value"
 	L.CSPS_ImpExp_TxtOrder3 = "Name→Value(→Slot)"
-	L.CSPS_ImpEx_CapLabel = "Stop import when number of spendable points is reached"
+	L.CSPS_ImpEx_CapLabel = "Limit points"
+	L.CSPS_ImpEx_LangTT = "Use %s instead of English as language for the champion skill names (don't activate this option if you want to import CP from English websites)"
 	L.CSPS_ImpExp_CleanUp = "Clean-up the text"
 	L.CSPS_ImpExp_Transfer = "Transfer..."
 	L.CSPS_ImpExp_TransferLoad = "Load"
@@ -297,8 +310,6 @@ local L = {}
 	L.CSPS_CPImp_New = "|c<<1>> <<2>>/<<3>> Mapping <<4>> points to: <<C:5>>|r"
 	L.CSPS_CPImp_Note = "Click on a skill in the list below to manually map it. Please note that the mapping will only be applied once all skills are either mapped or discarded."
 	L.CSPS_CPImp_NoMatch = "Couldn't find any matching data."
-	
-
 	
 for stringId, stringValue in pairs(L) do
 	ZO_CreateStringId(stringId, stringValue)
