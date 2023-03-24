@@ -837,7 +837,7 @@ end
 function cp.singleBarCompress(myBar)
 	local cpBarComp = {}
 	for j=1,4 do
-		cpBarComp[j] = myBar[j] or "-"
+		cpBarComp[j] = myBar[j] and myBar[j].id or "-"
 	end
 	cpBarComp = table.concat(cpBarComp, ",")
 	return cpBarComp
@@ -914,20 +914,36 @@ local function cpRespecNeeded()
 	for skillId, skillData in pairs(cpTable) do
 		if CSPS.applyCPc[skillData.discipline] and GetNumPointsSpentOnChampionSkill(skillId) < skillData.value then pointsNeeded[skillData.discipline] = pointsNeeded[skillData.discipline] + skillData.value - GetNumPointsSpentOnChampionSkill(skillId) end
 	end
+	local changesNeeded = false
 	for i=1,3 do
+		if pointsNeeded[i] > 0 then changesNeeded = true end
 		if pointsNeeded[i] > GetNumUnspentChampionPoints(GetChampionDisciplineId(i)) then respecNeeded = true end
 		if pointsNeeded[i] > GetNumSpentChampionPoints(GetChampionDisciplineId(i)) + GetNumUnspentChampionPoints(GetChampionDisciplineId(i)) then enoughPoints[i] = false end
 	end
-	return respecNeeded, enoughPoints, pointsNeeded
+	return respecNeeded, enoughPoints, pointsNeeded, changesNeeded
+end
+
+local function anyHbChanges()
+	for i = 1,3 do
+		local barTable = cpBar[i] or {}
+		for j=1,4 do
+			local mySlot = (i-1) * 4 + j
+			local currentSkill = GetSlotBoundId(mySlot, HOTBAR_CATEGORY_CHAMPION)
+			local addonSkill = barTable[j] and barTable[j].id or 0
+			if addonSkill ~= currentSkill then return true end
+		end
+	end
+	return false
 end
 
 function cp.applyGo(skipDiag)
 	-- Do I have enough points, do I need to respec, do I need points at all?
-	local respecNeeded, enoughPoints, pointsNeeded = cpRespecNeeded()
+	local respecNeeded, enoughPoints, pointsNeeded, changesNeeded = cpRespecNeeded()
 	if hf.anyEntryFalse(enoughPoints) then 
 		ZO_Dialogs_ShowDialog(CSPS.name.."_OkDiag", {},  {mainTextParams = {GS(CSPS_MSG_CpPointsMissing)}, titleParams = {GS(CSPS_MSG_CpPurchTitle)}})
 		return 
 	end
+	if not changesNeeded and not anyHbChanges() then cspsPost(GS(CSPS_CPNoChanges)) return end
 	if respecNeeded and GetCurrencyAmount(CURT_MONEY, CURRENCY_LOCATION_CHARACTER) < GetChampionRespecCost() then
 		ZO_Dialogs_ShowDialog(CSPS.name.."_OkDiag", {},  {mainTextParams = {GS(SI_TRADING_HOUSE_ERROR_NOT_ENOUGH_GOLD)}, titleParams = {GS(CSPS_MSG_CpPurchTitle)}})		
 		return 
@@ -997,7 +1013,7 @@ function cp.applyConfirm(respecNeeded, hotbarsOnly)
 							hbSkill = cpTable[previousSkillId]
 					end
 				end	
-				AddHotbarSlotToChampionPurchaseRequest((discipline-1) * 4 + slotIndex, hbSkill.id)
+				AddHotbarSlotToChampionPurchaseRequest((discipline-1) * 4 + slotIndex, hbSkill and hbSkill.id or nil)
 			end
 		end
 	end

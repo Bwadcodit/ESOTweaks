@@ -1,4 +1,5 @@
 local GS = GetString
+local cp = CSPS.cp
 
 function CSPS.selectProfile(profileId)
 	CSPS.currentProfile = profileId

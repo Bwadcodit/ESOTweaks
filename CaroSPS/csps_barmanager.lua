@@ -33,8 +33,8 @@ local colTbl = CSPS.colors
 local function findTriggerByParameters(accountWide, triggerParams, includeCurrentGroup)
 	local bindings = accountWide and CSPS.bindingsA or CSPS.bindings
 	for groupIndex, groupBindings in pairs(bindings) do
-		for _, triggerData in pairs(groupBindings) do
-			if (groupIndex ~= currentGroup or includeCurrentGroup) and hf.tableParamsFit(triggerData, triggerParams, {2,3,4,5}) then return accountWide and groupIndex.."-a" or groupIndex end
+		for triggerIndex, triggerData in pairs(groupBindings) do
+			if (groupIndex ~= currentGroup or includeCurrentGroup) and hf.tableParamsFit(triggerData, triggerParams, {2,3,4,5}) then return accountWide and groupIndex.."-a" or groupIndex, triggerIndex end
 		end
 	end
 	return false
@@ -698,9 +698,9 @@ end
 local function getAgSetName(profileIndex, profileData, setIndex, setData)
 	local profileData = profileData or cspsAG and cspsAG.setdata and cspsAG.setdata.profiles and cspsAG.setdata.profiles[profileIndex] 
 	if not profileData then return false end
-	local profileName = getAgProfileName(profileIndex, profileData)
-	local setData = setData or profileData.setData[setIndex]
-	local setName = setData.Set.text[1] or 0
+	local profileName = getAgProfileName(profileIndex, profileData) or string.format("%s: ", profileIndex)
+	local setData = setData or profileData.setdata and profileData.setdata[setIndex]
+	local setName = setData and setData.Set and setData.Set.text and setData.Set.text[1] or 0
 	setName = setName == 0 and string.format("%s) Build %s", setIndex, setIndex)  or string.format("%s) %s", setIndex, setName)
 	
 	return string.format("Alpha Gear - %s %s", profileName, setName), setName
@@ -711,7 +711,7 @@ triggerAddingFunctions[triggerTypes.AG] = function()
 
 	local function addIt(name, triggerGroup, triggerValue)
 		triggers.AG = triggers.AG or {}
-		
+		triggers.AG[triggerGroup] = triggers.AG[triggerGroup] or {}
 		if compareOldTrigger(triggers.AG[triggerGroup][triggerValue]) then return end
 		
 		local bindings = accountWideMode and CSPS.bindingsA or CSPS.bindings
@@ -771,7 +771,7 @@ function CSPSbindingsList:SetupItemRow( control, data )
 	local overwrittenBy = false
 	
 	if accountWideMode then overwrittenBy = findTriggerByParameters(false, {false, data.triggerType, data.triggerGroup, data.triggerValue, data.triggerFilter}, true) end
-	local conflictGroup = findTriggerByParameters(accountWideMode, {false, data.triggerType, data.triggerGroup, data.triggerValue, data.triggerFilter}, false)
+	local conflictGroup, conflictTriggerIndex = findTriggerByParameters(accountWideMode, {false, data.triggerType, data.triggerGroup, data.triggerValue, data.triggerFilter}, false)
 	
 	overwrittenBy = overwrittenBy and CSPS.getCpHbId(overwrittenBy)
 	
@@ -786,7 +786,7 @@ function CSPSbindingsList:SetupItemRow( control, data )
 				ZO_Tooltips_ShowTextTooltip(ctrName, TOP, table.concat(tooltip, "\n"))
 				CSPS.KBListRowMouseEnter(control)
 			end)
-		if conflictGroup then control.rightClickFunction = function() CSPS.kbRemove(data.myIndex, conflictGroup) end end
+		if conflictGroup then control.rightClickFunction = function() CSPS.kbRemove(conflictTriggerIndex, conflictGroup) end end
 		ctrName:SetHandler("OnMouseUp", function(_, mouseButton, upInside) CSPS.KBListRowMouseUp(control, mouseButton, upInside) end)
 		ctrName:SetHandler("OnMouseExit", function() ZO_Tooltips_HideTextTooltip() CSPS.KBListRowMouseExit(control) end)	
 		ctrName.normalColor = conflictGroup and ZO_ERROR_COLOR or ZO_ORANGE
