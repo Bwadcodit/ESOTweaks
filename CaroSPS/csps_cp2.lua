@@ -1144,25 +1144,25 @@ function CSPS.tweakApplyFull()
 
 		CSPS.dialogHook = true
 
-		-- REF: CSPS.loadAndApplyByIndex(indexToLoad, excludeSkills, excludeAttributes, excludeGreenCP, excludeBlueCP, excludeRedCP, excludeHotbar, excludeGear, excludeQuickslots)
+		-- REF: CSPS.loadAndApplyByIndex(indexToLoad, excludeSkills, excludeAttributes, excludeGreenCP, excludeBlueCP, excludeRedCP, excludeHotbar, excludeGear, excludeQuickslots, excludeOutfit)
 		if CSPS.profileXPIndex > 0 then
 			local profileIndex = CSPS.currentProfile
 			local profileNum = CSPS.profiles[profileIndex].name:sub(1, 1)
 			if profileNum and profileNum == "0" or profileNum == "1" then -- craft/farm
 				-- apply XP skills
-				CSPS.loadAndApplyByIndex(CSPS.profileXPIndex, false, true, true, true, true, true, true, true)
+				CSPS.loadAndApplyByIndex(CSPS.profileXPIndex, false, true, true, true, true, true, true, true, true)
 				-- apply build
-				CSPS.loadAndApplyByIndex(profileIndex, false, false, false, false, false, true, true, false)
+				CSPS.loadAndApplyByIndex(profileIndex, false, false, false, false, false, true, true, false, true)
 			else
 				-- apply build
-				CSPS.loadAndApplyByIndex(profileIndex, false, false, false, false, false, true, true, false)
+				CSPS.loadAndApplyByIndex(profileIndex, false, false, false, false, false, true, true, false, true)
 				-- apply XP skills
-				CSPS.loadAndApplyByIndex(CSPS.profileXPIndex, false, true, true, true, true, true, true, true)
+				CSPS.loadAndApplyByIndex(CSPS.profileXPIndex, false, true, true, true, true, true, true, true, true)
 				-- re-load previous build
-				CSPS.loadAndApplyByIndex(profileIndex, true, true, true, true, true, true, true, true)
+				CSPS.loadAndApplyByIndex(profileIndex, true, true, true, true, true, true, true, true, true)
 			end
 		else
-			CSPS.loadAndApplyByIndex(CSPS.currentProfile, false, false, false, false, false, true, true, false)
+			CSPS.loadAndApplyByIndex(CSPS.currentProfile, false, false, false, false, false, true, true, false, true)
 		end
 		
 		CSPS.dialogHook = false
