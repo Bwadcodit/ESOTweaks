@@ -74,6 +74,17 @@ function CSPS.setupLam()
 			setFunc = function(value) options.jumpShiftKey = value end,
 		},		
 		{
+			type = "checkbox",
+			name = GetCollectibleCategoryNameByCategoryId(13),
+			width = "full",
+			getFunc = function() return options.showOutfits end,
+			setFunc = function(value) 
+					options.showOutfits = value
+					CSPS.outfits.toggleShowInTree()
+				end,
+		},
+		
+		{
 			type = "header",
 			name = GS(SI_STAT_GAMEPAD_CHAMPION_POINTS_LABEL),
 			width = "full",
@@ -309,7 +320,7 @@ function CSPS.setupLam()
 					type = "checkbox",
 					name = GS(SI_GAMEPAD_DYEING_EQUIPMENT_HEADER),
 					width = "full",
-					getFunc = function() return not options.applyAllExclude.gear end,
+					getFunc = function() return CSPS.doGear and not options.applyAllExclude.gear end,
 					setFunc = function(value) 
 							options.applyAllExclude.gear = not value
 						end,
@@ -325,6 +336,17 @@ function CSPS.setupLam()
 						end,
 					disabled = function() return not options.showApplyAll end,
 				},
+				{
+					type = "checkbox",
+					name = GetCollectibleCategoryNameByCategoryId(13),
+					width = "full",
+					getFunc = function() return options.showOutfits and not options.applyAllExclude.outfit end,
+					setFunc = function(value) 
+							options.applyAllExclude.outfit = not value
+						end,
+					disabled = function() return not options.showOutfits end,
+				},
+				
 			}
 		},
 	}
