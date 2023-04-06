@@ -399,6 +399,7 @@ function CSPS.saveBuildGo()
 	profileToSave.attribute = attrComp
 	
 	if CSPS.savedVariables.settings.showOutfits then 
+		
 		profileToSave.outfitComp = CSPS.outfits.compress()
 	end
 	
