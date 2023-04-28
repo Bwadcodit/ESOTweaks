@@ -285,7 +285,6 @@ end
 
 local function autoShowCSPS(oldState, newState)
 	if newState == SCENE_SHOWING then 
-		if cp.useCustomIcons then cp.showCustomIcons() end
 		if CSPS.cpAutoOpen then CSPSWindow:SetHidden(false) end
 	elseif newState == SCENE_HIDDEN then
 		if CSPS.cpAutoOpen then CSPSWindow:SetHidden(true) end
