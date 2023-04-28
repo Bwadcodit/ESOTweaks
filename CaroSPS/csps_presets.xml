@@ -332,8 +332,19 @@
 			<OnReceiveDrag>CSPS.onHbIconReceive(self.i, self.j)</OnReceiveDrag>
 			<OnMouseUp>
 				WINDOW_MANAGER:SetMouseCursor(0)
-				if button==2 then CSPS.hbSkillRemove(self.i, self.j) end
+				if not upInside then return end
+				if button==2 then 
+					CSPS.hbSkillRemove(self.i, self.j) 
+				elseif button==1 then
+					CSPS.hbSkillMenu(self.i, self.j) 
+				end
 			</OnMouseUp>
+			<OnMouseEnter>
+				CSPS.hbSkillTT(self, self.i, self.j)
+			</OnMouseEnter>
+			<OnMouseExit>
+				ZO_Tooltips_HideTextTooltip()
+			</OnMouseExit>
 			<OnDragStart>if button == 1 then WINDOW_MANAGER:SetMouseCursor(15)  CSPS.onHbIconDrag(self.i,self.j) end</OnDragStart>
 		</Texture>	
 		<Label name="CSPSCPPLABEL" font="ZoFontGame" wrapMode="ELLIPSIS" horizontalAlignment="LEFT" verticalAlignment="CENTER" virtual="true" />

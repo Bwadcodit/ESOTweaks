@@ -981,17 +981,14 @@ local function showPoisonTooltip(control, gearSlot, firstId, secondId)
 			ZO_Tooltip_AddDivider(InformationTooltip)
 			r, g, b = ZO_NORMAL_TEXT:UnpackRGB()
 			InformationTooltip:AddLine(string.format("|t26:26:esoui/art/tooltips/icon_bag.dds|t %s\n|t26:26:esoui/art/miscellaneous/icon_lmb.dds|t: %s", fitsExactly[BAG_BACKPACK][1].itemLink, GS(SI_ITEM_ACTION_EQUIP)), "ZoFontGame", r, g, b, CENTER, MODIFY_TEXT_TYPE_NONE, TEXT_ALIGN_CENTER, true)
-			control:GetParent():SetHandler("OnMouseUp", function(_, mouseButton, upInside)
-				if upInside and mouseButton == 1 then
-					EquipItem(BAG_BACKPACK, fitsExactly[BAG_BACKPACK][1].slotIndex, gearSlot)
-					showPoisonTooltip(control, gearSlot, firstId, secondId)
-				end
-			end)
+			control.equipItem = {BAG_BACKPACK, fitsExactly[BAG_BACKPACK][1].slotIndex, gearSlot}
 		elseif #fitsExactly[BAG_BANK] > 0 or #fitsExactly[BAG_SUBSCRIBER_BANK] > 0 then
 			ZO_Tooltip_AddDivider(InformationTooltip)
 			r, g, b = ZO_NORMAL_TEXT:UnpackRGB()
 			local fittingItem = fitsExactly[BAG_BANK][1] or fitsExactly[BAG_SUBSCRIBER_BANK][1]
-			InformationTooltip:AddLine(string.format("|t26:26:esoui/art/tooltips/icon_bank.dds|t %s", fittingItem.itemLink), "ZoFontGame", r, g, b, CENTER, MODIFY_TEXT_TYPE_NONE, TEXT_ALIGN_CENTER, true)
+			local bagId = #fitsExactly[BAG_BANK] > 0 and BAG_BANK or BAG_SUBSCRIBER_BANK
+			control.retrieveItem = {bagId, fittingItem.slotIndex}
+			InformationTooltip:AddLine(string.format("|t26:26:esoui/art/tooltips/icon_bank.dds|t %s\n|t26:26:esoui/art/miscellaneous/icon_lmb.dds|t: %s", fittingItem.itemLink, GS(SI_BANK_WITHDRAW)), "ZoFontGame", r, g, b, CENTER, MODIFY_TEXT_TYPE_NONE, TEXT_ALIGN_CENTER, true)
 		end
 	end
 end
@@ -1095,12 +1092,7 @@ local function showSetItemTooltip(control, setId, gearSlot, itemType,  traitType
 			r, g, b = ZO_NORMAL_TEXT:UnpackRGB()
 			local iconUnique = foundUnique and " |t26:26:esoui/art/tooltips/icon_lock.dds|t" or ""
 			InformationTooltip:AddLine(string.format("|t26:26:esoui/art/tooltips/icon_bag.dds|t%s %s\n|t26:26:esoui/art/miscellaneous/icon_lmb.dds|t %s", iconUnique, fitsExactly[BAG_BACKPACK][1].itemLink, GS(SI_ITEM_ACTION_EQUIP)), "ZoFontGame", r, g, b, CENTER, MODIFY_TEXT_TYPE_NONE, TEXT_ALIGN_CENTER, true)
-			control:GetParent():SetHandler("OnMouseUp", function(_, mouseButton, upInside)
-				if upInside and mouseButton == 1 then
-					EquipItem(BAG_BACKPACK, fitsExactly[BAG_BACKPACK][1].slotIndex, gearSlot)
-					zo_callLater(function() showSetItemTooltip(control, setId, gearSlot, itemType,  traitType, itemQuality, enchantId) end, 420)
-				end
-			end)
+			control.equipItem = {BAG_BACKPACK, fitsExactly[BAG_BACKPACK][1].slotIndex, gearSlot}
 		elseif #fitsExactly[BAG_BANK] > 0 or #fitsExactly[BAG_SUBSCRIBER_BANK] > 0 then
 			ZO_Tooltip_AddDivider(InformationTooltip)
 			r, g, b = ZO_NORMAL_TEXT:UnpackRGB()
@@ -1109,20 +1101,8 @@ local function showSetItemTooltip(control, setId, gearSlot, itemType,  traitType
 			
 			if GetInteractionType() == INTERACTION_BANK then
 				myItemText = string.format("%s\n|t26:26:esoui/art/miscellaneous/icon_lmb.dds|t %s", myItemText, GS(SI_ITEM_ACTION_BANK_WITHDRAW))
-				control:GetParent():SetHandler("OnMouseUp", function(_, mouseButton, upInside)
-					if upInside and mouseButton == 1 then
-						if GetInteractionType() == INTERACTION_BANK then
-							local bagId = fitsExactly[BAG_BANK][1] and BAG_BANK or BAG_SUBSCRIBER_BANK
-							if IsProtectedFunction("RequestMoveItem") then
-								CallSecureProtected("RequestMoveItem", bagId, fittingItem.slotIndex, BAG_BACKPACK, FindFirstEmptySlotInBag(BAG_BACKPACK), 1)
-							else
-								RequestMoveItem(bagId, fittingItem.slotIndex, BAG_BACKPACK, FindFirstEmptySlotInBag(BAG_BACKPACK), 1)
-							end
-						end
-						zo_callLater(function() showSetItemTooltip(control, setId, gearSlot, itemType,  traitType, itemQuality, enchantId) end, 420)
-					end
-				end)
-				
+				local bagId = fitsExactly[BAG_BANK][1] and BAG_BANK or BAG_SUBSCRIBER_BANK
+				control.retrieveItem = {bagId, fittingItem.slotIndex}				
 			end
 			
 			InformationTooltip:AddLine(myItemText, "ZoFontGame", r, g, b, CENTER, MODIFY_TEXT_TYPE_NONE, TEXT_ALIGN_CENTER, true)
@@ -1411,9 +1391,31 @@ local function NodeSetupGear(node, control, data, open, userRequested, enabled)
 			end
 			
 			control.tooltipExitFunction = function()
-				control:SetHandler("OnMouseUp", function() end)
+				control.retrieveItem = nil
+				control.equipItem = nil
 				ZO_Tooltips_HideTextTooltip()
 			end
+			control:SetHandler("OnMouseUp", function(_, mouseButton, upInside)
+				if not upInside then return end
+				if mouseButton == 1 then
+					if control.equipItem then 
+						EquipItem(unpack(control.equipItem))
+						zo_callLater(function() showPoisonTooltip(control.ctrEnchantment, mySlot, myTable.firstId, myTable.secondId) end, 420)
+						InformationTooltip:AddLine(GS(CSPS_QS_TT_Edit))
+					elseif control.retrieveItem then
+						if GetInteractionType() == INTERACTION_BANK then
+							if IsProtectedFunction("RequestMoveItem") then
+								CallSecureProtected("RequestMoveItem", control.retrieveItem[1], control.retrieveItem[2], BAG_BACKPACK, FindFirstEmptySlotInBag(BAG_BACKPACK), 1)
+							else
+								RequestMoveItem(control.retrieveItem[1], control.retrieveItem[2], BAG_BACKPACK, FindFirstEmptySlotInBag(BAG_BACKPACK), 1)
+							end
+						end
+						zo_callLater(function() showPoisonTooltip(control.ctrEnchantment, mySlot, myTable.firstId, myTable.secondId) end, 420)
+					end
+				elseif mouseButton == 2 and control.editFunc then
+					control.editFunc()
+				end
+			end)
 		else
 			control.ctrTrait:SetHidden(false)
 			control.ctrEnchantment:SetHidden(false)			
@@ -1440,9 +1442,31 @@ local function NodeSetupGear(node, control, data, open, userRequested, enabled)
 				if ttdc1 then
 					InformationTooltip:SetDimensionConstraints(ttdc1, ttdc2, ttdc3, ttdc4)
 				end
-				control:SetHandler("OnMouseUp", function() end)
+				control.retrieveItem = nil
+				control.equipItem = nil
 				ZO_Tooltips_HideTextTooltip()
 			end
+			
+			control:SetHandler("OnMouseUp", function(_, mouseButton, upInside)
+				if not upInside then return end
+				if mouseButton == 1 then
+					if control.equipItem then
+						EquipItem(unpack(control.equipItem))
+						zo_callLater(function() showSetItemTooltip(control.ctrEnchantment, myTable.setId, mySlot, myTable.type, myTable.trait, myTable.quality, myTable.enchant) end, 420)
+					elseif control.retrieveItem then
+						if GetInteractionType() == INTERACTION_BANK then
+							if IsProtectedFunction("RequestMoveItem") then
+								CallSecureProtected("RequestMoveItem", control.retrieveItem[1], control.retrieveItem[2], BAG_BACKPACK, FindFirstEmptySlotInBag(BAG_BACKPACK), 1)
+							else
+								RequestMoveItem(control.retrieveItem[1], control.retrieveItem[2], BAG_BACKPACK, FindFirstEmptySlotInBag(BAG_BACKPACK), 1)
+							end
+						end
+						zo_callLater(function() showSetItemTooltip(control.ctrEnchantment, myTable.setId, mySlot, myTable.type, myTable.trait, myTable.quality, myTable.enchant) end, 420)
+					end
+				elseif mouseButton == 2 and control.editFunc then
+					control.editFunc()	
+				end
+			end)
 			
 			local setIdFits, enchantFits, qualityFits, typeFits, traitFits = checkItemForSlot(GetItemLink(BAG_WORN, mySlot), mySlot)
 	 		
@@ -1477,8 +1501,13 @@ local function NodeSetupGear(node, control, data, open, userRequested, enabled)
 	else
 		--control:SetHidden(true)
 		--control:SetHeight(0)
-		control.tooltipFunction = function(self) ZO_Tooltips_ShowTextTooltip(self, TOP, GS(CSPS_QS_TT_Edit)) end
+		control.tooltipFunction = function(self) if control.editFunc then ZO_Tooltips_ShowTextTooltip(self, TOP, GS(CSPS_QS_TT_Edit)) end end
 		control.tooltipExitFunction = function() ZO_Tooltips_HideTextTooltip() end
+		control:SetHandler("OnMouseUp", 
+			function(_, mouseButton, upInside)
+				if not upInside then return end
+				if mouseButton == 2 and control.editFunc then control.editFunc() end 
+			end)
 		control.ctrSetName:SetText("-")
 		control.ctrIcon:SetTexture(string.format("esoui/art/characterwindow/%s.dds", gearSlotIcons[mySlot]))
 		control.ctrTrait:SetHidden(true)
@@ -1489,18 +1518,21 @@ local function NodeSetupGear(node, control, data, open, userRequested, enabled)
 
 	if mySlot == EQUIP_SLOT_BACKUP_OFF and theGear[EQUIP_SLOT_BACKUP_MAIN] and theGear[EQUIP_SLOT_BACKUP_MAIN].type and isTwoHanded[theGear[EQUIP_SLOT_BACKUP_MAIN].type] or
 		mySlot == EQUIP_SLOT_OFF_HAND and theGear[EQUIP_SLOT_MAIN_HAND] and theGear[EQUIP_SLOT_MAIN_HAND].type and isTwoHanded[theGear[EQUIP_SLOT_MAIN_HAND].type] then
+		control.editFunc = false
 		control.ctrBtnEdit:SetHidden(true)
 		control.ctrIcon:SetMouseEnabled(false)
 		control.ctrSetName:SetMouseEnabled(false)
 	else
-		control.ctrBtnEdit:SetHandler("OnClicked", function()
-			if CSPS.gearWindow and not CSPS.gearWindow:IsHidden() and gearSelector.gearSlot == mySlot then 
-				EVENT_MANAGER:UnregisterForEvent(CSPS.name.."GearWinHider", EVENT_GLOBAL_MOUSE_DOWN)
-				CSPS.gearWindow:SetHidden(true)
-				return
+		control.editFunc = 
+			function()
+				if CSPS.gearWindow and not CSPS.gearWindow:IsHidden() and gearSelector.gearSlot == mySlot then 
+					EVENT_MANAGER:UnregisterForEvent(CSPS.name.."GearWinHider", EVENT_GLOBAL_MOUSE_DOWN)
+					CSPS.gearWindow:SetHidden(true)
+					return
+				end
+				CSPS.showGearWin(control.ctrBtnEdit, mySlot)
 			end
-			CSPS.showGearWin(control.ctrBtnEdit, mySlot)
-		end)
+		control.ctrBtnEdit:SetHandler("OnClicked", control.editFunc)
 		control.ctrBtnEdit:SetHidden(false)
 		control.ctrIcon:SetMouseEnabled(true)
 		control.ctrSetName:SetMouseEnabled(true)		

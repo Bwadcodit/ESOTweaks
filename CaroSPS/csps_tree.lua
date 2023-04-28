@@ -36,6 +36,7 @@ local errorColors = { -- ec = {correct = 1, wrongMorph = 2, rankHigher = 3, skil
 	colTbl.red,   
 }
 
+
 local cp2ColorsA = {{70/255,107/255,7/255}, {23/255,101/255,135/255}, {166/255,58/255,11/255}}
 
 -- local cpColTex = {"esoui/art/champion/champion_points_stamina_icon-hud-32.dds","esoui/art/champion/champion_points_magicka_icon-hud-32.dds","esoui/art/champion/champion_points_health_icon-hud-32.dds",}
@@ -132,7 +133,7 @@ local function showSimpleTT(control, ttInd, includeShiftKey)
 end
 	
 
-local function showSkTT(control, i,j,k, morph, rank, errorCode, skillData)
+local function showSkTT(control, i,j,k, morph, rank, errorCode, skillData, position, showTitle, showStats)
 	local myTooltip = GetAbilityDescription(GetSpecificSkillAbilityInfo(i,j,k, morph, rank))
 	errorCode = errorCode or 0
 	local errorAlerts = {
@@ -143,18 +144,28 @@ local function showSkTT(control, i,j,k, morph, rank, errorCode, skillData)
 		[ec.rankLocked] = function() local rankNeeded = skillData.zo_data:GetProgressionData(rank):GetLineRankNeededToUnlock() return colTbl.red:Colorize(zo_strformat(GS(SI_ABILITY_UNLOCKED_AT), skillData.lineData.name, rankNeeded)) end,
 		[ec.morphLocked] = function() return colTbl.red:Colorize(GS(SI_ABILITYPROGRESSIONRESULT7)) end,
 	}
-	
 	myTooltip = errorAlerts[errorCode] and string.format("%s\n\n%s", myTooltip, errorAlerts[errorCode]()) or myTooltip
 	
-	ZO_Tooltips_ShowTextTooltip(control, RIGHT, myTooltip)
+	InitializeTooltip(InformationTooltip, control, position)
+	local r,g,b =  ZO_NORMAL_TEXT:UnpackRGB()
+	if showTitle then	
+		InformationTooltip:AddLine(zo_strformat("|t28:28:<<2>>|t\n<<C:1>>", skillData.morph and skillData.morph > 0 and skillData.morphNames[skillData.morph] or skillData.name, skillData.morph and skillData.morph > 0 and skillData.morphTextures[skillData.morph] or skillData.texture), "ZoFontWinH2", r, g, b, CENTER, MODIFY_TEXT_TYPE_NONE, TEXT_ALIGN_CENTER, true) 
+		ZO_Tooltip_AddDivider(InformationTooltip)
+	end
+	local statList = CSPS.getAbilityStats(skillData)
+	if statList and showStats then 
+		InformationTooltip:AddLine(table.concat(statList, "\n"), "ZoFontGame", r, g, b, CENTER, MODIFY_TEXT_TYPE_NONE, TEXT_ALIGN_CENTER, true)
+	end
+	InformationTooltip:AddLine(myTooltip, "ZoFontGame", r, g, b, CENTER, MODIFY_TEXT_TYPE_NONE, TEXT_ALIGN_CENTER, true) 
+	--ZO_Tooltips_ShowTextTooltip(control, position, myTooltip)
 end
+
+CSPS.showSkTT = showSkTT
 
 local function NodeSetup(node, control, data, open, userRequested, enabled)
 
 	local i, j, k, mySkill = unpack(data)
 
-	--Entries: [1]Name [2]Texture [3] Rank [4]Progression [5]Purchased [6]Morph [7] Points [8] Auxlistindex [9] MaxRank/Morph [10] Errorcode
-		
 	local myCtrIcon = control:GetNamedChild("Icon")
 	local myCtrText = control:GetNamedChild("Text")
 	local myCtrPoints = control:GetNamedChild("Points")
@@ -185,7 +196,7 @@ local function NodeSetup(node, control, data, open, userRequested, enabled)
 	local myErrorCode = mySkill.error or 0
 	local myColor = mySkill.purchased and errorColors[myErrorCode + 1] or colTbl.gray
 	
-	myCtrText:SetHandler("OnMouseEnter", function() showSkTT(myCtrText, i, j, k, mySkill.morph, mySkill.rank, myErrorCode, mySkill) end)
+	myCtrText:SetHandler("OnMouseEnter", function() showSkTT(myCtrText, i, j, k, mySkill.morph, mySkill.rank, myErrorCode, mySkill, LEFT, false, true) end)
 	
 	myCtrText:SetHandler("OnMouseUp", 
 		function(_, mouseButton, upInside, ctrl, _, shift) 
@@ -596,7 +607,7 @@ function CSPS.refreshTree()
 end
 
 function CSPS.createCPTree()
-	cpOvernode = cpOvernode or myTree:AddNode("CSPSLH", {name = GS(CSPS_TxtCpNew), variant=TREE_SECTION_CHAMPIONPOINTS})
+	cpOvernode = cpOvernode or myTree:AddNode("CSPSLH", {name = GS(CSPS_TxtCp), variant=TREE_SECTION_CHAMPIONPOINTS})
 	cpDisciplineNodes = cpDisciplineNodes or {}
 	cpControls = {}
 	cpClusterControls = {}
@@ -655,9 +666,9 @@ function CSPS.createTable()
 	
 	-- Generate tree for attribute points
 	local fillContent = {
-		{"CSPSLATTR", {name = GS(SI_ATTRIBUTES1), i=1, entrColor=cpColors[3]}},
-		{"CSPSLATTR", {name = GS(SI_ATTRIBUTES2), i=2, entrColor=cpColors[2]}},
-		{"CSPSLATTR", {name = GS(SI_ATTRIBUTES3), i=3, entrColor=cpColors[1]}}
+		{"CSPSLATTR", {name = GS(SI_ATTRIBUTES1), i=1, entrColor=cpColors[3]}}, --health
+		{"CSPSLATTR", {name = GS(SI_ATTRIBUTES2), i=2, entrColor=cpColors[2]}}, --magicka
+		{"CSPSLATTR", {name = GS(SI_ATTRIBUTES3), i=3, entrColor=cpColors[1]}}  --stamina
 	}
 	local overnode = myTree:AddNode("CSPSLH", {name = GS(SI_STATS_ATTRIBUTES), variant=TREE_SECTION_ATTRIBUTES, fillContent=fillContent})
 	

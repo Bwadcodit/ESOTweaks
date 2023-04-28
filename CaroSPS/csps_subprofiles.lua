@@ -80,14 +80,14 @@ local profileDisciplineTitles = {
 local profileCatsThatCanBeConnected = {[PROFILE_CATEGORY_CP] = true, [PROFILE_CATEGORY_QS] = true,}
 		
 local zoneAbbrByType = {
-	trial = {[636] = "HRC", [638] = "AA", [639] = "SO", [1263] = "RG", [1344] = "DSR", [725] = "MoL", [975] = "HoF", [1000] = "AS", [1051] = "CR", [1121] = "SS", [1196] = "KA",},
+	trial = {[636] = "HRC", [638] = "AA", [639] = "SO", [1263] = "RG", [1344] = "DSR", [725] = "MoL", [975] = "HoF", [1000] = "AS", [1051] = "CR", [1121] = "SS", [1196] = "KA", [1427] = "SE", },
 	solo = {[1227] = "VH", [677] = "MA",},
 	arena = {[1082] = "BRP", [635] = "DSA",}
 }
 
 local roleAbbr = {"DD", "T", "", "H",}
 
-local classAbbr = {"DK", "Sorc", "NB", "Warden", "Necro", "Temp",}
+local classAbbr = {"DK", "Sorc", "NB", "Warden", "Necro", "Temp", [117] = "Arc"}
 
 local roleFilter = ""
 

@@ -121,18 +121,18 @@ local function applySingleSlot(hbIndex, slotIndex, slotData)
 	else
 		local myItemId, myItemSecondId, myItemThirdId, myItemLastId = getItemIdsFromLink(slotData.value)
 		
-		local altItemToSlot = false
+		local itemToSlot = false
 		
 		for bagpackSlotIndex=0, GetBagSize(BAG_BACKPACK)-1 do
 			if IsValidItemForSlot(BAG_BACKPACK, bagpackSlotIndex, 1, barCategories[hbIndex]) then
 				local oneItem = GetItemLink(BAG_BACKPACK, bagpackSlotIndex)
 				
-				if oneItem == slotData.value then itemToSlot = oneItem break end
+				if oneItem == slotData.value then itemToSlot = bagpackSlotIndex break end
 				
 				local oneItemId = GetItemId(BAG_BACKPACK, bagpackSlotIndex)
 				
 				if oneItemId == myItemId then
-					altItemToSlot = bagpackSlotIndex
+					itemToSlot = bagpackSlotIndex
 					local _, secondId, thirdId, lastId = getItemIdsFromLink(oneItem, oneItemId)
 					if myItemSecondId == secondId and myItemThirdId == thirdId and myItemLastId == lastId then
 						if CallSecureProtected("SelectSlotItem", BAG_BACKPACK, bagpackSlotIndex, routeBack1[slotIndex], barCategories[hbIndex])  == false then 
@@ -144,8 +144,8 @@ local function applySingleSlot(hbIndex, slotIndex, slotData)
 				end
 			end
 		end
-		if altItemToSlot then
-			if CallSecureProtected("SelectSlotItem", BAG_BACKPACK, altItemToSlot, routeBack1[slotIndex], barCategories[hbIndex])  == false then 
+		if itemToSlot then
+			if CallSecureProtected("SelectSlotItem", BAG_BACKPACK, itemToSlot, routeBack1[slotIndex], barCategories[hbIndex])  == false then 
 				cspsPost(string.format("%s - %s %s: %s", GS(SI_PROMPT_TITLE_ERROR), GS(SI_BINDING_NAME_GAMEPAD_ASSIGN_QUICKSLOT), slotIndex, slotData.value)) 
 				return false
 			else

@@ -663,7 +663,7 @@
 				
 				<Backdrop hidden="true" name="$(grandparent)CPSideBar" mouseEnabled="true" centerColor="080808" edgeColor="424242" >
 							<Anchor point="RIGHT" relativePoint="LEFT" relativeTo="$(grandparent)" />
-							<Dimensions x="38" y="574" />
+							<Dimensions x="38" y="622" />
 							<Edge edgeSize="1" />
 							<Controls>
 								<Button name="$(parent)ToggleLabels">
@@ -672,6 +672,14 @@
 									<Textures normal="esoui/art/buttons/large_leftarrow_up.dds" pressed="esoui/art/buttons/large_leftarrow_down.dds" mouseOver="esoui/art/buttons/large_leftarrow_over.dds" />
 									<OnClicked>CSPS.showElement("cpsidebarlabels")</OnClicked>
 									<OnMouseEnter>ZO_Tooltips_ShowTextTooltip(self, RIGHT, GetString(SI_DIALOG_CANCEL))</OnMouseEnter>
+									<OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>
+								</Button>
+								<Button name="$(parent)ApplyBars">
+									<Anchor point="BOTTOMRIGHT" relativeTo="$(parent)" relativePoint="BOTTOMRIGHT" offsetX="-5" offsetY="-10" />
+									<Dimensions x="28" y="28" />
+									<Textures normal="esoui/art/buttons/accept_up.dds" pressed="esoui/art/buttons/accept_down.dds" mouseOver="esoui/art/buttons/accept_over.dds" />
+									<OnClicked>CSPS.cp.applyConfirm(false, {true, true, true})</OnClicked>
+									<OnMouseEnter>ZO_Tooltips_ShowTextTooltip(self, RIGHT, GetString(SI_APPLY))</OnMouseEnter>
 									<OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>
 								</Button>
 							</Controls>

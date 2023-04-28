@@ -600,7 +600,21 @@ local sfSetIds = {
 	[688] = 16009, --Snake in the Stars
 	[689] = 16010, --Shell Splitter 
 	[690] = 16011, --Judgement of Akatosh 
-	
+	[691] = 0, -- Cryptcanon Vestments
+	[692] = 0, -- Esoteric Environment Greaves
+	[694] = 0, -- Velothi Ur-Mage's Amulet
+	[698] = 0, -- Vivec's Duality
+	[699] = 0, -- Camonna Tong
+	[700] = 0, -- Adamant Lurker
+	[701] = 0, -- Peace and Serenity
+	[702] = 0, -- Ansuul's Torment
+	[703] = 0, -- Test of Resolve
+	[704] = 0, -- Transformative Hope
+	[705] = 0, -- Perfected Transformative Hope
+	[706] = 0, -- Perfected Test of Resolve
+	[707] = 0, -- Perfected Ansuul's Torment
+	[708] = 0, -- Perfected Peace and Serenity
+	 
 }
 
 local sfTraits = {

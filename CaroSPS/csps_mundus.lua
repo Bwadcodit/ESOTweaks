@@ -50,8 +50,8 @@ function CSPS.showMundusTooltip(control, mundusId)
 		InformationTooltip:AddLine(zo_strformat("<<C:1>> |t28:28:<<2>>|t", GetAbilityName(mundusId), GetAbilityIcon(mundusId)), "ZoFontWinH2")
 		ZO_Tooltip_AddDivider(InformationTooltip)
 		local r,g,b =  ZO_NORMAL_TEXT:UnpackRGB()
-		local mundusDescription = GetAbilityDescription(mundusAbs[mundusId])
-		-- Who knows why some descriptions are missing the dot. Or why they have separate abilityIds for the stones...
+		local mundusDescription = GetAbilityDescription(mundusId)
+		-- Who knows why some descriptions are missing the dot. Or why they had separate abilityIds for the stones at some point...
 		if not string.sub(mundusDescription, -1) == "." then mundusDescription = string.format("%s.", mundusDescription) end
 		InformationTooltip:AddLine(mundusDescription, "ZoFontGame", r, g, b, CENTER, MODIFY_TEXT_TYPE_NONE, TEXT_ALIGN_CENTER, true) 
 		local mLL = mundusLocs[mundusId]
@@ -91,8 +91,16 @@ function CSPS.InitializeMundusMenu()
 	for mundusId, abilityId in pairs(mundusAbs) do
 		local entry = mCB.comboBox:CreateItemEntry(zo_strformat("<<C:1>>", GetAbilityName(mundusId)), changeMundus)
 		entry.mundusId = mundusId
-		entry.description = GetAbilityDescription(abilityId)
+		entry.description = GetAbilityDescription(mundusId)
+		if not string.sub(entry.description, -1) == "." then entry.description = string.format("%s.", entry.description) end
+		--  How it works:
+		entry.onExit = function(control) ZO_Tooltips_ShowTextTooltip(control, LEFT, entry.description) end
+		entry.enabled = function() ZO_Tooltips_HideTextTooltip() end
+		-- How it should work:
+		-- entry.onEnter = function(control) ZO_Tooltips_ShowTextTooltip(control, LEFT, entry.description) end
+		-- entry.onExit = function() ZO_Tooltips_HideTextTooltip() end
 		mCB.comboBox:AddItem(entry)
+		
 	end
 
 	changeMundus(false, false, {mundusId =  getCurrentMundus()})

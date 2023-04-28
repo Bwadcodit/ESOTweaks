@@ -92,8 +92,6 @@ local L = {}
 	L.CSPS_CP_GREEN = "Grüne CP"
 	
 	L.CSPS_TxtCp = "CP"
-	L.CSPS_TxtCpOld = "CP 1.0"
-	L.CSPS_TxtCpNew = "CP 2.0"
 	--	Errormessages (chat)
 	L.CSPS_NoSavedData = "Keine gespeicherten Daten."
 	L.CSPS_TxtLangDiff = "Die Installationssprache wurde geändert. Alphabetisch geordnete Skilltypen werden übertragen."

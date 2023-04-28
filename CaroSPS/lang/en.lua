@@ -92,8 +92,7 @@ local L = {}
 	L.CSPS_CP_GREEN = "Green CP"
 	
 	L.CSPS_TxtCp = "CP"	-- shortest form for champion points
-	L.CSPS_TxtCpOld = "CP 1.0"
-	L.CSPS_TxtCpNew = "CP 2.0"
+	
 	--	Errormessages (chat)
 	L.CSPS_NoSavedData = "No saved data yet."
 	L.CSPS_TxtLangDiff = "The ingame language has been changed. Migrating data for the alphabetically ordered skill types."

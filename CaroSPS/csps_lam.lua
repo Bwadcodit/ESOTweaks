@@ -344,7 +344,7 @@ function CSPS.setupLam()
 					setFunc = function(value) 
 							options.applyAllExclude.outfit = not value
 						end,
-					disabled = function() return not options.showOutfits end,
+					disabled = function() return not options.showOutfits or not options.showApplyAll end,
 				},
 				
 			}

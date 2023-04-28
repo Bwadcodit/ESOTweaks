@@ -7,6 +7,125 @@ local tryingToApplySkills = false
 
 local skillTypes = {SKILL_TYPE_CLASS, SKILL_TYPE_WEAPON, SKILL_TYPE_ARMOR, SKILL_TYPE_WORLD, SKILL_TYPE_GUILD, SKILL_TYPE_AVA, SKILL_TYPE_RACIAL, SKILL_TYPE_TRADESKILL}
 
+local cpColors = CSPS.cpColors
+
+local mechanicFlagColors = {
+	[COMBAT_MECHANIC_FLAGS_HEALTH] = cpColors[3],
+	[COMBAT_MECHANIC_FLAGS_MAGICKA] =  cpColors[2],
+	[COMBAT_MECHANIC_FLAGS_STAMINA] =  cpColors[1],
+	[COMBAT_MECHANIC_FLAGS_ULTIMATE] =  cpColors[4],
+	[COMBAT_MECHANIC_FLAGS_WEREWOLF] =  cpColors[5],
+}
+
+function CSPS.getAbilityStats(skillData, fillTable)
+	if skillData.passive then return false end
+	fillTable = fillTable or {}
+	local statList = {}
+	
+	local abilityId = GetSpecificSkillAbilityInfo(skillData.type, skillData.line, skillData.index, skillData.morph, skillData.rank)
+	
+    local function GetNextAbilityMechanicFlagIter(abilityId)
+        return function(_, lastFlag)
+            return GetNextAbilityMechanicFlag(abilityId, lastFlag)
+        end
+    end
+   
+	-- channel/cast time
+	local channeled, castTime, channelTime = GetAbilityCastInfo(abilityId)
+	
+	if channeled then
+		channelTime = ZO_SELECTED_TEXT:Colorize(ZO_FormatTimeMilliseconds(channelTime, TIME_FORMAT_STYLE_CHANNEL_TIME, TIME_FORMAT_PRECISION_TENTHS_RELEVANT, TIME_FORMAT_DIRECTION_NONE))
+		table.insert(statList, string.format("%s: %s", GS(SI_ABILITY_TOOLTIP_CHANNEL_TIME_LABEL), channelTime))
+		fillTable.channelTime = channelTime
+	else
+		castTime = ZO_SELECTED_TEXT:Colorize(ZO_FormatTimeMilliseconds(castTime, TIME_FORMAT_STYLE_CAST_TIME, TIME_FORMAT_PRECISION_TENTHS_RELEVANT, TIME_FORMAT_DIRECTION_NONE))
+		table.insert(statList, string.format("%s: %s", GS(SI_ABILITY_TOOLTIP_CAST_TIME_LABEL), castTime))
+		fillTable.castTime = castTime
+	end
+	
+	-- target
+	local targetDescription = GetAbilityTargetDescription(abilityId)
+	if targetDescription then
+		targetDescription = ZO_SELECTED_TEXT:Colorize(targetDescription)
+		table.insert(statList, string.format("%s: %s", GS(SI_ABILITY_TOOLTIP_TARGET_TYPE_LABEL), targetDescription))
+		fillTable.targetDescription = targetDescription
+	end
+
+	--Range
+	local minRangeCM, maxRangeCM = GetAbilityRange(abilityId)
+	if maxRangeCM > 0 then
+		local rangeValue = minRangeCM == 0 and zo_strformat(SI_ABILITY_TOOLTIP_RANGE, FormatFloatRelevantFraction(maxRangeCM / 100)) or zo_strformat(SI_ABILITY_TOOLTIP_MIN_TO_MAX_RANGE, FormatFloatRelevantFraction(minRangeCM / 100), FormatFloatRelevantFraction(maxRangeCM / 100))
+		rangeValue = ZO_SELECTED_TEXT:Colorize(rangeValue)
+		table.insert(statList, string.format("%s: %s", GS(SI_ABILITY_TOOLTIP_RANGE_LABEL), rangeValue))
+		fillTable.range = rangeValue
+	end
+
+	--Radius/Distance
+	local radiusCM = GetAbilityRadius(abilityId)
+	local angleDistanceCM = GetAbilityAngleDistance(abilityId)
+	if radiusCM > 0 then
+		if angleDistanceCM > 0 then
+			fillTable.radius = ZO_SELECTED_TEXT:Colorize(zo_strformat(SI_ABILITY_TOOLTIP_AOE_DIMENSIONS, FormatFloatRelevantFraction(radiusCM / 100), FormatFloatRelevantFraction(angleDistanceCM * 2 / 100)))
+			table.insert(statList, string.format("%s: %s", GS(SI_ABILITY_TOOLTIP_AREA_LABEL), fillTable.radius))
+		else
+			fillTable.radius = ZO_SELECTED_TEXT:Colorize(zo_strformat(SI_ABILITY_TOOLTIP_RADIUS, FormatFloatRelevantFraction(radiusCM / 100)))
+			table.insert(statList, string.format("%s: %s", GS(SI_ABILITY_TOOLTIP_RADIUS_LABEL), fillTable.radius))
+		end
+	end
+
+	--Duration
+	if IsAbilityDurationToggled(abilityId) then
+		table.insert(statList, string.format("%s: %s", GS(SI_ABILITY_TOOLTIP_DURATION_LABEL), ZO_SELECTED_TEXT:Colorize(GS(SI_ABILITY_TOOLTIP_TOGGLE_DURATION))))
+		fillTable.duration = ZO_SELECTED_TEXT:Colorize(GS(SI_ABILITY_TOOLTIP_TOGGLE_DURATION))
+	else
+		local durationMS = GetAbilityDuration(abilityId, overrideActiveRank, overrideCasterUnitTag)
+		if durationMS > 0 then
+			fillTable.duration = ZO_SELECTED_TEXT:Colorize(ZO_FormatTimeMilliseconds(durationMS, TIME_FORMAT_STYLE_DURATION, TIME_FORMAT_PRECISION_TENTHS_RELEVANT, TIME_FORMAT_DIRECTION_NONE))
+			table.insert(statList, string.format("%s: %s", GS(SI_ABILITY_TOOLTIP_DURATION_LABEL), fillTable.duration))
+		end
+	end
+
+	--Cooldown
+	local cooldownMS = GetAbilityCooldown(abilityId)
+	if cooldownMS > 0 then
+		fillTable.cooldown = ZO_SELECTED_TEXT:Colorize(ZO_FormatTimeMilliseconds(cooldownMS, TIME_FORMAT_STYLE_DURATION, TIME_FORMAT_PRECISION_TENTHS_RELEVANT, TIME_FORMAT_DIRECTION_NONE))
+		table.insert(statList, string.format("%s: %s", GS(SI_ABILITY_TOOLTIP_COOLDOWN), fillTable.cooldown))
+	end
+
+	--Cost
+	for flag in GetNextAbilityMechanicFlagIter(abilityId) do
+		local cost = GetAbilityCost(abilityId, flag)
+		if cost > 0 then
+			local mechanicName = GS("SI_COMBATMECHANICFLAGS", flag)
+			local costString = zo_strformat(SI_ABILITY_TOOLTIP_RESOURCE_COST, cost, mechanicName)
+			if mechanicFlagColors[flag] then costString = mechanicFlagColors[flag]:Colorize(costString) end
+			table.insert(statList, string.format("%s: %s", GS(SI_ABILITY_TOOLTIP_RESOURCE_COST_LABEL), costString))
+			fillTable.cost = fillTable.cost or {}
+			fillTable.cost[flag] = costString
+		end
+	end
+
+	for flag in GetNextAbilityMechanicFlagIter(abilityId) do
+		local cost, chargeFrequencyMS = GetAbilityCostOverTime(abilityId, flag)
+		if cost > 0 then
+			local mechanicName = GS("SI_COMBATMECHANICFLAGS", flag)
+
+			if mechanicFlagColors[flag] then 
+				cost = mechanicFlagColors[flag]:Colorize(cost) 
+				mechanicName = mechanicFlagColors[flag]:Colorize(mechanicName) 
+			end
+
+			local formattedChargeFrequency = ZO_SELECTED_TEXT:Colorize(ZO_FormatTimeMilliseconds(chargeFrequencyMS, TIME_FORMAT_STYLE_SHOW_LARGEST_UNIT, TIME_FORMAT_PRECISION_TENTHS_RELEVANT, TIME_FORMAT_DIRECTION_NONE))
+			local costOverTimeString = zo_strformat(SI_ABILITY_TOOLTIP_RESOURCE_COST_OVER_TIME, cost, mechanicName, formattedChargeFrequency)
+			
+			table.insert(statList, string.format("%s: %s", GS(SI_ABILITY_TOOLTIP_RESOURCE_COST_LABEL), costOverTimeString))
+			fillTable.costOverTime = fillTable.costOverTime or {}
+			fillTable.costOverTime[flag] = costOverTimeString
+		end
+	end    
+	return statList
+end
+
 -- Drag and drop functions for hotbars ---
 function CSPS.onSkillDrag(i, j, k)
 	skillForHB = {i,j,k,IsSkillAbilityUltimate(i,j,k)}
@@ -70,6 +189,63 @@ function CSPS.hbSkillRemove(myBar, icon)
 	CSPS.unsavedChanges = true
 	CSPS.showElement("apply", true)
 	CSPS.showElement("save", true)
+end
+
+function CSPS.hbSkillTT(control, myBar, icon)
+	if CSPS.werewolfMode then myBar = 3 end
+	
+	local r,g,b =  ZO_NORMAL_TEXT:UnpackRGB()
+	if CSPS.hbTables[myBar][icon] ~= nil then
+		local i, j, k = unpack(CSPS.hbTables[myBar][icon])
+		local skillData = skillTable[i][j][k]
+		CSPS.showSkTT(control, i,j,k, skillData.morph, skillData.rank, skillData.errorCode, skillData, BOTTOM, true)		
+		InformationTooltip:AddLine(string.format("|t26:26:esoui/art/miscellaneous/icon_lmb.dds|t: %s", GS(SI_GAMEPAD_SKILLS_ASSIGN)), "ZoFontGame", r, g, b, CENTER, MODIFY_TEXT_TYPE_NONE, TEXT_ALIGN_CENTER, true)
+		InformationTooltip:AddLine(string.format("|t26:26:esoui/art/miscellaneous/icon_rmb.dds|t: %s", GS(SI_ABILITY_ACTION_CLEAR_SLOT)), "ZoFontGame", r, g, b, CENTER, MODIFY_TEXT_TYPE_NONE, TEXT_ALIGN_CENTER, true)
+	else 
+		ZO_Tooltips_ShowTextTooltip(control, TOP, string.format("|t26:26:esoui/art/miscellaneous/icon_lmb.dds|t: %s", GS(SI_GAMEPAD_SKILLS_ASSIGN)))
+	end
+end
+
+function CSPS.hbSkillMenu(myBar, icon)
+	ClearMenu()
+	for skillType, typeData in ipairs(CSPS.skillTable) do
+		local typeContent = {}
+		for skillLineIndex, lineData in ipairs(typeData) do
+			if not (skillType == 6 and skillLineIndex == CSPS.kaiserFranz) then
+				local anySkillsInLine = false
+				for skillIndex, skillData in ipairs(lineData) do
+					if skillData.purchased and not skillData.passive and skillData.hb[myBar] ~= icon then
+						local isUlti = IsSkillAbilityUltimate(skillType, skillLineIndex, skillIndex)
+						if isUlti and icon == 6 or not isUlti and icon < 6 then
+						
+							local skIcon = skillData.morph and skillData.morph > 0 and skillData.morphTextures[skillData.morph] or skillData.texture
+							local skName = skillData.morph and skillData.morph > 0 and skillData.morphNames[skillData.morph] or skillData.name
+							skName = string.format("|t20:20:%s|t %s", skIcon, skName)
+							table.insert(typeContent, {label = skName, callback =
+								function()
+									skillForHB = {skillType, skillLineIndex, skillIndex, isUlti}
+									CSPS.onHbIconReceive(myBar, icon)
+								end, tooltip = 
+								function(control, inside) 
+									if not inside then return end 
+									--CSPS.showSkTT(control, skillType, skillLineIndex, skillIndex, skillData.morph, skillData.rank, skillData.errorCode, skillData, LEFT, true)	
+								end})
+							anySkillsInLine = true
+							-- local menuItemControl = ZO_Menu.items[#ZO_Menu.items].item 
+							-- menuItemControl.onEnter = function() CSPS.showCpTT(menuItemControl, skillData, funcValue and funcValue(skillData) or nil, false, false, 15) end
+							-- menuItemControl.onExit = function() ZO_Tooltips_HideTextTooltip() end
+						end
+					end
+				end
+				if anySkillsInLine then table.insert(typeContent, {label = "-", callback = function() end}) end
+			end
+		end
+		if #typeContent > 0 then 
+			if typeContent[#typeContent].label == "-" then typeContent[#typeContent] = nil end
+			AddCustomSubMenuItem(GS("SI_SKILLTYPE", skillType), typeContent) 
+		end
+	end
+	ShowMenu() 
 end
 
 local function refreshSkillPointSum()

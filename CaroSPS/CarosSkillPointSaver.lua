@@ -326,7 +326,8 @@ function CSPS:Initialize()
 	
 	CSPS.setupLam()
 		
-	EVENT_MANAGER:RegisterForEvent(CSPS.name.."OnCpPurchase", EVENT_CHAMPION_PURCHASE_RESULT, cp.onCPChange)
+	cp.setupZoHooks()
+		
 	EVENT_MANAGER:RegisterForEvent(CSPS.name.."OnPlayerActivated", EVENT_PLAYER_ACTIVATED, function() CSPS.onPlayerActivated() end)
 	EVENT_MANAGER:UnregisterForEvent(CSPS.name.."OnAddOnLoaded", EVENT_ADD_ON_LOADED)
 end
