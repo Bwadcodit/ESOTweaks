@@ -6,7 +6,7 @@
 Roomba = {
     name = "Roomba",
     author = "|c3CB371@Masteroshi430|r, Wobin, CrazyDutchGuy, Ayantir & silvereyes",
-    version = "2023.08.02",
+    version = "2023.08.04-5",
     website = "http://www.esoui.com/downloads/info402-Roomba.html",
     debugMode = false,
 }
@@ -178,7 +178,7 @@ local function RoombaReady()
         if DoesPlayerHaveGuildPermission(currentBank, GUILD_PERMISSION_BANK_DEPOSIT) and DoesPlayerHaveGuildPermission(currentBank, GUILD_PERMISSION_BANK_WITHDRAW) then
             
             ScanInStackableBag(bagToScan)
-            
+			
             -- If they're is no buttons, add them
             if not KEYBIND_STRIP:HasKeybindButtonGroup(keybindDescriptor) then
                 if not KEYBIND_STRIP[keybindCheck] then
@@ -774,7 +774,7 @@ local function OnCloseGuildBank()
     local self = addon
   
     if db.RoombaAtGBank then
-        
+	
         if KEYBIND_STRIP:HasKeybindButtonGroup(keybindDescriptor) then
             KEYBIND_STRIP:RemoveKeybindButtonGroup(keybindDescriptor) 
         end
@@ -838,14 +838,13 @@ local function InitializeKeybind()
         alignment = db.RoombaPosition,
         [keyBindIndex] = {
             name = function() return descriptorName end,
-            keybind = "RUN_ROOMBA",
+            keybind = "RUN_ROOMBA", 
             control = self,
             callback = Roomba_StartRoomba, 
             visible = UpdateAndDisplayKeybind, 
             icon = [[Roomba\media\RoombaSearch.dds]],
         },
     }
-    
 end
 
 local function InitializeSpeedRow(control)
@@ -964,13 +963,11 @@ end
 
 -- Called by Bindings
 function Roomba_StartRoomba()
-
     if BagNeedRestack() then
         BeginStackingProcess()
     else
         BeginScanningProcess()
     end
-
 end
 
 -- Don't spam this function, GetNumBagFreeSlots & FindFirstEmptySlotInBag are slow to update (wait for Guild Bank event before using it twice)
