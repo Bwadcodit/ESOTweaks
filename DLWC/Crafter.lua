@@ -239,6 +239,7 @@ local function setupConditionsTable(quest, info,indexTableToUse)
 	return conditionsTable
 end
 
+
 function isCurrentStationsWritComplete()
 	-- TODO TWEAK HERE: this functon is reached after a craft is complete, which in the case of enchanting means the writ is fully crafted, thus auto-exit should be reached even if quest is not complete (materials still need to be acquired)
 	local station = GetCraftingInteractionType() -- TODO TWEAK HERE -- whole line, can be safely left here 
@@ -720,7 +721,7 @@ local showOnce= true
 local updateWarningShown = false
 local function craftCheck(eventcode, station)
 
-	local currentAPIVersionOfAddon = 101038
+	local currentAPIVersionOfAddon = 101039
 
 	if GetAPIVersion() > currentAPIVersionOfAddon and GetWorldName()~="PTS" and not updateWarningShown then 
 		d("Update your addons!") 
