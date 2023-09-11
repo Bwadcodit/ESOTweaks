@@ -3627,6 +3627,7 @@ function AG.MenuAction(nr)
             local XPProfile = 1
             local XPSet = 16
             if AG.setdata.currentProfileId == XPProfile and MENU.nr == XPSet then 
+                d('Copy XP skills ('..XPSet..') to all valid profiles')
                 for profileIdx = 1, MAX_PROFILES do
                     if profileIdx ~= XPProfile and AG.setdata.profiles[profileIdx].sortKey and AG.setdata.profiles[profileIdx].setdata then
                         for slotIdx = 1, 6 do
