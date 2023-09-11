@@ -3623,7 +3623,21 @@ function AG.MenuAction(nr)
             end 
             AG.handlePostChangeGearSetItems(MENU.nr)
         elseif MENU.type == AG.MENU_TYPE_SKILLS then 
-            AG.GetSkillFromBar(MENU.nr) 
+            -- TWEAK HERE
+            local XPProfile = 1
+            local XPSet = 16
+            if AG.setdata.currentProfileId == XPProfile and MENU.nr == XPSet then 
+                d('Copy XP skills ('..XPSet..') to all valid profiles')
+                for profileIdx = 1, MAX_PROFILES do
+                    if profileIdx ~= XPProfile and AG.setdata.profiles[profileIdx].sortKey and AG.setdata.profiles[profileIdx].setdata then
+                        for slotIdx = 1, 6 do
+                            AG.setdata.profiles[profileIdx].setdata[XPSet].Skill[slotIdx] = AG.setdata[XPSet].Skill[slotIdx]
+                        end
+                    end
+                end
+            else
+                AG.GetSkillFromBar(MENU.nr) -- ORIGINAL (single line)
+            end
         end
     elseif nr == 4 then
         -- Clear
