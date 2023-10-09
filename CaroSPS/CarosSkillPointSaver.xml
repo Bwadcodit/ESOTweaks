@@ -508,6 +508,18 @@
 							<OnMouseEnter>CSPS.showMundusTooltip(self:GetParent())</OnMouseEnter>
 							<OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>
                         </Label>
+						<Control name="$(parent)Dropdown" mouseEnabled="true" tier="HIGH" hidden="true" clampedToScreen="true" excludeFromResizeToFitExtents="true">
+							<Anchor point="BOTTOMLEFT" relativePoint="TOPLEFT" relativeTo="$(parent)Caption" />
+							<Controls>
+								<Backdrop name="$(parent)BG" inherits="ZO_DefaultBackdrop">
+									<AnchorFill />
+								</Backdrop>
+								<Control name="$(parent)Scroll" inherits="ZO_ScrollList">
+									<Anchor point="TOPLEFT" offsetY="ZO_SCROLLABLE_COMBO_BOX_LIST_PADDING_Y" />
+									<Anchor point="BOTTOMRIGHT" offsetY="-ZO_SCROLLABLE_COMBO_BOX_LIST_PADDING_Y" />
+								</Control>
+							</Controls>
+						</Control>
                     </Controls>
                 </Control>
 				

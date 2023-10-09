@@ -32,22 +32,6 @@ local mundusAbs = {
   [13975] = 60610, -- thief
 }
 
-local mundusFurniture = {
-  [13984] = 125457, -- shadow
-  [13985] = 125454, -- tower
-  [13940] = 125453, -- warrior
-  [13974] = 125458, -- serpent
-  [13943] = 125460, -- mage
-  [13978] = 126034, -- lord
-  [13977] = 125456, -- steed
-  [13976] = 125452, -- lady
-  [13979] = 125451, -- apprentice
-  [13980] = 125459, -- ritual
-  [13981] = 125461, -- lover
-  [13982] = 119556, -- atronach
-  [13975] = 125455, -- thief
-}
-
 local currentMundusId = false
 
 local function getCurrentMundus()
@@ -59,26 +43,6 @@ local function getCurrentMundus()
 	return false
 end
 
-
-local function findMundusInHome()
-	if currentMundusId == getCurrentMundus() or not currentMundusId then return end
-	local furnitureId = GetNextPlacedHousingFurnitureId()
-	while furnitureId do
-		local name = GetPlacedHousingFurnitureInfo(furnitureId)
-		local itemL, collectibleL = GetPlacedFurnitureLink(furnitureId)
-		if GetItemLinkItemId(itemL) == mundusFurniture[currentMundusId] then
-			local x,y,z = HousingEditorGetFurnitureWorldPosition(furnitureId)
-			d(itemL)
-			x, y = GetNormalizedWorldPosition((GetUnitWorldPosition("player")), x, y, z)
-			PingMap(MAP_PIN_TYPE_PLAYER_WAYPOINT, MAP_TYPE_LOCATION_CENTERED, x, y)
-			break
-		end
-		furnitureId = GetNextPlacedHousingFurnitureId(furnitureId)
-	end
-end
-
-CSPS.findMundusInHome = findMundusInHome
-
 function CSPS.showMundusTooltip(control, mundusId)	
 	mundusId = mundusId or currentMundusId
 	if mundusId then
@@ -86,8 +50,8 @@ function CSPS.showMundusTooltip(control, mundusId)
 		InformationTooltip:AddLine(zo_strformat("<<C:1>> |t28:28:<<2>>|t", GetAbilityName(mundusId), GetAbilityIcon(mundusId)), "ZoFontWinH2")
 		ZO_Tooltip_AddDivider(InformationTooltip)
 		local r,g,b =  ZO_NORMAL_TEXT:UnpackRGB()
-		local mundusDescription = GetAbilityDescription(mundusId)
-		-- Who knows why some descriptions are missing the dot. Or why they had separate abilityIds for the stones at some point...
+		local mundusDescription = GetAbilityDescription(mundusAbs[mundusId])
+		-- Who knows why some descriptions are missing the dot. Or why they have separate abilityIds for the stones...
 		if not string.sub(mundusDescription, -1) == "." then mundusDescription = string.format("%s.", mundusDescription) end
 		InformationTooltip:AddLine(mundusDescription, "ZoFontGame", r, g, b, CENTER, MODIFY_TEXT_TYPE_NONE, TEXT_ALIGN_CENTER, true) 
 		local mLL = mundusLocs[mundusId]
@@ -127,16 +91,8 @@ function CSPS.InitializeMundusMenu()
 	for mundusId, abilityId in pairs(mundusAbs) do
 		local entry = mCB.comboBox:CreateItemEntry(zo_strformat("<<C:1>>", GetAbilityName(mundusId)), changeMundus)
 		entry.mundusId = mundusId
-		entry.description = GetAbilityDescription(mundusId)
-		if not string.sub(entry.description, -1) == "." then entry.description = string.format("%s.", entry.description) end
-		--  How it works:
-		entry.onExit = function(control) ZO_Tooltips_ShowTextTooltip(control, LEFT, entry.description) end
-		entry.enabled = function() ZO_Tooltips_HideTextTooltip() end
-		-- How it should work:
-		-- entry.onEnter = function(control) ZO_Tooltips_ShowTextTooltip(control, LEFT, entry.description) end
-		-- entry.onExit = function() ZO_Tooltips_HideTextTooltip() end
+		entry.description = GetAbilityDescription(abilityId)
 		mCB.comboBox:AddItem(entry)
-		
 	end
 
 	changeMundus(false, false, {mundusId =  getCurrentMundus()})
