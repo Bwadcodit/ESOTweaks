@@ -1236,7 +1236,7 @@ function CSPS.tweakApplyFull()
 	if CSPS.currentProfile == 0 then return end
 	CSPS.profileXPIndex = -1
 	for i, profile in ipairs(CSPS.profiles) do
-		if profile.name == "9-XP" then
+		if profile.name:find("9-XP") then
 			CSPS.profileXPIndex = i
 			break
 		end
