@@ -1177,11 +1177,16 @@ function CSPS.tweakApplyFull()
 
 		CSPS.dialogHook = true
 
+		local profileIndex = CSPS.currentProfile
+		local keyLength = CSPS.profiles[CSPS.currentProfile].name:find("-")
+		local profileKey
+		if keyLength and keyLength > 1 then
+			profileKey = CSPS.profiles[CSPS.currentProfile].name:sub(1, keyLength - 1)
+		end
+
 		-- REF: CSPS.loadAndApplyByIndex(indexToLoad, excludeSkills, excludeAttributes, excludeGreenCP, excludeBlueCP, excludeRedCP, excludeHotbar, excludeGear, excludeQuickslots, excludeOutfit)
 		if CSPS.profileXPIndex > 0 then
-			local profileIndex = CSPS.currentProfile
-			local profileNum = CSPS.profiles[profileIndex].name:sub(1, 1)
-			if profileNum and profileNum == "0" or profileNum == "1" then -- craft/farm
+			if profileKey and profileKey == "0" or profileKey == "1" then -- craft/farm
 				-- apply XP skills
 				CSPS.loadAndApplyByIndex(CSPS.profileXPIndex, false, true, true, true, true, true, true, true, true)
 				-- apply build
@@ -1200,15 +1205,14 @@ function CSPS.tweakApplyFull()
 		
 		CSPS.dialogHook = false
 
-		if AG then
+		if AG and profileKey then
 			--if AG_Panel:IsHidden() then AG.ShowMain() end
-			local profileNum = CSPS.profiles[CSPS.currentProfile].name:sub(1, 1)
-			if profileNum == "0" then profileNum = "1" end
+			if profileKey == "0" then profileKey = "1" end
 			
 			for i, profileAG in ipairs(AG.setdata.profiles) do
-				if profileAG.sortKey == profileNum then
+				if profileAG.sortKey == profileKey then
 					AG.LoadProfile(i)
-					if (profileNum == "3") then
+					if (profileKey == "3") then
 						AG.LoadSet(4)
 						-- if GetUnitName("player") == "Azeell" then
 						-- 	AG.LoadSet(5)
@@ -1218,6 +1222,7 @@ function CSPS.tweakApplyFull()
 					else
 						AG.LoadSet(1)
 					end
+					break
 				end
 			end
 		end
@@ -1231,8 +1236,8 @@ function CSPS.tweakApplyFull()
 	if CSPS.currentProfile == 0 then return end
 	CSPS.profileXPIndex = -1
 	for i, profile in ipairs(CSPS.profiles) do
-		if profile.name:sub(1, 1) == "9" then 
-			CSPS.profileXPIndex = i 
+		if profile.name == "9-XP" then
+			CSPS.profileXPIndex = i
 			break
 		end
 	end
