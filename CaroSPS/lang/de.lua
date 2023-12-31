@@ -220,13 +220,19 @@ local L = {}
 	L.CSPS_LoadingError = "Bitte überprüfen: <<C:1>>"
 	
 	-- Options
+	L.CSPS_KeepLastBuild = "Behalte letztes Profil beim Schließen"
+	L.CSPS_KeepLastBuildTT = "Ist diese Einstellung aktiviert, wird das Addon beim Schließen des Fensters den jeweils letzten aktuellen Stand in ein unsichtbares Profil speichern. Dieses Profil wird dann beim nächsten Spielstart wieder geladen, damit du dort weitermachen kannst, wo du aufgehört hast. Andernfalls wird das Addon immer mit den tatsächlich angewandten aktuellen Daten starten."
+	L.CSPS_DeleteLastBuilds = "Sollen jetzt gespeicherte temporäre Profile auf allen Charakteren gelöscht werden?"
 	L.CSPS_ShowHb = "Fertigkeitenleiste einblenden"
-	L.CSPS_CPAutoOpen = "Öffne mit CP-Fenster"
+	L.CSPS_AutoOpen = "Automatisch öffnen mit..."
+	L.CSPS_CPAutoOpen = "CP-Fenster"
 	L.CSPS_CPCustomBar = "Separate CP-Leiste"
 	L.CSPS_CPCustomIcons = "Eigene CP-Symbole"
 	L.CSPS_CPCustomBarLayout = "Layout"
-	L.CSPS_ArmoryAutoOpen = "Am Arsenal öffnen"
+	L.CSPS_ArmoryAutoOpen = "Arsenal"
 	L.CSPS_Tooltip_ArmoryAutoOpen = "Wähle aus, ob das Addon automatisch beim Benutzen des Arsenals geöffnet werden soll."
+	L.CSPS_SkillWindowAutoOpen = "Fertigkeitenmenü"
+	L.CSPS_StatsWindowAutoOpen = "Charaktermenü"
 	L.CSPS_BtnApplyAll = "Alles anwenden"
 	L.CSPS_ShowBtnApplyAll = "Zeige 'Alles anwenden'-Knopf"
 	L.CSPS_ShowDateInProfileName = "Zeige 'Zuletzt gespeichert' hinter den Profilnamen"
@@ -252,6 +258,7 @@ local L = {}
 	L.CSPS_LAM_SortCP_1 = "Standard"
 	L.CSPS_LAM_SortCP_2 = "Alphabetisch"
 	L.CSPS_LAM_SortCP_3 = "Alphabetisch, passive Fertigkeiten separat"
+	L.CSPS_LAM_ShowNumSetItems = "Zeige Anzahl an Setteilen hinter Ausrüstungsbezeichnung. Sind Waffen beteiligt, werden zwei Zahlen im Format (Hauptleiste/Sekundärleiste) anzezeigt."
 	
 	-- Presets
 	L.CSPS_MSG_SwitchCP = "Setze Punkte in |c<<1>>'<<2>>'|r anstelle einer der anderen ausrüstbaren Fertigkeiten, wann immer du davon profitierst."
@@ -294,8 +301,8 @@ local L = {}
 	L.CSPS_ImpExp_Transfer_Profiles = "Profile..."
 	L.CSPS_ImpExp_Transfer_CPP = "Champion profile..."
 	L.CSPS_ImpExp_Transfer_CPHb = "Champion bar..."
-	L.CSPS_ImpExp_Transfer_CopyReplace = "Übetrage alle CP-Schnellleisten + Verknüpfungen (überschreiben)"
-	L.CSPS_ImpExp_Transfer_CopyAdd = "Übetrage alle CP-Schnellleisten + Verknüpfungen (behalte aktuelle)"
+	L.CSPS_ImpExp_Transfer_CopyReplace = "Übertrage alle CP-Schnellleisten + Verknüpfungen (überschreiben)"
+	L.CSPS_ImpExp_Transfer_CopyAdd = "Übertrage alle CP-Schnellleisten + Verknüpfungen (behalte aktuelle)"
 	
 	L.CSPS_Tooltip_Transfer_CopyReplace = "|cDE6531Alle aktuell für diesen Charakter gespeicherten CP-Schnellleisten und Verknüpfungen werden überschrieben.|r"
 	L.CSPS_Tooltip_Transfer_CopyAdd = "Übertrage die CP-Schnellleisten als zusätzliche Profile, behalte aber die aktuellen.\n|cDE6531Alle aktuell für diesen Character gesetzten Verknüpfungen werden überschrieben.|r"

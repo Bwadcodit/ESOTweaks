@@ -177,9 +177,16 @@
 							<Dimensions  y="24" />
 							<Anchor point="TOPLEFT" relativeTo="$(grandparent)" relativePoint="TOPLEFT"  offsetX="8" offsetY="8" />
 						</Label>
+						<Button name="$(grandparent)BtnListSelect">
+							<Dimensions y="25" x="25" />
+							<Anchor point="TOPLEFT" relativeTo="$(grandparent)SetsLabel" relativePoint="BOTTOMLEFT"  offsetY="5" />
+							
+							<Textures normal="esoui/art/tradinghouse/tradinghouse_listings_tabicon_up.dds" pressed="esoui/art/tradinghouse/tradinghouse_listings_tabicon_down.dds" mouseOver="esoui/art/tradinghouse/tradinghouse_listings_tabicon_over.dds" />
+							<OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>	
+						</Button>
 						<Backdrop name="$(grandparent)Sets" tier="1" inherits="ZO_SingleLineEditBackdrop_Keyboard"> <!-- tier HIGH? -->
 							<Dimensions  y="25" />					
-							<Anchor point="TOPLEFT" relativeTo="$(grandparent)SetsLabel" relativePoint="BOTTOMLEFT"  offsetY="5" />
+							<Anchor point="TOPLEFT" relativeTo="$(grandparent)BtnListSelect" relativePoint="TOPRIGHT"  offsetX="5" />
 							<Anchor point="RIGHT" relativeTo="$(grandparent)" relativePoint="RIGHT"  offsetX="-8" constrains="X" />
 							<Controls>
 								<EditBox name="$(parent)Edit" inherits="ZO_DefaultEditForBackdrop ZO_EditDefaultText">

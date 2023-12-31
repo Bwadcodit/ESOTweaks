@@ -1417,7 +1417,7 @@ function CSPS.showQuickSlotProfileTT(control, myType, myId)
 	
 	if not compressedProfile then return end
 	
-	local qsProfile = CSPS.extractQS(compressedProfile.hbComp)
+	local qsProfile, qsActive = CSPS.extractQS(compressedProfile.hbComp)
 	
 	if not qsProfile or type(qsProfile) ~= "table" then return end
 	
@@ -1426,7 +1426,7 @@ function CSPS.showQuickSlotProfileTT(control, myType, myId)
 
 	ZO_Tooltip_AddDivider(InformationTooltip)
 	
-	CSPS.addQsBarsToTooltip(qsProfile)
+	CSPS.addQsBarsToTooltip(qsProfile, qsActive)
 	
 	addConnectionToTooltip(myType, myId, 4)
 end

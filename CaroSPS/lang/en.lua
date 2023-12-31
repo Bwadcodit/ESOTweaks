@@ -221,13 +221,19 @@ local L = {}
 	L.CSPS_LoadingError = "Please check skill: <<C:1>>"
 	
 	-- Options
+	L.CSPS_KeepLastBuild = "Keep last build on closing"
+	L.CSPS_KeepLastBuildTT = "If activated, the addon will always save the current build to an invisible profile when you close the window. This profile will then be loaded the next time you start the game and open the addon so you can continue where you left off. If not activated the addon will always start with the actual currently applied build."
+	L.CSPS_DeleteLastBuilds = "Should the temporary profiles be deleted on all characters?"
 	L.CSPS_ShowHb = "Show hotbar"
-	L.CSPS_CPAutoOpen = "Open with CP window"
+	L.CSPS_AutoOpen = "Open automatically with..."
+	L.CSPS_CPAutoOpen = "CP window"
 	L.CSPS_CPCustomBar = "Separate CP bar"
 	L.CSPS_CPCustomIcons = "Custom CP icons"
 	L.CSPS_CPCustomBarLayout = "Layout"
-	L.CSPS_ArmoryAutoOpen = "Open with armory"
+	L.CSPS_ArmoryAutoOpen = "Armory"
 	L.CSPS_Tooltip_ArmoryAutoOpen = "Check this box, if the addon should be shown every time you use the armory."
+	L.CSPS_SkillWindowAutoOpen = "Skills menu"
+	L.CSPS_StatsWindowAutoOpen = "Character menu"
 	L.CSPS_BtnApplyAll = "Apply everything"
 	L.CSPS_ShowBtnApplyAll = "Display 'apply everything' button"
 	L.CSPS_ShowDateInProfileName = "Show last modified in profile name"
@@ -253,6 +259,7 @@ local L = {}
 	L.CSPS_LAM_SortCP_1 = "Standard"
 	L.CSPS_LAM_SortCP_2 = "Alphabetical"
 	L.CSPS_LAM_SortCP_3 = "Alphabetical, passive skills separately"
+	L.CSPS_LAM_ShowNumSetItems = "Show number of active set items behind item names. Number will be shown as (front bar/back bar) if weapons are part of the set."
 	
 	-- Presets
 	L.CSPS_MSG_SwitchCP = "Invest points into |c<<1>>'<<2>>'|r instead of one of the other slottables whenever you might profit from it."

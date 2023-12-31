@@ -239,7 +239,7 @@ local function NodeSetupAttr(node, control, data, open, userRequested, enabled)
 	myCtrText:SetText(myText)
 	myCtrValue:SetText(CSPS.attrPoints[data.i])
 	
-	myCtrBtnMinus:SetHidden(CSPS.attrPoints[data.i] == 0)
+	myCtrBtnMinus:SetHidden(tonumber(CSPS.attrPoints[data.i] or 0) <= 0)
 	myCtrBtnPlus:SetHidden(CSPS.attrPoints[1] + CSPS.attrPoints[2] + CSPS.attrPoints[3] >= CSPS.attrSum())
 	
 	myCtrBtnMinus:SetHandler("OnClicked", function(_,_,ctrl,alt,shift) CSPS.attrBtnPlusMinus(data.i, -1, ctrl,alt,shift) end)

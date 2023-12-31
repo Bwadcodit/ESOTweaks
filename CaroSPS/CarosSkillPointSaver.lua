@@ -306,8 +306,18 @@ function CSPS:Initialize()
 	
 	CSPS.toggleStrictOrder(mySettings.strictOrder or false)
 	--local cpRemindMe = mySettings.cpReminder or false
-	CSPS.toggleCPAutoOpen()
-	CSPS.toggleArmoryAutoOpen()
+	mySettings.autoShowScenes = mySettings.autoShowScenes or {}
+	if mySettings.cpAutoOpen ~= nil then 
+		mySettings.autoShowScenes["championPerks"] = mySettings.cpAutoOpen
+		mySettings.cpAutoOpen = nil
+	end
+	if mySettings.armoryAutoOpen ~= nil then 
+		mySettings.autoShowScenes["armoryKeyboard"] = mySettings.armoryAutoOpen
+		mySettings.armoryAutoOpen = nil
+	end
+	CSPS.registerFragment()
+	--CSPS.toggleCPAutoOpen()
+	--CSPS.toggleArmoryAutoOpen()
 	CSPS.toggleCP(0, mySettings.applyCP and CSPS.unlockedCP)
 	mySettings.showHotbar = nil
 	
@@ -376,7 +386,7 @@ function CSPS.saveBuild()
 end
 
 
-function CSPS.saveBuildGo()
+function CSPS.saveBuildGo(useAuxProfile)
 	local skillTableClean = CSPS.compressLists()
 	local hbComp = CSPS.hbCompress(CSPS.hbTables)
 	local attrComp = CSPS.attrCompress(CSPS.attrPoints)
@@ -389,7 +399,11 @@ function CSPS.saveBuildGo()
 	
 	-- local myKeys = generateKeys()
 	local profileToSave = {}
-	if CSPS.currentProfile == 0 then
+	if useAuxProfile then
+		CSPS.currentCharData.auxProfile = CSPS.currentCharData.auxProfile or {}
+		profileToSave = CSPS.currentCharData.auxProfile
+		profileToSave.profileIndex = CSPS.currentProfile
+	elseif	CSPS.currentProfile == 0 then
 		profileToSave = CSPS.currentCharData
 	else 
 		profileToSave = CSPS.profiles[CSPS.currentProfile]
@@ -629,13 +643,15 @@ end
 
 
 	
-function CSPS.loadBuild()
+function CSPS.loadBuild(useAuxProfile)
 	CSPS.showElement("apply", true)
 	CSPS.showElement("save", true)
-	if CSPS.currentCharData.werte == nil and CSPS.profiles == {} then cspsPost(GS(CSPS_NoSavedData)) return end
+	if CSPS.currentCharData.werte == nil and CSPS.profiles == {} and (not CSPS.currentCharData.auxProfile or not useAuxProfile) then cspsPost(GS(CSPS_NoSavedData)) return end
 		
 	local myProfile = CSPS.currentProfile == 0 and CSPS.currentCharData or CSPS.profiles[CSPS.currentProfile]
-
+	if useAuxProfile then
+		myProfile = CSPS.currentCharData.auxProfile
+	end
 	local skillTableClean = myProfile.werte
 	local cpComp = myProfile.cp2werte or ""
 	local cpHbComp = myProfile.cp2hbwerte or ""
@@ -703,7 +719,7 @@ function CSPS.loadBuild()
 	end
 	
 	CSPS.refreshTree() 
-	CSPS.unsavedChanges = false
+	CSPS.unsavedChanges = useAuxProfile == true
 end
 
 
@@ -713,26 +729,39 @@ end
 
 function CSPS.applyAttr(skipDiag)
 	if not CSPS.tabEx then return end
-	local attr1 = CSPS.attrPoints[1] -  GetAttributeSpentPoints(1)
-	local attr2 = CSPS.attrPoints[2] -  GetAttributeSpentPoints(2)
-	local attr3 = CSPS.attrPoints[3] -  GetAttributeSpentPoints(3)
-	if attr1 == 0 and attr2 == 0 and attr3 == 0 then return end
-	if attr1 + attr2 + attr3 > GetAttributeUnspentPoints() then	--- Are there enough points to spend?
-		ZO_Dialogs_ShowDialog(CSPS.name.."_OkDiag", {},  {mainTextParams = {GS(CSPS_MSG_ConfirmAttr1)}, titleParams = {GS(CSPS_MSG_ConfirmAttrTitle)}})
-		return 
+	local attrToSpend = {}
+	for i=1, 3 do
+		attrToSpend[i] = CSPS.attrPoints[i] -  GetAttributeSpentPoints(i)
+	end
+	if attrToSpend[1] == 0 and attrToSpend[2] == 0 and attrToSpend[3] == 0 then return end
+	local unspent = GetAttributeUnspentPoints()
+	local sumToSpend = attrToSpend[1] + attrToSpend[2] + attrToSpend[3]
+	local origSumToSpend = sumToSpend
+	local attrIndex = 1
+	while sumToSpend > unspent do
+		attrToSpend[attrIndex] = math.max(attrToSpend[attrIndex] - 1, 0)
+		attrIndex = attrIndex%3 + 1
+		sumToSpend = attrToSpend[1] + attrToSpend[2] + attrToSpend[3]
 	end 
-	if attr1 < 0 or attr2 < 0 or attr3 < 0 then -- any attr points already higher than intended?
+	if attrToSpend[1] < 0 or attrToSpend[2] < 0 or attrToSpend[3] < 0 then -- any attr points already higher than intended?
 		ZO_Dialogs_ShowDialog(CSPS.name.."_OkDiag", {},  {mainTextParams = {GS(CSPS_MSG_ConfirmAttr2)}, titleParams = {GS(CSPS_MSG_ConfirmAttrTitle)}})
 		return 
 	end
 	if not skipDiag then
+		local diagText = {zo_strformat(GS(CSPS_MSG_ConfirmAttr), origSumToSpend, unspent),
+			"",
+			CSPS.cpColors[3]:Colorize(string.format("%s: %s", GS(SI_ATTRIBUTES1), attrToSpend[1])),
+			CSPS.cpColors[2]:Colorize(string.format("%s: %s", GS(SI_ATTRIBUTES2), attrToSpend[2])),
+			CSPS.cpColors[1]:Colorize(string.format("%s: %s", GS(SI_ATTRIBUTES3), attrToSpend[3])),
+			}
+		diagText = table.concat(diagText, "\n")
 		ZO_Dialogs_ShowDialog(CSPS.name.."_OkCancelDiag", 
 			{returnFunc = function() 
-				PurchaseAttributes(attr1, attr2, attr3)
-			end},  
-			{mainTextParams = {zo_strformat(GS(CSPS_MSG_ConfirmAttr), attr1+attr2+attr3, GetAttributeUnspentPoints())}, titleParams = {GS(CSPS_MSG_ConfirmAttrTitle)}})
+				PurchaseAttributes(unpack(attrToSpend))
+			end},  			
+			{mainTextParams = {diagText}, titleParams = {GS(CSPS_MSG_ConfirmAttrTitle)}})
 	else
-		PurchaseAttributes(attr1, attr2, attr3)
+		PurchaseAttributes(unpack(attrToSpend))
 	end
 end
 

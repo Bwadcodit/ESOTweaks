@@ -614,7 +614,16 @@ local sfSetIds = {
 	[706] = 16620, -- Perfected Test of Resolve
 	[707] = 16621, -- Perfected Ansuul's Torment
 	[708] = 16622, -- Perfected Peace and Serenity
-	 
+	[711] = 17847, --Jerall Mountains Warchief
+	[712] = 17848, --Nibenay Bay Battlereeve /
+	[713] = 17849, --Colovian Highlands General
+	[722] = 17850, --Reawakened Hierophant /
+	[723] = 17851, --Basalt-Blooded Warrior 
+	[724] = 17852, --Nobility in Decay  
+	[726] = 17853, --Soulcleaver  
+	[727] = 17854, --Monolith of Storms 
+	[728] = 17855, --Wrathsun
+	[729] = 17856, --Gardener of Seasons 
 }
 
 local sfTraits = {
