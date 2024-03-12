@@ -1167,3 +1167,102 @@ function CSPS.checkCpOnClose()
 	
 end
 
+
+--------------TWEAK-------------
+--[
+
+function CSPS.tweakApplyFull()
+
+	local function tweakApplyFullGo()
+
+		CSPS.dialogHook = true
+
+		local profileIndex = CSPS.currentProfile
+		local keyLength = CSPS.profiles[CSPS.currentProfile].name:find("-")
+		local profileKey
+		if keyLength and keyLength > 1 then
+			profileKey = CSPS.profiles[CSPS.currentProfile].name:sub(1, keyLength - 1)
+		end
+
+		-- REF: CSPS.loadAndApplyByIndex(indexToLoad, excludeSkills, excludeAttributes, excludeGreenCP, excludeBlueCP, excludeRedCP, excludeHotbar, excludeGear, excludeQuickslots, excludeOutfit)
+		if CSPS.profileXPIndex > 0 then
+			if profileKey and profileKey == "0" or profileKey == "1" then -- craft/farm
+				-- apply XP skills
+				CSPS.loadAndApplyByIndex(CSPS.profileXPIndex, false, true, true, true, true, true, true, true, true)
+				-- apply build
+				CSPS.loadAndApplyByIndex(profileIndex, false, false, false, false, false, true, true, false, true)
+			else
+				-- apply build
+				CSPS.loadAndApplyByIndex(profileIndex, false, false, false, false, false, true, true, false, true)
+				-- apply XP skills
+				CSPS.loadAndApplyByIndex(CSPS.profileXPIndex, false, true, true, true, true, true, true, true, true)
+				-- re-load previous build
+				CSPS.loadAndApplyByIndex(profileIndex, true, true, true, true, true, true, true, true, true)
+			end
+		else
+			CSPS.loadAndApplyByIndex(CSPS.currentProfile, false, false, false, false, false, true, true, false, true)
+		end
+		
+		CSPS.dialogHook = false
+
+		if AG and profileKey then
+			--if AG_Panel:IsHidden() then AG.ShowMain() end
+			if profileKey == "0" then profileKey = "1" end
+			
+			for i, profileAG in ipairs(AG.setdata.profiles) do
+				if profileAG.sortKey == profileKey then
+					AG.LoadProfile(i)
+					if (profileKey == "3") then
+						AG.LoadSet(4)
+						-- if GetUnitName("player") == "Azeell" then
+						-- 	AG.LoadSet(5)
+						-- else
+						-- 	AG.LoadSet(4)
+						-- end
+					else
+						AG.LoadSet(1)
+					end
+					break
+				end
+			end
+		end
+		CSPSWindow:SetHidden(true)
+	end
+
+	if GetAttributeUnspentPoints() ~= 64 then return end
+	for i=1,3 do 
+		if GetNumSpentChampionPoints(GetChampionDisciplineId(i)) ~= 0 then return end
+	end
+	if CSPS.currentProfile == 0 then return end
+	CSPS.profileXPIndex = -1
+	for i, profile in ipairs(CSPS.profiles) do
+		if profile.name:find("9-XP") then
+			CSPS.profileXPIndex = i
+			break
+		end
+	end
+	if CSPS.currentProfile == CSPS.profileXPIndex then return end
+
+	ZO_Dialogs_ShowDialog(CSPS.name.."_OkCancelDiag", 
+		{returnFunc = function() tweakApplyFullGo() end},  
+		{mainTextParams = {zo_strformat("Apply Full Profile?")}, titleParams = {GS(CSPS_MyWindowTitle)}})
+end
+
+local function dialogHook(name, data, textParams, isGamepad)
+	if CSPS.dialogHook then
+		--d("dialogHook: "..tostring(name))
+		--if textParams then
+		--	d("dialogHook: "..tostring(textParams.titleParams[1]))
+		--	d("dialogHook: "..tostring(textParams.mainTextParams[1]))
+		--end
+		if data.returnFunc ~= nil and type(data.returnFunc) == "function" then
+			data.returnFunc()
+			return true
+		end
+	end
+end
+
+ZO_PreHook("ZO_Dialogs_ShowDialog", dialogHook)
+
+--]]
+--------------------------------
