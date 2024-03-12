@@ -508,7 +508,7 @@
       <Anchor point="LEFT" relativePoint="RIGHT" relativeTo="GuiRoot" offsetX="400" offsetY="300"/>
       <Dimensions x="430" y="96"/>
       <Edge edgeSize="1"/>
-      <OnInitialized>self:SetParent(ZO_ActionBar1)</OnInitialized>
+      <OnInitialized>self:SetParent(ZO_CompassFrame)</OnInitialized>
       <OnMouseEnter>WINDOW_MANAGER:SetMouseCursor(MOUSE_CURSOR_PAN);self:SetAlpha(1)</OnMouseEnter>
       <OnMouseExit>WINDOW_MANAGER:SetMouseCursor(MOUSE_CURSOR_DO_NOT_CARE);self:SetAlpha(0)</OnMouseExit>
       <OnMouseUp>AG.StorePosition(self)</OnMouseUp>
@@ -517,7 +517,7 @@
       <Anchor point="CENTER" relativePoint="CENTER" relativeTo="AG_SwapMessageBg"/>
       <Dimensions x="414" y="80"/>
       <!-- Anchor point="2" relativePoint="8" relativeTo="AG_Charge2" offsetX="800"/ -->
-      <OnInitialized>self:SetParent(ZO_ActionBar1)</OnInitialized>
+      <OnInitialized>self:SetParent(ZO_CompassFrame)</OnInitialized>
       <Controls>
         <Texture name="$(parent)Icon">
           <Anchor point="LEFT" relativePoint="LEFT" relativeTo="AG_SwapMessage"/>
@@ -539,7 +539,7 @@
       <Anchor point="3" relativePoint="3" relativeTo="AG_Charge1"/>
       <Dimensions x="247" y="100"/>
       <Edge edgeSize="1"/>
-      <OnInitialized>self:SetParent(ZO_ActionBar1)</OnInitialized>
+      <OnInitialized>self:SetParent(ZO_CompassFrame)</OnInitialized>
       <OnMouseEnter>WINDOW_MANAGER:SetMouseCursor(MOUSE_CURSOR_PAN);self:SetAlpha(1)</OnMouseEnter>
       <OnMouseExit>WINDOW_MANAGER:SetMouseCursor(MOUSE_CURSOR_DO_NOT_CARE);self:SetAlpha(0)</OnMouseExit>
       <OnMouseUp>AG.StorePosition(self)</OnMouseUp>
@@ -548,7 +548,7 @@
     <Control name="AG_SetButtonFrame" hidden="true">
       <Anchor point="CENTER" relativePoint="CENTER" relativeTo="AG_SetButtonBg"/>
       <Dimensions x="227" y="80"/>
-      <OnInitialized>self:SetParent(ZO_ActionBar1)</OnInitialized>
+      <OnInitialized>self:SetParent(ZO_CompassFrame)</OnInitialized>
       <Controls>
         <Label name="$(parent)ProfileName" font="AGFont" color="FFAA33" horizontalAlignment="LEFT" verticalAlignment="TOP">
           <Anchor point="TOPLEFT" relativePoint="TOPLEFT" relativeTo="$(parent)" offsetX="0" offsetY="0"/>
