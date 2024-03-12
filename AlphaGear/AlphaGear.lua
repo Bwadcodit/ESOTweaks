@@ -2,7 +2,7 @@ AG = {}
 
 AG.name = 'AlphaGear'
 AG.displayname = 'AlphaGear 2'
-AG.version = 'v6.15.4'
+AG.version = 'v6.17.0'
 AG.author = 'mesota'
 AG.init = false
 AG.pendingSet = -1
@@ -2232,7 +2232,7 @@ function AG.UpdateCondition(_,bag,slot)
     if GetItemInstanceId(BAG_WORN, slot) then
 		local itemLink = GetItemLink(BAG_WORN,slot)
 		
-	    if AG.isShowItemQuality() then
+	    if AG.isShowItemCondition() then
             t:SetHidden(false)
             t:SetColor(Quality(itemLink, 1))
         else 
@@ -3035,10 +3035,12 @@ function AG.setupGearIcon()
 
 	if showIcon then
         EM:RegisterForEvent('AG_Event_Repair', EVENT_INVENTORY_SINGLE_SLOT_UPDATE, AG.UpdateRepair)
+        EM:RegisterForEvent('AG_Event_Repair_Armory',  EVENT_ARMORY_BUILD_RESTORE_RESPONSE, AG.UpdateRepair)
 		-- only worn items need to be repaired
 		EM:AddFilterForEvent('AG_Event_Repair', EVENT_INVENTORY_SINGLE_SLOT_UPDATE, REGISTER_FILTER_BAG_ID, BAG_WORN) 
         AG.UpdateRepair(nil, BAG_WORN)
     else
+        EM:UnregisterForEvent('AG_Event_Repair_Armory', EVENT_ARMORY_BUILD_RESTORE_RESPONSE)
         EM:UnregisterForEvent('AG_Event_Repair', EVENT_INVENTORY_SINGLE_SLOT_UPDATE)
     end
 end
@@ -4016,7 +4018,7 @@ function AG:Initialize()
 
     SM:RegisterTopLevel(AG_Panel,false)
 
-
+    EM:RegisterForEvent("AG4", EVENT_ARMORY_BUILD_RESTORE_RESPONSE,  AG.ClearAvailableEquipmentCache)
     EM:RegisterForEvent('AG4', EVENT_ACTION_SLOTS_FULL_UPDATE, AG.Swap)
     EM:RegisterForEvent('AG4', EVENT_INVENTORY_FULL_UPDATE, AG.ClearAvailableEquipmentCache)
     EM:RegisterForEvent('AG4', EVENT_PLAYER_COMBAT_STATE, AG.OnPlayerCombatState)
