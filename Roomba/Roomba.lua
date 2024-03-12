@@ -6,7 +6,7 @@
 Roomba = {
     name = "Roomba",
     author = "|c3CB371@Masteroshi430|r, Wobin, CrazyDutchGuy, Ayantir & silvereyes",
-    version = "2024.02.01",
+    version = "2024.03.11-2",
     website = "http://www.esoui.com/downloads/info402-Roomba.html",
     debugMode = false,
 }
@@ -53,6 +53,20 @@ function addon.WorkInProgress()
     return restackInProgress
 end
 
+-- this excludes unstackable siege weapons 
+function GetRealSlotStackSize(sourceBag, slotIndex)
+
+    local stack, maxStack = GetSlotStackSize(sourceBag, slotIndex)
+	local itemType = GetItemType(sourceBag, slotIndex)
+    local itemLink = GetItemLink(sourceBag, slotIndex, LINK_STYLE_BRACKETS)
+
+	local hp = select(23, ZO_LinkHandler_ParseLink(itemLink))
+    if itemType == ITEMTYPE_SIEGE and hp ~= "0" and hp ~= tostring(GetItemLinkSiegeMaxHP(itemLink)) then 
+       maxStack = 1
+    end 
+    return stack, maxStack 
+end
+
 -- Scan in a stackable bag
 local function ScanInStackableBag(bagToScan)
 
@@ -64,7 +78,7 @@ local function ScanInStackableBag(bagToScan)
     for index, slot in pairs(bagToScan) do
         
         -- Stack at max?
-        local stack, maxStack = GetSlotStackSize(slot.bagId, slot.slotIndex)
+        local stack, maxStack = GetRealSlotStackSize(slot.bagId, slot.slotIndex)
         
         -- Stack is not at max
         if stack ~= maxStack then
@@ -126,7 +140,7 @@ local function registerThisItem()
 	   
         if slot.itemInstanceId == ThatItemInstanceId then
 			-- Stack at max?
-			local stack, maxStack = GetSlotStackSize(slot.bagId, slot.slotIndex)
+			local stack, maxStack = GetRealSlotStackSize(slot.bagId, slot.slotIndex)
 			
 			-- Stack is not at max
 			if stack ~= maxStack then
@@ -351,7 +365,7 @@ local function RestackStackableBag(bagId, duplicateList)
                 if not baseSlot then
                     -- Our actual stack / Our max size
                     baseSlot = itemInfo
-                    baseSlot.actualStack, baseSlot.maxStack = GetSlotStackSize(bagId, itemInfo.slotId)
+                    baseSlot.actualStack, baseSlot.maxStack = GetRealSlotStackSize(bagId, itemInfo.slotId)
                 else
                     
                     local qty
@@ -452,7 +466,7 @@ local function RestackStackableBag(bagId, duplicateList)
             [1] = {}
         }
         
-        local stack, maxStack = GetSlotStackSize(bagId, dataItems[1].slotId)
+        local stack, maxStack = GetRealSlotStackSize(bagId, dataItems[1].slotId)
         local qtyToPush = qtyToMoveToGuildBank
         
         local pushBack = true
@@ -983,7 +997,7 @@ local function PreHookTransferToGuildBank()
             Debug("TransferToGuildBankByBackpack(" .. tostring(sourceBag) .. ", " .. tostring(slotIndex) .. ")")
             if GetNumBagFreeSlots(BAG_BACKPACK) >= 1 and GetNumBagFreeSlots(BAG_GUILDBANK) >= 1 then
                 local proxySlot = FindFirstEmptySlotInBag(BAG_BACKPACK)
-                local stack, maxStack = GetSlotStackSize(sourceBag, slotIndex)
+                local stack, maxStack = GetRealSlotStackSize(sourceBag, slotIndex)
                 local qtyTuPush = qtyToMoveToGuildBank or 0 -- Var can be nil
                 qtyTuPush = math.min(stack, maxStack, qtyTuPush) -- qtyToMoveToGuildBank > maxStack too. Avoid this.
                 
