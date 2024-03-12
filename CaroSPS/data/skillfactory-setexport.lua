@@ -624,7 +624,18 @@ local sfSetIds = {
 	[727] = 17854, --Monolith of Storms 
 	[728] = 17855, --Wrathsun
 	[729] = 17856, --Gardener of Seasons 
-}
+	[730] = 0, -- Cinders of Anthelmir
+	[731] = 0, -- Sluthrug's Hunger
+	[732] = 0, -- Black-Glove Grounding
+	[734] = 0, -- Anthelmir's Construct
+	[735] = 0, -- Blind Path Induction
+	[736] = 0, -- Tarnished Nightmare
+	[737] = 0, -- Reflected Fury
+	[738] = 0, -- The Blind
+	[754] = 0, -- Oakfather's Retribution
+	[755] = 0, -- Blunted Blades
+	[756] = 0, -- Baan Dar's Blessing
+} -- /script xyz = GetNextItemSetCollectionId(xyz) StartChatInput("["..xyz.."] = 0, -- "..GetItemSetName(xyz))
 
 local sfTraits = {
 		-- Armor traits

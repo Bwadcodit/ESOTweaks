@@ -489,14 +489,14 @@
 					<Dimensions y="24" />
 					<Anchor point="TOPRIGHT" relativePoint="BOTTOMRIGHT" relativeTo="$(grandparent)SubProfiles" offsetX="-7" offsetY="8" />
                     <OnInitialized> ZO_ComboBox:New(self) </OnInitialized>
-                    <OnMouseUp>if upInside then ZO_ComboBox_DropdownClicked(self) end</OnMouseUp>
+                    <OnMouseUp>if upInside then ZO_ComboBox_OpenDropdown(self) end</OnMouseUp>
 					<OnMouseEnter>CSPS.showMundusTooltip(self)</OnMouseEnter>
 					<OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>
                     <Controls>
                         
 						<Texture name="$(parent)MundusIcon" mouseEnabled="true" textureFile="esoui/art/zonestories/completiontypeicon_mundusstone.dds">
 						  <Anchor point="LEFT"/>
-                            <OnMouseUp>if upInside then ZO_ComboBox_DropdownClicked(self:GetParent()) end </OnMouseUp>
+                            <OnMouseUp>if upInside then ZO_ComboBox_OpenDropdown(self:GetParent()) end </OnMouseUp>
 							<OnMouseEnter>CSPS.showMundusTooltip(self:GetParent())</OnMouseEnter>
 							<OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>
 						  <Dimensions x="25" y="25"/>
@@ -504,7 +504,7 @@
 						<Label name="$(parent)SelectedItemText" inherits="ZO_TooltipIfTruncatedLabel" color="INTERFACE_COLOR_TYPE_TEXT_COLORS:INTERFACE_TEXT_COLOR_SELECTED">
                             <Dimensions y="24" />
 							<Anchor point="LEFT" relativeTo="$(parent)MundusIcon" relativePoint="RIGHT" offsetX="3" offsetY="0"/>		
-                            <OnMouseUp>if upInside then ZO_ComboBox_DropdownClicked(self:GetParent()) end </OnMouseUp>
+                            <OnMouseUp>if upInside then ZO_ComboBox_OpenDropdown(self:GetParent()) end </OnMouseUp>
 							<OnMouseEnter>CSPS.showMundusTooltip(self:GetParent())</OnMouseEnter>
 							<OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>
                         </Label>

@@ -129,12 +129,9 @@ function CSPS.InitializeMundusMenu()
 		entry.mundusId = mundusId
 		entry.description = GetAbilityDescription(mundusId)
 		if not string.sub(entry.description, -1) == "." then entry.description = string.format("%s.", entry.description) end
-		--  How it works:
-		entry.onExit = function(control) ZO_Tooltips_ShowTextTooltip(control, LEFT, entry.description) end
-		entry.enabled = function() ZO_Tooltips_HideTextTooltip() end
-		-- How it should work:
-		-- entry.onEnter = function(control) ZO_Tooltips_ShowTextTooltip(control, LEFT, entry.description) end
-		-- entry.onExit = function() ZO_Tooltips_HideTextTooltip() end
+		
+		entry.onEnter = function(control) ZO_Tooltips_ShowTextTooltip(control, LEFT, entry.description) end
+		entry.onExit = function() ZO_Tooltips_HideTextTooltip() end
 		mCB.comboBox:AddItem(entry)
 		
 	end
