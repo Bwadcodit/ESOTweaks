@@ -108,7 +108,7 @@ function CSPS.groupBarInit(self, discipline)
 		function(_, mouseButton, upInside) 
 			if not upInside then return end
 			if mouseButton == 1 then 
-				ZO_ComboBox_DropdownClicked(dropdownControl)
+				ZO_ComboBox_DropdownClicked(dropdownControl, MOUSE_BUTTON_INDEX_LEFT, true)
 				PlaySound(SOUNDS.COMBO_CLICK)
 			else
 				CSPS.showSubProfileDiscipline(discipline) 
@@ -119,7 +119,7 @@ function CSPS.groupBarInit(self, discipline)
 	dropdownBtnControl:SetHandler("OnClicked",
 		function(_, mouseButton) 
 			if mouseButton == 1 then 
-				ZO_ComboBox_DropdownClicked(dropdownControl)
+				ZO_ComboBox_DropdownClicked(dropdownControl, MOUSE_BUTTON_INDEX_LEFT, true)
 				PlaySound(SOUNDS.COMBO_CLICK)
 			else
 				CSPS.showSubProfileDiscipline(discipline) 
