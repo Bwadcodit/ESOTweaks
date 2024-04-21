@@ -6,7 +6,7 @@
 Roomba = {
     name = "Roomba",
     author = "|c3CB371@Masteroshi430|r, Wobin, CrazyDutchGuy, Ayantir & silvereyes",
-    version = "2024.03.18",
+    version = "2024.04.20",
     website = "http://www.esoui.com/downloads/info402-Roomba.html",
     debugMode = false,
 }
@@ -492,7 +492,9 @@ local function RestackStackableBag(bagId, duplicateList)
 end
 
 -- Triggers when EVENT_GUILD_BANK_ITEM_ADDED
-local function OnGuildBankItemAdded(_, gslot)
+local function OnGuildBankItemAdded(_, gslot, localPlayer)
+    if not localPlayer then return end -- avoid triggering when other players add items in Guild Bank
+	
     local self = addon
     Debug("OnGuildBankItemAdded(_, " .. tostring(gslot) .. ")")
 
