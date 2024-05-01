@@ -42,12 +42,22 @@ end
 local function _stackBags()
     PAB.debugln("==============================================================")
     PAB.debugln("PA.Banking._stackBags (0 / 5)")
-    if PAB.SavedVars.autoStackBags then
+
+	-- anti spam
+	PAB.SavedVars.LastStackBags = PAB.SavedVars.LastStackBags or 0
+	local skipStackBags = false
+	if GetTimeStamp() <= PAB.SavedVars.LastStackBags + 1 then
+	    skipStackBags = true
+	end 
+	
+    if PAB.SavedVars.autoStackBags and skipStackBags == false then
         StackBag(BAG_BANK)
         if IsESOPlusSubscriber() then
             StackBag(BAG_SUBSCRIBER_BANK)
         end
         StackBag(BAG_BACKPACK)
+		
+		PAB.SavedVars.LastStackBags = GetTimeStamp()
     end
     -- Execute the function queue
     PAEM.executeNextFunctionInQueue(PAB.AddonName)
@@ -101,6 +111,12 @@ local function executeBankingItemTransfers()
 end
 
 local function OnBankOpen(eventCode, bankBag)
+    -- anti spam
+	PAB.SavedVars.LastOnBankOpen = PAB.SavedVars.LastOnBankOpen or 0
+	if GetTimeStamp() <= PAB.SavedVars.LastOnBankOpen + 1 then
+	   return
+	end 
+	
     -- immediately stop if not the actual BANK bag is opened (i.e. HOUSE_BANK)
     if IsHouseBankBag(bankBag) then return
     elseif PABProfileManager.hasActiveProfile() then
@@ -141,6 +157,7 @@ local function OnBankOpen(eventCode, bankBag)
         PAB.debugln("GetNextVirtualBagSlotId() = %d", GetNextVirtualBagSlotId() or -1);
         PAB.debugln("IsHouseBankBag() = %s", tostring(IsHouseBankBag(bankBag)));
     end
+	PAB.SavedVars.LastOnBankOpen = GetTimeStamp()  
 end
 
 local function OnBankClose()
