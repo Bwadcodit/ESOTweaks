@@ -52,9 +52,9 @@ local function _stackBags()
 	
     if PAB.SavedVars.autoStackBags and skipStackBags == false then
         StackBag(BAG_BANK)
-        if IsESOPlusSubscriber() then
-            StackBag(BAG_SUBSCRIBER_BANK)
-        end
+        -- if IsESOPlusSubscriber() then
+            -- StackBag(BAG_SUBSCRIBER_BANK)
+        -- end
         StackBag(BAG_BACKPACK)
 		
 		PAB.SavedVars.LastStackBags = GetTimeStamp()
