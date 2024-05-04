@@ -6,7 +6,7 @@
 Roomba = {
     name = "Roomba",
     author = "|c3CB371@Masteroshi430|r, Wobin, CrazyDutchGuy, Ayantir & silvereyes",
-    version = "2024.04.20",
+    version = "2024.05.04",
     website = "http://www.esoui.com/downloads/info402-Roomba.html",
     debugMode = false,
 }
@@ -826,7 +826,9 @@ local function UpdateAndDisplayKeybind()
 
     -- We can't "really" update a keybind name dynamically while using "name = function() .. end" so we use the "visible" one.
     
-    if BagNeedRestack() then
+	if Roomba.WorkInProgress() then
+	    descriptorName = GetString(ROOMBA_STOP) 
+    elseif BagNeedRestack() then
         descriptorName = GetString(SI_BINDING_NAME_RUN_ROOMBA) 
     else
         
@@ -979,6 +981,10 @@ end
 
 -- Called by Bindings
 function Roomba_StartRoomba()
+    if Roomba.WorkInProgress() then -- stop stacking if called again
+        StopGBRestackAndRestartScan()
+        return
+    end
     if BagNeedRestack() then
         BeginStackingProcess()
     else
@@ -1020,7 +1026,7 @@ local function PreHookTransferToGuildBank()
     end
 
     ZO_PreHook("TransferToGuildBank", TransferToGuildBankByBackpack)
-
+	
 end
 
 local function OnAddonLoaded(_, addOnName)
@@ -1042,6 +1048,19 @@ local function OnAddonLoaded(_, addOnName)
         InitializeKeybind()
         
         PreHookTransferToGuildBank()
+		
+		ZO_PreHook("PlayItemSound",
+			function(_, itemSoundAction)
+				if Roomba.WorkInProgress() then
+				    -- update button to display "stop"
+				    if KEYBIND_STRIP:HasKeybindButtonGroup(keybindDescriptor) then
+                       KEYBIND_STRIP:UpdateKeybindButtonGroup(keybindDescriptor)
+                    end
+					PlaySound(SOUNDS.SPINNER_UP)
+					return itemSoundAction == ITEM_SOUND_ACTION_SLOT 
+				end
+			end
+		)
         
         -- Set the function to run when guild bank is opened (before guild bank is ready)
         EVENT_MANAGER:RegisterForEvent(self.name, EVENT_OPEN_GUILD_BANK, OnOpenGuildBank)
