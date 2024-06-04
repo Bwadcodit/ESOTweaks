@@ -99,44 +99,52 @@ function CSPS.showMundusTooltip(control, mundusId)
 	end
 end
 
-local function changeMundus(_, entryText, entry)
-	entryText = entryText or entry and entry.mundusId and zo_strformat("<<C:1>>", GetAbilityName(entry.mundusId)) or "-"
-	CSPSWindowMundusComboBox.comboBox:SetSelectedItemText(string.match(entryText, "%s(%S+)$"))
-	currentMundusId = entry.mundusId
+local function changeMundus(mundusId, mundusName)
+	mundusName = mundusName or mundusId and mundusId ~= 0 and zo_strformat("<<C:1>>", GetAbilityName(mundusId)) or "-"
+	CSPSWindowMundusLabel:SetText(string.match(mundusName, "%s(%S+)$"))
+	currentMundusId = mundusId
 	CSPS.currentMundus = currentMundusId
 	if currentMundusId == getCurrentMundus() then
-		CSPSWindowMundusComboBoxSelectedItemText:SetColor(CSPS.colors.green:UnpackRGB())
+		CSPSWindowMundusLabel:SetColor(CSPS.colors.green:UnpackRGB())
 	else
-		CSPSWindowMundusComboBoxSelectedItemText:SetColor(CSPS.colors.orange:UnpackRGB())
+		CSPSWindowMundusLabel:SetColor(CSPS.colors.orange:UnpackRGB())
 	end
 end
 	
-function CSPS.InitializeMundusMenu()
-	local mCB = CSPSWindowMundusComboBox
-	
-    mCB.comboBox = ZO_ComboBox_ObjectFromContainer(mCB)
-    mCB.comboBox:SetSortsItems(true)
-    mCB.comboBox:SetSelectedItemFont("ZoFontGame")
-    mCB.comboBox:SetDropdownFont("ZoFontGame")
-    mCB.comboBox:SetSpacing(8)
-    local comboBoxLabel = mCB:GetNamedChild("SelectedItemText")
+function CSPS.showMundusMenu()
 
+	local mundusAlphabetical = {}
+	local mundusIdByName = {}
 	
-    mCB.comboBox:ClearItems()
 	
 	for mundusId, abilityId in pairs(mundusAbs) do
-		local entry = mCB.comboBox:CreateItemEntry(zo_strformat("<<C:1>>", GetAbilityName(mundusId)), changeMundus)
-		entry.mundusId = mundusId
-		entry.description = GetAbilityDescription(mundusId)
-		if not string.sub(entry.description, -1) == "." then entry.description = string.format("%s.", entry.description) end
-		
-		entry.onEnter = function(control) ZO_Tooltips_ShowTextTooltip(control, LEFT, entry.description) end
-		entry.onExit = function() ZO_Tooltips_HideTextTooltip() end
-		mCB.comboBox:AddItem(entry)
-		
+		local mundusName = zo_strformat("<<C:1>>", GetAbilityName(mundusId))
+		table.insert(mundusAlphabetical, mundusName)
+		mundusIdByName[mundusName] = mundusId
 	end
+	
+	table.sort(mundusAlphabetical)
+	
+	ClearMenu()
+	
+	for _, mundusName in pairs(mundusAlphabetical) do
+		local mundusId = mundusIdByName[mundusName]
+		local mundusDescription = GetAbilityDescription(mundusId)
+		if not string.sub(mundusDescription, -1) == "." then mundusDescription = string.format("%s.", mundusDescription) end
+		
+		AddCustomMenuItem(mundusName, function() changeMundus(mundusId, mundusName) end)
 
-	changeMundus(false, false, {mundusId =  getCurrentMundus()})
+		local menuItemControl = ZO_Menu.items[#ZO_Menu.items].item 
+		menuItemControl.onEnter = function() ZO_Tooltips_ShowTextTooltip(menuItemControl, RIGHT, mundusDescription)	end
+		menuItemControl.onExit = function() ZO_Tooltips_HideTextTooltip() end
+	
+	end
+	ShowMenu()
+end
+	
+function CSPS.InitializeMundusMenu()
+	
+	changeMundus(getCurrentMundus(), false)
 	
 	local EM = EVENT_MANAGER
 	for mundusId, abilityId in pairs(mundusAbs) do
@@ -149,7 +157,7 @@ end
 
 function CSPS.setMundus(mundusId)
 	mundusId = mundusId or currentMundusId
-	changeMundus(false, false, {mundusId = mundusId})
+	changeMundus(mundusId, nil)
 end
 
 function CSPS.setCurrentMundus()

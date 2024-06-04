@@ -80,7 +80,7 @@ local profileDisciplineTitles = {
 local profileCatsThatCanBeConnected = {[PROFILE_CATEGORY_CP] = true, [PROFILE_CATEGORY_QS] = true,}
 		
 local zoneAbbrByType = {
-	trial = {[636] = "HRC", [638] = "AA", [639] = "SO", [1263] = "RG", [1344] = "DSR", [725] = "MoL", [975] = "HoF", [1000] = "AS", [1051] = "CR", [1121] = "SS", [1196] = "KA", [1427] = "SE", },
+	trial = {[636] = "HRC", [638] = "AA", [639] = "SO", [1263] = "RG", [1344] = "DSR", [725] = "MoL", [975] = "HoF", [1000] = "AS", [1051] = "CR", [1121] = "SS", [1196] = "KA", [1427] = "SE", [1478] = "LC"},
 	solo = {[1227] = "VH", [677] = "MA",},
 	arena = {[1082] = "BRP", [635] = "DSA", [1436]="EA",}
 }
@@ -511,9 +511,9 @@ end
 function CSPS.showSkillProfileTT(control, myType, myId)
 	local myProfile = getProfileByTypeAndId(myType, myId)
 	if not myProfile or not myProfile.actionBar and (not myProfile.hbComp or not myProfile.hbComp.prog or not myProfile.hbComp.pass) then return end
-	local activeSkills, passiveSkills, changedRace = false, false, false
+	local activeSkills, passiveSkills, changedRace, crafted = false, false, false, false
 	
-	if myProfile.hbComp then activeSkills, passiveSkills, changedRace = CSPS.skTableExtract(myProfile.hbComp.prog, myProfile.hbComp.pass, true, true) end
+	if myProfile.hbComp then activeSkills, passiveSkills, changedRace, crafted = CSPS.skTableExtract(myProfile.hbComp.prog, myProfile.hbComp.pass, true, true, myProfile.hbComp.crafted) end
 	
 	InitializeTooltip(InformationTooltip, control, LEFT)	
 	local r, g, b = ZO_SELECTED_TEXT:UnpackRGB()
@@ -1458,8 +1458,8 @@ local function loadSkillProfile(myType, myId, _)
 	if not myProfile or not myProfile.actionBar and (not myProfile.hbComp or not myProfile.hbComp.prog or not myProfile.hbComp.pass) then return end
 	
 	if myProfile.hbComp then
-		local morphs, upgrades = CSPS.skTableExtract(myProfile.hbComp.prog, myProfile.hbComp.pass)
-		CSPS.populateSkills(morphs, upgrades, true) -- true = don't reset the lists beforehand
+		local morphs, upgrades, _, crafted, styles = CSPS.skTableExtract(myProfile.hbComp.prog, myProfile.hbComp.pass, false, false, myProfile.hbComp.crafted, myProfile.hbComp.styles)
+		CSPS.populateSkills(morphs, upgrades, true, crafted, styles) -- true = don't reset the lists beforehand
 	end
 	
 	if myProfile.actionBar then

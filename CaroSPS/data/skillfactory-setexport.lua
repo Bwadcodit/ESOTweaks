@@ -635,6 +635,20 @@ local sfSetIds = {
 	[754] = 19729, -- Oakfather's Retribution
 	[755] = 19730, -- Blunted Blades
 	[756] = 19731, -- Baan Dar's Blessing
+	[757] = 0, -- Symmetry of the Weald
+	[758] = 0, -- Macabre Vintage
+	[759] = 0, -- Ayleid Refuge
+	[760] = 0, -- Rourken Steamguards	
+	[761] = 0, -- The Shadow Queen's Cowl
+	[762] = 0, -- The Saint and the Seducer
+	[766] = 0, -- Mora Scribe's Thesis
+	[767] = 0, -- Slivers of the Null Arca
+	[768] = 0, -- Lucent Echoes	
+	[769] = 0, -- Xoryn's Masterpiece
+	[770] = 0, -- Perfected Xoryn's Masterpiece
+	[771] = 0, -- Perfected Lucent Echoes
+	[772] = 0, -- Perfected Slivers of the Null Arca
+	[773] = 0, -- Perfected Mora Scribe's Thesis	
 } -- /script xyz = GetNextItemSetCollectionId(xyz) StartChatInput("["..xyz.."] = 0, -- "..GetItemSetName(xyz))
 
 local sfTraits = {

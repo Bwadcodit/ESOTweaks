@@ -316,6 +316,17 @@ local L = {}
 	L.CSPS_CPImp_Note = "Klicke auf eine Fertigkeit in der unteren Liste um sie auszuwählen. Beachte, dass die bisher gewählten Punkte erst gesetzt werden, wenn alle ausstehenden Fertigkeiten entweder zugeordnet oder verworfen wurden."
 	L.CSPS_CPImp_NoMatch = "Es konnten keine verwendbaren Daten gefunden werden."
 	
+	
+	--New with 5.5.0
+	L.CSPS_ScribingGoToStation = "%s\nGehe zu einem Schriftlehre-Altar um deine herstellbaren Fähigkeiten zu schreiben (das Schreiben wird %s Tinte kosten)."
+	L.CSPS_CannotBeScribed = "<<1[Fertigkeiten/1 Fertigkeit kann/$d Fertigkeiten können]>> nicht geschrieben werden."
+	L.CSPS_ScribingGo = "%s\nSchreibe herstellbare Fähigkeiten (das Schreiben wird %s Tinte kosten, du hast %s)"
+	L.CSPS_NothingToScribe = "Es gibt nichts zu schreiben."
+	L.CSPS_ScribeGo = "Schreibe: <<C:1>>"
+	L.CSPS_ScribingDiag = "%s Fertigkeiten werden geschrieben (dies wird %s Tinte kosten)."
+	L.CSPS_ScribeNotEnough = "Du kannst deine ausgewählten Fertigkeiten nicht schreiben (nicht genug Tinte)."
+	L.CSPS_CustomStyles = "Anzupassende Stile: %s\nGesperrte Stile: %s\n\n%s"
+	
 for stringId, stringValue in pairs(L) do
 	SafeAddString(_G[stringId], stringValue, 0)
 end

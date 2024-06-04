@@ -525,6 +525,12 @@
 					  <OnMouseEnter>ZO_Tooltips_ShowTextTooltip(self, RIGHT, GetString(CSPS_Tooltiptext_SkIcon))</OnMouseEnter>
 					  <OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>	
 				</Texture>	
+				<Texture name="$(parent)Customize" mouseEnabled="true" hidden="true">
+					<Dimensions x="24" y="24" />
+				      <Anchor point="RIGHT" relativeTo="$(parent)Icon" relativePoint="LEFT" offsetX="-4" />
+					  <OnMouseEnter></OnMouseEnter>
+					  <OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>	
+				</Texture>					
 				<Button name="$(parent)BtnMinus">
 					<Dimensions y="28" x="28" />
 					<Anchor point="CENTER" relativePoint="CENTER" relativeTo="$(parent)Icon" constrains="Y"/>
@@ -560,6 +566,29 @@
 			</Controls>
 		</Control>
 		
+		<Control name="CSPSLECRAFT" inherits="CSPSLE" virtual="true">
+			<Controls>
+				<Texture name="$(parent)Script1" mouseEnabled="true" textureFile="esoui/art/skills/scribing_primary_dragging.dds">
+					<Dimensions x="25" y="25" />
+				      <Anchor point="LEFT" relativeTo="$(parent)Morph" relativePoint="LEFT" />
+					  <OnMouseEnter>ZO_Tooltips_ShowTextTooltip(self, RIGHT, GetString(CSPS_Tooltiptext_SkIcon))</OnMouseEnter>
+					  <OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>	
+				</Texture>	
+				<Texture name="$(parent)Script2" mouseEnabled="true" textureFile="esoui/art/skills/scribing_secondary_dragging.dds">
+					<Dimensions x="25" y="25" />
+				      <Anchor point="CENTER" relativeTo="$(parent)Morph" relativePoint="CENTER" />
+					  <OnMouseEnter>ZO_Tooltips_ShowTextTooltip(self, RIGHT, GetString(CSPS_Tooltiptext_SkIcon))</OnMouseEnter>
+					  <OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>	
+				</Texture>	
+				<Texture name="$(parent)Script3" mouseEnabled="true" textureFile="esoui/art/skills/scribing_tertiary_dragging.dds">
+					<Dimensions x="25" y="25" />
+				      <Anchor point="RIGHT" relativeTo="$(parent)Morph" relativePoint="RIGHT" />
+					  <OnMouseEnter>ZO_Tooltips_ShowTextTooltip(self, RIGHT, GetString(CSPS_Tooltiptext_SkIcon))</OnMouseEnter>
+					  <OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>	
+				</Texture>	
+			</Controls>
+			
+		</Control>
 		<Control name="CSPSCP2HB" inherits="ZO_TreeEntry" virtual="true">
 		<Dimensions  y="34" />
 			<Controls>

@@ -317,6 +317,16 @@ local L = {}
 	L.CSPS_CPImp_Note = "Click on a skill in the list below to manually map it. Please note that the mapping will only be applied once all skills are either mapped or discarded."
 	L.CSPS_CPImp_NoMatch = "Couldn't find any matching data."
 	
+	--New with 5.5.0
+	L.CSPS_ScribingGoToStation = "%s\nPlease go to a scribing station to scribe your crafted abilities (scribing will cost %s ink)."
+	L.CSPS_CannotBeScribed = "<<1[abilities/1 ability/$d abilities]>> can't be scribed."
+	L.CSPS_ScribingGo = "%s\nScribe crafted abilities (scribing will cost %s ink; you have %s)"
+	L.CSPS_NothingToScribe = "There is nothing to scribe."
+	L.CSPS_ScribeGo = "Scribing: <<C:1>>"
+	L.CSPS_ScribingDiag = "%s abilities will be scribed (this will cost %s ink)."
+	L.CSPS_ScribeNotEnough = "You cannot scribe your selected abilities (not enough ink)."
+	L.CSPS_CustomStyles = "Custom styles to apply: %s\nLocked custom styles: %s\n\n%s"
+	
 for stringId, stringValue in pairs(L) do
 	ZO_CreateStringId(stringId, stringValue)
 end

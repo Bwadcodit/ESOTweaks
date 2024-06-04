@@ -17,13 +17,97 @@ local mechanicFlagColors = {
 	[COMBAT_MECHANIC_FLAGS_WEREWOLF] =  cpColors[5],
 }
 
+local function checkCustomStyles()
+	local numChanges = 0
+	local numLocked = 0
+	for skillType, typeData in ipairs(skillTable) do
+		for skillLineIndex, lineData in ipairs(typeData) do
+			if lineData.zo_data:IsActive() then
+				for skillIndex, skillData in ipairs(lineData) do
+					if skillData.numSkillStyles and skillData.numSkillStyles > 0 then
+						local activeCollectible = GetActiveProgressionSkillAbilityFxOverrideCollectibleId(skillData.progId)
+						if activeCollectible ~= skillData.styleCollectible then
+							if not skillData.styleCollectible or skillData.styleCollectible == 0 or IsCollectibleUnlocked(skillData.styleCollectible) then
+								numChanges = numChanges + 1
+							else
+								numLocked = numLocked + 1
+							end
+						end
+					end
+				end
+			end	
+		end
+	end	
+	return numChanges, numLocked
+end	
+
+local function canCraftAbility(craftedAbilityId, scripts)
+	if not IsCraftedAbilityUnlocked(craftedAbilityId) then return false end
+	for _, scriptId in pairs(scripts) do
+		if not scriptId or scriptId == 0 or not IsCraftedAbilityScriptUnlocked(scriptId) then return false end
+	end
+	return true
+end
+
+local function everythingScripted(scripts)
+	for i=1,3 do
+		if not scripts[i] or scripts[i] == 0 then return false end
+	end
+	return true
+end
+
+local function checkCraftedAbilites()
+	local neededInk = 0
+	local canCraftAll = true
+	local notCraftable = 0
+	local combinationsToScribe = {}
+	for i=1, GetNumCraftedAbilities() do
+		local craftedId = GetCraftedAbilityIdAtIndex(i)
+		local skillType, skillLineIndex, skillIndex = GetSkillAbilityIndicesFromCraftedAbilityId(craftedId)
+		local skEntry = skillTable[skillType][skillLineIndex][skillIndex]
+		if #skEntry.scripts == 3 and everythingScripted(skEntry.scripts) then
+			if IsScribableScriptCombinationForCraftedAbility(craftedId, unpack(skEntry.scripts)) then
+				if canCraftAbility(craftedId, skEntry.scripts) then
+					local costToScribe = GetCostToScribeScripts(craftedId, unpack(skEntry.scripts))
+					neededInk = neededInk + costToScribe
+					if costToScribe > 0 then table.insert(combinationsToScribe, {craftedId = craftedId, scripts=skEntry.scripts}) end
+				else
+					canCraftAll = false
+					notCraftable = notCraftable + 1					
+				end
+			else
+				canCraftAll = false
+				notCraftable = notCraftable + 1
+			end
+		end
+	end
+	return combinationsToScribe, neededInk, canCraftAll, notCraftable
+end
+
+function CSPS.showApplySkillsTT(self)
+	local combinationsToScribe, neededInk, canCraftAll, notCraftable =  checkCraftedAbilites()
+	local myTooltip = GS(CSPS_Tooltiptext_Sk)
+
+	if combinationsToScribe and #combinationsToScribe > 0 then
+		if  GetCraftingInteractionType() == CRAFTING_TYPE_SCRIBING then
+			myTooltip = string.format(GS(CSPS_ScribingGo), myTooltip, neededInk, GetItemLinkInventoryCount(GetScribingInkItemLink(), INVENTORY_COUNT_BAG_OPTION_BACKPACK_AND_BANK_AND_CRAFT_BAG))
+		else
+			myTooltip = string.format(GS(CSPS_ScribingGoToStation), myTooltip, neededInk)
+		end
+	end
+	if notCraftable and notCraftable > 0 then myTooltip = string.format("%s\n%s", myTooltip, zo_strformat(GS(CSPS_CannotBeScribed), notCraftable)) end
+	ZO_Tooltips_ShowTextTooltip(self, RIGHT, myTooltip)
+end
+
 function CSPS.getAbilityStats(skillData, fillTable)
 	if skillData.passive then return false end
 	fillTable = fillTable or {}
 	local statList = {}
 	
-	local abilityId = GetSpecificSkillAbilityInfo(skillData.type, skillData.line, skillData.index, skillData.morph, skillData.rank)
+	local abilityId = skillData.craftedId and GetCraftedAbilityRepresentativeAbilityId(skillData.craftedId, "player") or GetSpecificSkillAbilityInfo(skillData.type, skillData.line, skillData.index, skillData.morph, skillData.rank)
 	
+
+
     local function GetNextAbilityMechanicFlagIter(abilityId)
         return function(_, lastFlag)
             return GetNextAbilityMechanicFlag(abilityId, lastFlag)
@@ -53,7 +137,7 @@ function CSPS.getAbilityStats(skillData, fillTable)
 
 	--Range
 	local minRangeCM, maxRangeCM = GetAbilityRange(abilityId)
-	if maxRangeCM > 0 then
+	if maxRangeCM and maxRangeCM > 0 then
 		local rangeValue = minRangeCM == 0 and zo_strformat(SI_ABILITY_TOOLTIP_RANGE, FormatFloatRelevantFraction(maxRangeCM / 100)) or zo_strformat(SI_ABILITY_TOOLTIP_MIN_TO_MAX_RANGE, FormatFloatRelevantFraction(minRangeCM / 100), FormatFloatRelevantFraction(maxRangeCM / 100))
 		rangeValue = ZO_SELECTED_TEXT:Colorize(rangeValue)
 		table.insert(statList, string.format("%s: %s", GS(SI_ABILITY_TOOLTIP_RANGE_LABEL), rangeValue))
@@ -63,8 +147,8 @@ function CSPS.getAbilityStats(skillData, fillTable)
 	--Radius/Distance
 	local radiusCM = GetAbilityRadius(abilityId)
 	local angleDistanceCM = GetAbilityAngleDistance(abilityId)
-	if radiusCM > 0 then
-		if angleDistanceCM > 0 then
+	if radiusCM and radiusCM > 0 then
+		if angleDistanceCM and angleDistanceCM > 0 then
 			fillTable.radius = ZO_SELECTED_TEXT:Colorize(zo_strformat(SI_ABILITY_TOOLTIP_AOE_DIMENSIONS, FormatFloatRelevantFraction(radiusCM / 100), FormatFloatRelevantFraction(angleDistanceCM * 2 / 100)))
 			table.insert(statList, string.format("%s: %s", GS(SI_ABILITY_TOOLTIP_AREA_LABEL), fillTable.radius))
 		else
@@ -79,7 +163,7 @@ function CSPS.getAbilityStats(skillData, fillTable)
 		fillTable.duration = ZO_SELECTED_TEXT:Colorize(GS(SI_ABILITY_TOOLTIP_TOGGLE_DURATION))
 	else
 		local durationMS = GetAbilityDuration(abilityId, overrideActiveRank, overrideCasterUnitTag)
-		if durationMS > 0 then
+		if durationMS and durationMS > 0 then
 			fillTable.duration = ZO_SELECTED_TEXT:Colorize(ZO_FormatTimeMilliseconds(durationMS, TIME_FORMAT_STYLE_DURATION, TIME_FORMAT_PRECISION_TENTHS_RELEVANT, TIME_FORMAT_DIRECTION_NONE))
 			table.insert(statList, string.format("%s: %s", GS(SI_ABILITY_TOOLTIP_DURATION_LABEL), fillTable.duration))
 		end
@@ -87,42 +171,75 @@ function CSPS.getAbilityStats(skillData, fillTable)
 
 	--Cooldown
 	local cooldownMS = GetAbilityCooldown(abilityId)
-	if cooldownMS > 0 then
+	if cooldownMS and cooldownMS > 0 then
 		fillTable.cooldown = ZO_SELECTED_TEXT:Colorize(ZO_FormatTimeMilliseconds(cooldownMS, TIME_FORMAT_STYLE_DURATION, TIME_FORMAT_PRECISION_TENTHS_RELEVANT, TIME_FORMAT_DIRECTION_NONE))
 		table.insert(statList, string.format("%s: %s", GS(SI_ABILITY_TOOLTIP_COOLDOWN), fillTable.cooldown))
 	end
 
 	--Cost
-	for flag in GetNextAbilityMechanicFlagIter(abilityId) do
-		local cost = GetAbilityCost(abilityId, flag)
-		if cost > 0 then
-			local mechanicName = GS("SI_COMBATMECHANICFLAGS", flag)
-			local costString = zo_strformat(SI_ABILITY_TOOLTIP_RESOURCE_COST, cost, mechanicName)
-			if mechanicFlagColors[flag] then costString = mechanicFlagColors[flag]:Colorize(costString) end
-			table.insert(statList, string.format("%s: %s", GS(SI_ABILITY_TOOLTIP_RESOURCE_COST_LABEL), costString))
-			fillTable.cost = fillTable.cost or {}
-			fillTable.cost[flag] = costString
+	if not skillData.craftedId then
+		for mFlag in GetNextAbilityMechanicFlagIter(abilityId) do
+			local cost = GetAbilityCost(abilityId, mFlag)
+			if cost and cost > 0 then
+				local mechanicName = GS("SI_COMBATMECHANICFLAGS", mFlag)
+				local costString = zo_strformat(SI_ABILITY_TOOLTIP_RESOURCE_COST, cost, mechanicName)
+				if mechanicFlagColors[mFlag] then costString = mechanicFlagColors[mFlag]:Colorize(costString) end
+				table.insert(statList, string.format("%s: %s", GS(SI_ABILITY_TOOLTIP_RESOURCE_COST_LABEL), costString))
+				fillTable.cost = fillTable.cost or {}
+				fillTable.cost[mFlag] = costString
+			end
 		end
-	end
 
-	for flag in GetNextAbilityMechanicFlagIter(abilityId) do
-		local cost, chargeFrequencyMS = GetAbilityCostOverTime(abilityId, flag)
-		if cost > 0 then
-			local mechanicName = GS("SI_COMBATMECHANICFLAGS", flag)
+		for mFlag in GetNextAbilityMechanicFlagIter(abilityId) do
+			local cost, chargeFrequencyMS = GetAbilityCostOverTime(abilityId, mFlag)
+			if cost and cost > 0 then
+				local mechanicName = GS("SI_COMBATMECHANICFLAGS", mFlag)
 
-			if mechanicFlagColors[flag] then 
-				cost = mechanicFlagColors[flag]:Colorize(cost) 
-				mechanicName = mechanicFlagColors[flag]:Colorize(mechanicName) 
+				if mechanicFlagColors[mFlag] then 
+					cost = mechanicFlagColors[mFlag]:Colorize(cost) 
+					mechanicName = mechanicFlagColors[mFlag]:Colorize(mechanicName) 
+				end
+
+				local formattedChargeFrequency = ZO_SELECTED_TEXT:Colorize(ZO_FormatTimeMilliseconds(chargeFrequencyMS, TIME_FORMAT_STYLE_SHOW_LARGEST_UNIT, TIME_FORMAT_PRECISION_TENTHS_RELEVANT, TIME_FORMAT_DIRECTION_NONE))
+				local costOverTimeString = zo_strformat(SI_ABILITY_TOOLTIP_RESOURCE_COST_OVER_TIME, cost, mechanicName, formattedChargeFrequency)
+				
+				table.insert(statList, string.format("%s: %s", GS(SI_ABILITY_TOOLTIP_RESOURCE_COST_LABEL), costOverTimeString))
+				fillTable.costOverTime = fillTable.costOverTime or {}
+				fillTable.costOverTime[mFlag] = costOverTimeString
+			end
+		end    
+	
+	else
+		local cost, mFlag, isCostPerTick = GetAbilityBaseCostInfo(abilityId, false, "player")
+		if not mFlag then return statList end -- sometimes returns nil, then a few seconds later it doesn't...
+		if isCostPerTick then
+		
+			local costPerTick = GetAbilityCostPerTick(abilityId, mFlag)
+			local frequencyMS = GetAbilityFrequencyMS(abilityId, "player")
+			local mechanicName = GS("SI_COMBATMECHANICFLAGS", mFlag)
+
+			if mechanicFlagColors[mFlag] then 
+				costPerTick = mechanicFlagColors[mFlag]:Colorize(costPerTick) 
+				mechanicName = mechanicFlagColors[mFlag]:Colorize(mechanicName) 
 			end
 
-			local formattedChargeFrequency = ZO_SELECTED_TEXT:Colorize(ZO_FormatTimeMilliseconds(chargeFrequencyMS, TIME_FORMAT_STYLE_SHOW_LARGEST_UNIT, TIME_FORMAT_PRECISION_TENTHS_RELEVANT, TIME_FORMAT_DIRECTION_NONE))
-			local costOverTimeString = zo_strformat(SI_ABILITY_TOOLTIP_RESOURCE_COST_OVER_TIME, cost, mechanicName, formattedChargeFrequency)
+			local formattedChargeFrequency = ZO_SELECTED_TEXT:Colorize(ZO_FormatTimeMilliseconds(frequencyMS, TIME_FORMAT_STYLE_SHOW_LARGEST_UNIT, TIME_FORMAT_PRECISION_TENTHS_RELEVANT, TIME_FORMAT_DIRECTION_NONE))
+			local costOverTimeString = zo_strformat(SI_ABILITY_TOOLTIP_RESOURCE_COST_OVER_TIME, costPerTick, mechanicName, formattedChargeFrequency)
 			
 			table.insert(statList, string.format("%s: %s", GS(SI_ABILITY_TOOLTIP_RESOURCE_COST_LABEL), costOverTimeString))
 			fillTable.costOverTime = fillTable.costOverTime or {}
-			fillTable.costOverTime[flag] = costOverTimeString
+			fillTable.costOverTime[mFlag] = costOverTimeString
+
+		else
+			local mechanicName = GS("SI_COMBATMECHANICFLAGS", mFlag)
+			local costString = zo_strformat(SI_ABILITY_TOOLTIP_RESOURCE_COST, cost, mechanicName)
+			if mechanicFlagColors[mFlag] then costString = mechanicFlagColors[mFlag]:Colorize(costString) end
+			table.insert(statList, string.format("%s: %s", GS(SI_ABILITY_TOOLTIP_RESOURCE_COST_LABEL), costString))
+			fillTable.cost = fillTable.cost or {}
+			fillTable.cost[mFlag] = costString
 		end
-	end    
+	end
+	
 	return statList
 end
 
@@ -366,8 +483,6 @@ function CSPS.plusClickSkill(theSkill, ctrl, alt, shift)
 end
 
 
-
-
 local function setPointsActive(self)
 	-- ec = {correct = 1, wrongMorph = 2, rankHigher = 3, skillLocked = 4, rankLocked = 5, morphLocked = 6}
 	local currentlyPurchased = self.zo_data:GetPointAllocator():IsPurchased()
@@ -455,7 +570,7 @@ local function setPoints(self)
 		if self.autoGrant then self.purchased = true else return end  
 	end
 	
-	self.points = self.passive and setPointsPassive(self) or setPointsActive(self)
+	self.points = not self.craftedId and (self.passive and setPointsPassive(self) or setPointsActive(self)) or 0
 end
 
 local function sumUpSkills(self)
@@ -512,18 +627,28 @@ function CSPS.createSkillTable()
 					setPoints = setPoints,
 					zo_data = zoSkillData,
 					passive = zoSkillData:IsPassive(),
+					craftedId = zoSkillData.craftedAbilityId,
+					progId = zoSkillData.progressionId,
+					numSkillStyles = zoSkillData.skillProgressions and zoSkillData.skillProgressions[0] and zoSkillData.skillProgressions[0].numSkillStyles,
 				}
 				
-				local skEntry = skillLineData[skillIndex]
-								
-				local baseData = skEntry.passive and zoSkillData:GetRankData(1) or zoSkillData:GetMorphData(MORPH_SLOT_BASE)
-					
-				skEntry.name = baseData:GetFormattedName()
-				skEntry.texture = baseData:GetIcon()
+		
+				local skEntry = skillLineData[skillIndex]				
 				
-				if not skEntry.passive then
-					skEntry.morphNames = {zoSkillData:GetMorphData(MORPH_SLOT_MORPH_1):GetFormattedName(), zoSkillData:GetMorphData(MORPH_SLOT_MORPH_2):GetFormattedName()}
-					skEntry.morphTextures = {zoSkillData:GetMorphData(MORPH_SLOT_MORPH_1):GetIcon(), zoSkillData:GetMorphData(MORPH_SLOT_MORPH_2):GetIcon()}
+				local baseData = not zoSkillData.craftedAbilityId and (skEntry.passive and zoSkillData:GetRankData(1) or zoSkillData:GetMorphData(MORPH_SLOT_BASE))
+				
+				if zoSkillData.craftedAbilityId then 
+					skEntry.name = zo_strformat("<<C:1>>", GetCraftedAbilityDisplayName(zoSkillData.craftedAbilityId))
+					skEntry.texture = GetCraftedAbilityIcon(zoSkillData.craftedAbilityId)
+					skEntry.scripts = {}
+				else
+					skEntry.name = baseData:GetFormattedName()
+					skEntry.texture = baseData:GetIcon()		
+					
+					if not skEntry.passive then
+						skEntry.morphNames = {zoSkillData:GetMorphData(MORPH_SLOT_MORPH_1):GetFormattedName(), zoSkillData:GetMorphData(MORPH_SLOT_MORPH_2):GetFormattedName()}
+						skEntry.morphTextures = {zoSkillData:GetMorphData(MORPH_SLOT_MORPH_1):GetIcon(), zoSkillData:GetMorphData(MORPH_SLOT_MORPH_2):GetIcon()}
+					end
 				end
 				
 				skEntry.morph = not skEntry.passive and 0 or nil
@@ -546,8 +671,14 @@ function CSPS.resetSkills()
 		for skillLineIndex, skillLineData in ipairs(skillTypeData) do
 			for skillIndex, skEntry in ipairs(skillLineData) do
 				skEntry.purchased = skEntry.autoGrant
+				if skEntry.craftedId then 
+					skEntry.scripts = {}
+					skEntry.purchased = true
+					skEntry.name = zo_strformat("<<C:1>>", GetAbilityName(GetCraftedAbilityRepresentativeAbilityId(skEntry.craftedId), ""))
+				end
 				skEntry.rank = 1
-				skEntry.morph = not skEntry.passive and 0 or nil
+				skEntry.morph = (skEntry.craftedId or not skEntry.passive) and 0 or nil
+				skEntry.styleCollectible = nil
 				skEntry:setPoints()
 			end	
 			skillLineData:sumUpSkills()
@@ -562,9 +693,17 @@ function CSPS.readCurrentSkills()
 		for skillLineIndex, skillLineData in ipairs(skillTypeData) do
 			for skillIndex, skEntry in ipairs(skillLineData) do
 				skEntry.purchased = skEntry.zo_data:GetPointAllocator():IsPurchased()
+				if skEntry.craftedId then 
+					skEntry.purchased = true 
+					skEntry.scripts = {GetCraftedAbilityActiveScriptIds(skEntry.craftedId)}	
+					skEntry.name = zo_strformat("<<C:1>>", GetAbilityName(GetCraftedAbilityRepresentativeAbilityId(skEntry.craftedId), "player"))
 					
-				skEntry.morph = skEntry.purchased and not skEntry.passive and skEntry.zo_data:GetCurrentSkillProgressionKey() or nil
-				skEntry.rank = skEntry.purchased and skEntry.passive and skEntry.zo_data:GetCurrentSkillProgressionKey() or 1
+				end
+				if skEntry.numSkillStyles then
+					skEntry.styleCollectible = GetActiveProgressionSkillAbilityFxOverrideCollectibleId(skEntry.progId)
+				end
+				skEntry.morph = skEntry.craftedId and 0 or skEntry.purchased and not skEntry.passive and skEntry.zo_data:GetCurrentSkillProgressionKey() or nil
+				skEntry.rank = skEntry.craftedId and 1 or skEntry.purchased and skEntry.passive and skEntry.zo_data:GetCurrentSkillProgressionKey() or 1
 					
 				skEntry:setPoints()	
 			end	
@@ -602,6 +741,7 @@ function CSPS.refreshSkillSumsAndErrors()
 end
 
 local function applySkillsGo(callAfterSkillChange)
+	local collectiblesToUse = {}
 	for skillType, typeData in ipairs(skillTable) do
 		for skillLineIndex, lineData in ipairs(typeData) do
 			if lineData.zo_data:IsActive() then
@@ -619,12 +759,68 @@ local function applySkillsGo(callAfterSkillChange)
 							skillData.zo_data:GetPointAllocator():Morph(skillData.morph)
 						end
 					end
+					if skillData.numSkillStyles and skillData.numSkillStyles > 0 then
+						local activeCollectible = GetActiveProgressionSkillAbilityFxOverrideCollectibleId(skillData.progId)
+						if activeCollectible ~= skillData.styleCollectible then
+							if skillData.styleCollectible and skillData.styleCollectible ~= 0 then
+								table.insert(collectiblesToUse, skillData.styleCollectible)
+							elseif activeCollectible and activeCollectible ~= 0 then
+								table.insert(collectiblesToUse, activeCollectible)
+							end
+						end
+					end
 				end
 			end	
 		end
 	end	
+	
+	for _, collectibleId in pairs(collectiblesToUse) do
+		UseCollectible(collectibleId, GAMEPLAY_ACTOR_CATEGORY_PLAYER)
+	end
+	
 	tryingToApplySkills = true
 	zo_callLater(function() tryingToApplySkills = false CSPS.refreshSkillSumsAndErrors()  CSPS.refreshTree() if callAfterSkillChange then callAfterSkillChange() end end, 500)	
+end
+
+
+local function applyCraftedAbilities(applySkillsAfterScribing, callAfterSkillChange)
+	local combinationsToScribe, neededInk = checkCraftedAbilites()
+	local function finishedScribing()
+		if applySkillsAfterScribing then applySkillsGo(callAfterSkillChange) end
+	end
+	if #combinationsToScribe == 0 then CSPS.post(GS(CSPS_NothingToScribe)) finishedScribing() return false end
+	if not IsScribingEnabled()  then CSPS.post(GS(SI_COLLECTIBLEUNLOCKSTATE0)) finishedScribing() return false end
+	if neededInk > GetItemLinkInventoryCount(GetScribingInkItemLink(), INVENTORY_COUNT_BAG_OPTION_BACKPACK_AND_BANK_AND_CRAFT_BAG) then
+		CSPS.post(GS(SI_TRADESKILLRESULT14))
+		finishedScribing()
+		return false
+	end
+	
+	local lastScribed = false
+	local function scribeNext()
+		local nextCombi = combinationsToScribe[1]
+		lastScribed = nextCombi.craftedId
+		CSPS.post(zo_strformat(GS(CSPS_ScribeGo), GetAbilityName(GetCraftedAbilityRepresentativeAbilityId(lastScribed), "")))
+		RequestScribe(nextCombi.craftedId, unpack(nextCombi.scripts))
+		table.remove(combinationsToScribe, 1)
+	end
+	EVENT_MANAGER:RegisterForEvent(CSPS.name.."_AbilityCraftingSuccess", EVENT_CRAFT_COMPLETED,
+		function(_, craft) 
+			if craft ~= CRAFTING_TYPE_SCRIBING then return end 
+			if #combinationsToScribe == 0 then
+				EVENT_MANAGER:UnregisterForEvent(CSPS.name.."_AbilityCraftingSuccess", EVENT_CRAFT_COMPLETED)
+				EVENT_MANAGER:UnregisterForEvent(CSPS.name.."_AbilityCraftingFailed", EVENT_CRAFT_FAILED)
+				finishedScribing()
+				return
+			end
+			scribeNext() 
+		end)
+	EVENT_MANAGER:RegisterForEvent(CSPS.name.."_AbilityCraftingFailed", EVENT_CRAFT_FAILED, function(_, tradeSkillResult) 
+		CSPS.post(GS("SI_TRADESKILLRESULT", tradeSkillResult))
+		EVENT_MANAGER:UnregisterForEvent(CSPS.name.."_AbilityCraftingSuccess", EVENT_CRAFT_COMPLETED)
+		EVENT_MANAGER:UnregisterForEvent(CSPS.name.."_AbilityCraftingFailed", EVENT_CRAFT_FAILED)
+	end)
+	scribeNext()
 end
 
 function CSPS.applySkills(skipDiag, callAfterSkillChange)
@@ -643,18 +839,52 @@ function CSPS.applySkills(skipDiag, callAfterSkillChange)
 		skillTable.errorSums[ec.rankHigher],
 		skillTable.errorSums[ec.rankLocked] + skillTable.errorSums[ec.morphLocked],
 	}
+	local doScribe = false
+	local diagText = string.format(GS(CSPS_MSG_ConfirmApply), unpack(myParameters))
+	
+	local numChanges, numLocked = checkCustomStyles()
+	if numChanges > 0 or numLocked > 0 then
+		diagText = string.format(GS(CSPS_CustomStyles), numChanges, numLocked, diagText)
+	end
+	
+	if GetCraftingInteractionType() == CRAFTING_TYPE_SCRIBING then 
+		local combinationsToScribe, neededInk, _, notCraftable = checkCraftedAbilites()
+		if combinationsToScribe and #combinationsToScribe > 0 then
+			doScribe = true
+			if neededInk > GetItemLinkInventoryCount(GetScribingInkItemLink(), INVENTORY_COUNT_BAG_OPTION_BACKPACK_AND_BANK_AND_CRAFT_BAG) then
+				diagText = string.format("%s\n\n%s", GS(CSPS_ScribeNotEnough), diagText)
+			else
+				diagText = string.format("%s\n\n%s", string.format(GS(CSPS_ScribingDiag), #combinationsToScribe, neededInk), diagText)
+			end
+		end
+		if notCraftable and notCraftable > 0 then 
+			diagText = string.format("%s\n\n%s", CSPS.colors.red:Colorize(zo_strformat(GS(CSPS_CannotBeScribed), notCraftable)), diagText)
+		end
+		
+	end
+		
 	if not skipDiag or sumConflicts > 0 then
 		ZO_Dialogs_ShowDialog(CSPS.name.."_OkCancelDiag", 
 				{
-					returnFunc = function() applySkillsGo(callAfterSkillChange) end,
+					returnFunc = function() 
+						if doScribe then
+							applyCraftedAbilities(applySkillsAfterScribing, callAfterSkillChange)
+						else
+							applySkillsGo(callAfterSkillChange) 
+						end
+						end,
 				},
 				{
-					mainTextParams = {string.format(GS(CSPS_MSG_ConfirmApply), unpack(myParameters))}, 
+					mainTextParams = {diagText}, 
 					titleParams = {GS(CSPS_MyWindowTitle)}
 				}
 			)
 	else
-		applySkillsGo(callAfterSkillChange)
+		if doScribe then
+			applyCraftedAbilities(applySkillsAfterScribing, callAfterSkillChange)
+		else
+			applySkillsGo(callAfterSkillChange) 
+		end
 	end
 end
 
@@ -700,7 +930,7 @@ function CSPS.hbApply()
 		local hbManager = ACTION_BAR_ASSIGNMENT_MANAGER:GetHotbar(hbCat)
 		for j, w in pairs(v) do
 			local theSkillData = sdm:GetSkillDataByIndices(w[1], w[2],w[3])
-			if theSkillData:IsPurchased() then hbManager:AssignSkillToSlot(j+2, theSkillData) end
+			if theSkillData:IsPurchased() and (not theSkillData.craftedAbilityId or IsCraftedAbilityScribed(theSkillData.craftedAbilityId)) then hbManager:AssignSkillToSlot(j+2, theSkillData) end
 		end
 	end
 end
