@@ -3710,7 +3710,31 @@ function AG.MenuAction(nr)
             end 
             AG.handlePostChangeGearSetItems(MENU.nr)
         elseif MENU.type == AG.MENU_TYPE_SKILLS then 
-            AG.GetSkillFromBar(MENU.nr) 
+            -- TWEAK HERE
+            local XPProfile = 1
+            local XPSkills = 16
+            local XPSet = 6
+            if AG.setdata.currentProfileId == XPProfile and MENU.nr == XPSkills then 
+                d('Copy XP skills (set:'..XPSet..' - skills:'..XPSkills..') to all valid profiles')
+                for profileIdx = 1, MAX_PROFILES do
+                    if profileIdx ~= XPProfile and AG.setdata.profiles[profileIdx].sortKey and AG.setdata.profiles[profileIdx].setdata then
+                        for slotIdx = 1, 6 do
+                            AG.setdata.profiles[profileIdx].setdata[XPSkills].Skill[slotIdx] = AG.setdata[XPSkills].Skill[slotIdx]
+                        end
+                        AG.setdata.profiles[profileIdx].setdata[XPSet].Set.lock = AG.setdata[XPSet].Set.lock
+                        AG.setdata.profiles[profileIdx].setdata[XPSet].Set.gear = AG.setdata[XPSet].Set.gear
+                        AG.setdata.profiles[profileIdx].setdata[XPSet].Set.icon[1] = AG.setdata[XPSet].Set.icon[1]
+                        AG.setdata.profiles[profileIdx].setdata[XPSet].Set.icon[2] = AG.setdata[XPSet].Set.icon[2]
+                        AG.setdata.profiles[profileIdx].setdata[XPSet].Set.text[1] = AG.setdata[XPSet].Set.text[1]
+                        AG.setdata.profiles[profileIdx].setdata[XPSet].Set.text[2] = AG.setdata[XPSet].Set.text[2]
+                        AG.setdata.profiles[profileIdx].setdata[XPSet].Set.text[3] = AG.setdata[XPSet].Set.text[3]
+                        AG.setdata.profiles[profileIdx].setdata[XPSet].Set.skill[1] = XPSkills
+                        AG.setdata.profiles[profileIdx].setdata[XPSet].Set.skill[2] = XPSkills
+                    end
+                end
+            else
+                AG.GetSkillFromBar(MENU.nr) -- ORIGINAL (single line)
+            end
         end
     elseif nr == 4 then
         -- Clear
