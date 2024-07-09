@@ -6,7 +6,7 @@
 Roomba = {
     name = "Roomba",
     author = "|c3CB371@Masteroshi430|r, Wobin, CrazyDutchGuy, Ayantir & silvereyes",
-    version = "2024.05.04",
+    version = "2024.07.09",
     website = "http://www.esoui.com/downloads/info402-Roomba.html",
     debugMode = false,
 }
@@ -61,7 +61,7 @@ function GetRealSlotStackSize(sourceBag, slotIndex)
     local itemLink = GetItemLink(sourceBag, slotIndex, LINK_STYLE_BRACKETS)
 
 	local hp = select(23, ZO_LinkHandler_ParseLink(itemLink))
-    if itemType == ITEMTYPE_SIEGE and hp ~= "0" and hp ~= tostring(GetItemLinkSiegeMaxHP(itemLink)) then 
+    if itemType == ITEMTYPE_SIEGE and hp ~= "0"  then -- and hp ~= tostring(GetItemLinkSiegeMaxHP(itemLink))
        maxStack = 1
     end 
     return stack, maxStack 
