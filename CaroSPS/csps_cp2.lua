@@ -593,26 +593,27 @@ function cp.setupZoHooks()
 		end 
 	end)
 
-	for i=1,3 do
-		for j=1,4 do
-			local mySlot = (i-1) * 4 + j			
-			local myZoSlotCtr = WINDOW_MANAGER:GetControlByName(string.format("ZO_ChampionPerksActionBarSlot%s", mySlot))
-			local myBtnCtr = myZoSlotCtr:GetNamedChild("Button")
-			local myZoIcon = myZoSlotCtr:GetNamedChild("Icon")
-			local myZoSlot = myBtnCtr.owner
-			if myZoSlot ~= nil then 
-				
-				SecurePostHook(myZoSlot, "Refresh", function()
-					if myZoSlot.championSkillData and cp.useCustomIcons then
-						
-						local skillData = cpTable[myZoSlot.championSkillData:GetId()]
-						if skillData then myZoIcon:SetTexture(skillData.icon) end
-					end
-				end)
+	SecurePostHook(CHAMPION_DATA_MANAGER, "OnDeferredInitialize", function()
+		for i=1,3 do
+			for j=1,4 do
+				local mySlot = (i-1) * 4 + j			
+				local myZoSlotCtr = WINDOW_MANAGER:GetControlByName(string.format("ZO_ChampionPerksActionBarSlot%s", mySlot))
+				local myBtnCtr = myZoSlotCtr:GetNamedChild("Button")
+				local myZoIcon = myZoSlotCtr:GetNamedChild("Icon")
+				local myZoSlot = myBtnCtr.owner
+				if myZoSlot ~= nil then 
+					
+					SecurePostHook(myZoSlot, "Refresh", function()
+						if myZoSlot.championSkillData and cp.useCustomIcons then
+							
+							local skillData = cpTable[myZoSlot.championSkillData:GetId()]
+							if skillData then myZoIcon:SetTexture(skillData.icon) end
+						end
+					end)
+				end
 			end
-			
 		end
-	end
+	end)
 end
 
 function cp.refreshCustomBar()
