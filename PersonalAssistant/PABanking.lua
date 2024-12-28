@@ -82,33 +82,51 @@ local function executeBankingItemTransfers()
 
         -- before queueing up the transactions, ensure that the SHARED_INVENTORY is updated
         PAB.startGameTime = GetGameTimeMilliseconds()
-        SHARED_INVENTORY:RefreshInventory(BAG_BACKPACK)
-        SHARED_INVENTORY:RefreshInventory(BAG_BANK)
-        if IsESOPlusSubscriber() then
-            SHARED_INVENTORY:RefreshInventory(BAG_SUBSCRIBER_BANK)
-        end
-        local passedGameTime = GetGameTimeMilliseconds() - PAB.startGameTime
-        PAB.debugln('SHARED_INVENTORY:RefreshInventory took approx. %d ms', passedGameTime)
+		
+		
+		if PAB.currentBankBag >= 7 and PAB.currentBankBag <= 16 then -- house chest
+		    SHARED_INVENTORY:RefreshInventory(BAG_BACKPACK)
+			SHARED_INVENTORY:RefreshInventory(PAB.currentBankBag)
+			if IsESOPlusSubscriber() then
+				SHARED_INVENTORY:RefreshInventory(BAG_SUBSCRIBER_BANK)
+			end
+			local passedGameTime = GetGameTimeMilliseconds() - PAB.startGameTime
+			PAB.debugln('SHARED_INVENTORY:RefreshInventory took approx. %d ms', passedGameTime)
+			
+			PAEM.addFunctionToQueue(PAB.depositOrWithdrawCustomItems, PAB.AddonName, 100)
+			
+			-- Execute the function queue
+			PAEM.executeNextFunctionInQueue(PAB.AddonName)
+		else
+			SHARED_INVENTORY:RefreshInventory(BAG_BACKPACK)
+			SHARED_INVENTORY:RefreshInventory(BAG_BANK)
+			if IsESOPlusSubscriber() then
+				SHARED_INVENTORY:RefreshInventory(BAG_SUBSCRIBER_BANK)
+			end
+			local passedGameTime = GetGameTimeMilliseconds() - PAB.startGameTime
+			PAB.debugln('SHARED_INVENTORY:RefreshInventory took approx. %d ms', passedGameTime)
 
-        -- add the different item transactions to the function queue (will be executed in REVERSE order)
-        -- the eligibility is checked within the transactions
-        -- give it 100ms time to "refresh" the bag data structure after stacking
-        PAEM.addFunctionToQueue(_finishBankingItemTransfer, PAB.AddonName) -- unblock item transfers again at the end
-        PAEM.addFunctionToQueue(_printLWCMessageIfItemsSkipped, PAB.AddonName)
-        PAEM.addFunctionToQueue(_stackBags, PAB.AddonName)
-        PAEM.addFunctionToQueue(PAB.depositOrWithdrawCustomItems, PAB.AddonName, 100)
-        PAEM.addFunctionToQueue(PAB.depositOrWithdrawFCOISMarkedItems, PAB.AddonName, 100)
-        PAEM.addFunctionToQueue(PAB.depositOrWithdrawAvAItems, PAB.AddonName, 100)
-        PAEM.addFunctionToQueue(PAB.depositOrWithdrawAdvancedItems, PAB.AddonName, 100)
-        PAEM.addFunctionToQueue(PAB.depositOrWithdrawCraftingItems, PAB.AddonName, 100)
-        PAEM.addFunctionToQueue(_stackBags, PAB.AddonName)
+			-- add the different item transactions to the function queue (will be executed in REVERSE order)
+			-- the eligibility is checked within the transactions
+			-- give it 100ms time to "refresh" the bag data structure after stacking
+			PAEM.addFunctionToQueue(_finishBankingItemTransfer, PAB.AddonName) -- unblock item transfers again at the end
+			PAEM.addFunctionToQueue(_printLWCMessageIfItemsSkipped, PAB.AddonName)
+			PAEM.addFunctionToQueue(_stackBags, PAB.AddonName)
+			PAEM.addFunctionToQueue(PAB.depositOrWithdrawCustomItems, PAB.AddonName, 100)
+			PAEM.addFunctionToQueue(PAB.depositOrWithdrawFCOISMarkedItems, PAB.AddonName, 100)
+			PAEM.addFunctionToQueue(PAB.depositOrWithdrawAvAItems, PAB.AddonName, 100)
+			PAEM.addFunctionToQueue(PAB.depositOrWithdrawAdvancedItems, PAB.AddonName, 100)
+			PAEM.addFunctionToQueue(PAB.depositOrWithdrawCraftingItems, PAB.AddonName, 100)
+			PAEM.addFunctionToQueue(_stackBags, PAB.AddonName)
 
-        -- Execute the function queue
-        PAEM.executeNextFunctionInQueue(PAB.AddonName)
+			-- Execute the function queue
+			PAEM.executeNextFunctionInQueue(PAB.AddonName)
+		end
     else
         PAB.debugln("PAB.isBankItemTransferBlocked = TRUE - parallel execution BLOCKED")
     end
 end
+
 
 local function OnBankOpen(eventCode, bankBag)
     -- anti spam
@@ -117,9 +135,9 @@ local function OnBankOpen(eventCode, bankBag)
 	   return
 	end 
 	
-    -- immediately stop if not the actual BANK bag is opened (i.e. HOUSE_BANK)
-    if IsHouseBankBag(bankBag) then return
-    elseif PABProfileManager.hasActiveProfile() then
+	PAB.currentBankBag = bankBag
+	
+   if PABProfileManager.hasActiveProfile() then
         -- set the global variable to 'false'
         PA.WindowStates.isBankClosed = false
 
@@ -130,7 +148,7 @@ local function OnBankOpen(eventCode, bankBag)
         PAB.KeybindStrip.onBankOpenShowKeybindStrip()
 
         -- trigger the deposit and withdrawal of gold
-        if not PAB.isBankCurrencyTransferBlocked then
+        if not PAB.isBankCurrencyTransferBlocked and not IsHouseBankBag(bankBag) then
             -- block others currency transfers
             PAB.isBankCurrencyTransferBlocked = true
             -- trigger currency transfer (includes unblocking)
@@ -170,6 +188,8 @@ local function OnBankClose()
 
     -- set the global variable to 'true' so the bankClosing can be detected
     PA.WindowStates.isBankClosed = true
+	
+	PAB.currentBankBag = nil
 end
 
 -- ---------------------------------------------------------------------------------------------------------------------
