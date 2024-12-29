@@ -51,7 +51,7 @@ local function _stackBags()
 	end 
 	
     if PAB.SavedVars.autoStackBags and skipStackBags == false then
-        StackBag(BAG_BANK)
+        StackBag(PAB.currentBankBag)
         -- if IsESOPlusSubscriber() then
             -- StackBag(BAG_SUBSCRIBER_BANK)
         -- end
@@ -73,6 +73,7 @@ local function hasLazyWritCrafterAndShouldGrabEnabled()
 end
 
 local function executeBankingItemTransfers()
+
     if not PAB.isBankItemTransferBlocked and SCENE_MANAGER and SCENE_MANAGER:GetCurrentScene() and SCENE_MANAGER:GetCurrentScene():GetName() == "bank" then -- TWEAK HERE
         -- block other item transfers
         PAB.isBankItemTransferBlocked = true
@@ -84,7 +85,7 @@ local function executeBankingItemTransfers()
         PAB.startGameTime = GetGameTimeMilliseconds()
 		
 		
-		if PAB.currentBankBag >= 7 and PAB.currentBankBag <= 16 then -- house chest
+		if IsHouseBankBag(PAB.currentBankBag) then -- house chest
 		    SHARED_INVENTORY:RefreshInventory(BAG_BACKPACK)
 			SHARED_INVENTORY:RefreshInventory(PAB.currentBankBag)
 			if IsESOPlusSubscriber() then
@@ -93,7 +94,10 @@ local function executeBankingItemTransfers()
 			local passedGameTime = GetGameTimeMilliseconds() - PAB.startGameTime
 			PAB.debugln('SHARED_INVENTORY:RefreshInventory took approx. %d ms', passedGameTime)
 			
+			PAEM.addFunctionToQueue(_finishBankingItemTransfer, PAB.AddonName) -- unblock item transfers again at the end
+			PAEM.addFunctionToQueue(_stackBags, PAB.AddonName)
 			PAEM.addFunctionToQueue(PAB.depositOrWithdrawCustomItems, PAB.AddonName, 100)
+			PAEM.addFunctionToQueue(_stackBags, PAB.AddonName)
 			
 			-- Execute the function queue
 			PAEM.executeNextFunctionInQueue(PAB.AddonName)
@@ -175,6 +179,7 @@ local function OnBankOpen(eventCode, bankBag)
         PAB.debugln("GetNextVirtualBagSlotId() = %d", GetNextVirtualBagSlotId() or -1);
         PAB.debugln("IsHouseBankBag() = %s", tostring(IsHouseBankBag(bankBag)));
     end
+	
 	PAB.SavedVars.LastOnBankOpen = GetTimeStamp()  
 end
 
