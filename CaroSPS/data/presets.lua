@@ -26,7 +26,7 @@ CSPS.CPPresets = {
 30 Rationer 
 50 Treasure Hunter 
 75 Liquid Efficiency
-15 Master Gatherer
+15 Master Gatherer 1
 100 Gifted Rider 			445
 30 Out of Sight
 40 Fleet Phantom
@@ -34,6 +34,9 @@ CSPS.CPPresets = {
 50 Fortune's Favor
 33 Soul Reservoir
 75 Wanderer 2
+50 Meticulous Disassembly
+50 Plentiful Harvest
+75 Master Gatherer 2
 --]]
 	[1] = {
 		name = "Standard 445+",
@@ -52,7 +55,7 @@ CSPS.CPPresets = {
 			{85, 30},	-- Rationer
 			{79, 50},	-- Treasure Hunter
 			{86, 75},	-- Liquid Efficiency
-			{78, 15},	-- Master Gatherer
+			{78, 15},	-- Master Gatherer 1
 			{92, 100},	-- Gifted Rider
 			{68, 30},	-- Out of Sight
 			{67, 40},	-- Fleet Phantom
@@ -60,6 +63,9 @@ CSPS.CPPresets = {
 			{71, 50},	-- Fortune's Favor
 			{87, 33},	-- Soul Reservoir
 			{70, 75},	-- Wanderer 2
+			{83, 50},	-- Meticulous Disassembly
+			{81, 50},	-- Plentiful Harvest
+			{78, 75},	-- Master Gatherer 2
 		},
 		slotted = {66,92,86,79}, -- Steed's Blessing, Gifted Rider, Liquid Efficiency, Treasure Hunter
 	},
@@ -82,6 +88,9 @@ CSPS.CPPresets = {
 75 Wanderer 2 				630
 50 Steadfast Enchantment 2
 33 Soul Reservoir
+30 Rationer
+75 Liquid Efficiency
+50 Meticulous Disassembly
 --]]
 	[2] = {
 		name = "Farming 310+",
@@ -100,7 +109,7 @@ CSPS.CPPresets = {
 			{79, 50},	-- Treasure Hunter
 			{78, 15},	-- Master Gatherer 1
 			{81, 50},	-- Plentiful Harvest
-			{92, 100},	-- Gifted Rider 
+			{92, 100},	-- Gifted Rider
 			{78, 75},	-- Master Gatherer 2
 			{71, 50},	-- Fortune's Favor
 			{68, 30},	-- Out of Sight
@@ -108,6 +117,9 @@ CSPS.CPPresets = {
 			{70, 75},	-- Wanderer 2
 			{75, 50},	-- Steadfast Enchantment 2
 			{87, 33},	-- Soul Reservoir
+			{85, 30},	-- Rationer
+			{86, 75},	-- Liquid Efficiency
+			{83, 50},	-- Meticulous Disassembly
 		},
 		slotted = {66,92,81,79}, -- Steed's Blessing, Gifted Rider, Plentiful Harvest, Treasure Hunter
 	},
@@ -132,6 +144,8 @@ CSPS.CPPresets = {
 75 Wanderer 2 
 50 Steadfast Enchantment 2
 33 Soul Reservoir
+30 Rationer
+75 Liquid Efficiency
 --]]
 	[3] = {
 		name = "Craft 470+",
@@ -160,6 +174,8 @@ CSPS.CPPresets = {
 			{70, 75},	-- Wanderer 2
 			{75, 50},	-- Steadfast Enchantment 2
 			{87, 33},	-- Soul Reservoir
+			{85, 30},	-- Rationer
+			{86, 75},	-- Liquid Efficiency
 		},
 		slotted = {66,92,81,83}, -- Steed's Blessing, Gifted Rider, Plentiful Harvest, Meticulous Disassembly
 	},
@@ -183,6 +199,8 @@ CSPS.CPPresets = {
 75 Wanderer
 50 Steadfast Enchantment
 33 Soul Reservoir
+30 Rationer
+75 Liquid Efficiency
 --]]
 	[4] = {
 		name = "Craft (+Inspiration) 490+",
@@ -210,6 +228,8 @@ CSPS.CPPresets = {
 			{70, 75},	-- Wanderer
 			{75, 50},	-- Steadfast Enchantment
 			{87, 33},	-- Soul Reservoir
+			{85, 30},	-- Rationer
+			{86, 75},	-- Liquid Efficiency
 		},
 		slotted = {66,92,81,83}, -- Steed's Blessing, Gifted Rider, Plentiful Harvest, Meticulous Disassembly
 	},
