@@ -1,5 +1,3 @@
---			CAROCHAMPIONPOINT
-
 -- This file contains all presets found in the addon. The numbers for the presets have no meaning, but have to be in consecutive order and have to be unambiguous. 
 -- The name doesn't have to contain the source and the role as they appear in separate columns.
 -- The roles are numbered: 1 = DD (unspecific), 2 = Tank, (3 = undefined), 4 = Heal, 5 = Magicka DD, 6 = Stamina DD, 7 = Not role-specific
@@ -67,7 +65,7 @@ CSPS.CPPresets = {
 			{81, 50},	-- Plentiful Harvest
 			{78, 75},	-- Master Gatherer 2
 		},
-		slotted = {66,92,86,79}, -- Steed's Blessing, Gifted Rider, Liquid Efficiency, Treasure Hunter
+		slotted = {66,92,78,0}, -- Steed's Blessing, Gifted Rider, Master Gatherer
 	},
 
 	-- FARM -- 
@@ -121,7 +119,7 @@ CSPS.CPPresets = {
 			{86, 75},	-- Liquid Efficiency
 			{83, 50},	-- Meticulous Disassembly
 		},
-		slotted = {66,92,81,79}, -- Steed's Blessing, Gifted Rider, Plentiful Harvest, Treasure Hunter
+		slotted = {66,92,78,0}, -- Steed's Blessing, Gifted Rider, Master Gatherer
 	},
 
 	-- CRAFT --
@@ -177,7 +175,7 @@ CSPS.CPPresets = {
 			{85, 30},	-- Rationer
 			{86, 75},	-- Liquid Efficiency
 		},
-		slotted = {66,92,81,83}, -- Steed's Blessing, Gifted Rider, Plentiful Harvest, Meticulous Disassembly
+		slotted = {66,92,78,0}, -- Steed's Blessing, Gifted Rider, Master Gatherer
 	},
 
 	-- CRAFT INSPI --
@@ -231,7 +229,7 @@ CSPS.CPPresets = {
 			{85, 30},	-- Rationer
 			{86, 75},	-- Liquid Efficiency
 		},
-		slotted = {66,92,81,83}, -- Steed's Blessing, Gifted Rider, Plentiful Harvest, Meticulous Disassembly
+		slotted = {66,92,78,0}, -- Steed's Blessing, Gifted Rider, Master Gatherer
 	},
 }
 
@@ -612,7 +610,7 @@ CSPS.CPPresets = {
 	[17] = {
 		name = "Jack of all Trades (Farming)",
 		addInfo = GetString(CSPS_CPPDescr_JoaTFarming),
-		updated = {04, 04, 2021},
+		updated = {03, 21, 2025},
 		points = "(dynamic)",
 		source = "@Orejana",
 		role = 7,
@@ -625,12 +623,12 @@ CSPS.CPPresets = {
 			{86, 75}, {88, 50}, {89, 25}, {65, 50}, {67, 40},
 			{80, 75}, {92, 20},
 		},
-		slotted = {66, 85},
+		slotted = {66, 65},
 	},
 	[18] = {
 		name = "Jack of all Trades (Fishing)",
 		addInfo = GetString(CSPS_CPPDescr_JoaTFishing),
-		updated = {04, 04, 2021},
+		updated = {03, 21, 2025},
 		points = "(dynamic)",
 		source = "@Orejana",
 		role = 7,
@@ -643,12 +641,12 @@ CSPS.CPPresets = {
 			{90, 75}, {76, 25}, {68, 30}, {77, 25}, {75, 50},
 			{86, 75}, {65, 50}, {67, 40}, {80, 75}, {92, 20},
 		},
-		slotted = {66, 85},
+		slotted = {66, 65},
 	},
 	[19] = {
 		name = "Jack of all Trades (Thieving)",
 		addInfo = GetString(CSPS_CPPDescr_JoaTThieving),
-		updated = {04, 04, 2021},
+		updated = {03, 21, 2025},
 		points = "(dynamic)",
 		source = "@Orejana",
 		role = 7,
@@ -661,12 +659,12 @@ CSPS.CPPresets = {
 			{1, 50}, {69, 50}, {83, 50}, {75, 50}, {86, 75},
 			{89, 25}, {88, 50}, {92, 20},
 		},
-		slotted = {66, 85},
+		slotted = {66, 65},
 	},
 	[20] = {
 		name = "Combat focus",
 		addInfo = GetString(CSPS_CPPDescr_CombatFocus),
-		updated = {04, 04, 2021},
+		updated = {03, 21, 2025},
 		points = "(dynamic)",
 		source = "@Irniben",
 		role = 7,
@@ -679,11 +677,11 @@ CSPS.CPPresets = {
 			{81,10}, {91,25}, {92,100}, {78,75}, {81,50}, {65,50}, 
 			{82,120}, {76,25}, {77,25}, {84,50}, {89,25},
 		},
-		slotted = {66, 85, 86, 79},
+		slotted = {66, 92, 65, 82},
 	},
 	[21] = {
 		name = "Crafter/Harvester",
-		updated = {04, 04, 2021},
+		updated = {03, 21, 2025},
 		points = "(dynamic)",
 		source = "@Irniben",
 		role = 7,
@@ -697,11 +695,11 @@ CSPS.CPPresets = {
 			{76,25}, {84,50}, {76,25}, {77,25}, {65,50}, 
 			{82,120},
 		},
-		slotted = {66, 83, 78, 81},
+		slotted = {66, 78, 92, 65},
 	},
 	[22] = {
 		name = "Crafter (leveling)",
-		updated = {04, 04, 2021},
+		updated = {03, 21, 2025},
 		points = "(dynamic)",
 		source = "@Irniben",
 		role = 7,
@@ -715,11 +713,11 @@ CSPS.CPPresets = {
 			{76,25}, {84,50}, {76,25}, {77,25}, {65,50}, 
 			{82,120},
 		},
-		slotted = {66, 83, 78, 81},
+		slotted = {66, 78, 92, 65},
 	},
 	[23] = {
 		name = "Allrounder",
-		updated = {04, 04, 2021},
+		updated = {03, 21, 2025},
 		points = "(dynamic)",
 		source = "@Irniben",
 		role = 7,
@@ -733,7 +731,7 @@ CSPS.CPPresets = {
 			{1,50}, {92,100}, {78,75}, {81,50}, {65,47}, 
 			{76,25}, {77,25}, {84,50}, {89,25}, {82,120},
 		},
-		slotted = {66, 85, 79, 91},
+		slotted = {66, 78, 65, 92},
 	},
 	[24] = {  -- deadly aim + thaumaturge
 		name = zo_strformat("Full DPS, <<C:1>>+<<C:2>>", GetChampionSkillName(25), GetChampionSkillName(27)),
