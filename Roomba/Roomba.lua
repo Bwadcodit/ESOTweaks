@@ -6,7 +6,7 @@
 Roomba = {
     name = "Roomba",
     author = "|c3CB371@Masteroshi430|r, Wobin, CrazyDutchGuy, Ayantir & silvereyes",
-    version = "2024.10.27",
+    version = "2025.04.06",
     website = "http://www.esoui.com/downloads/info402-Roomba.html",
     debugMode = false,
 }
@@ -913,7 +913,7 @@ local function InitialiseSettings()
         website = self.website,
     }
     
-    local LAM = LibAddonMenu2 or LibStub("LibAddonMenu-2.0")
+    local LAM = LibAddonMenu2
     LAM:RegisterAddonPanel("RoombaOptions", panelData)
     
     local optionsTable = {
