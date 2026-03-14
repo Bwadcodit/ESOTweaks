@@ -145,10 +145,16 @@ function CSPS.OnWindowMoveStop()
 end
 
 function CSPS.OnWindowResizeStop()
-	CSPS.savedVariables.settings.width = CSPSWindow:GetWidth()
+	local theWidth = CSPSWindow:GetWidth()
+	CSPS.savedVariables.settings.width = theWidth
 	CSPS.savedVariables.settings.height = CSPSWindow:GetHeight()
 	CSPS.savedVariables.settings.left = CSPSWindow:GetLeft()
 	CSPS.savedVariables.settings.top = CSPSWindow:GetTop()
+	if theWidth < 1000 then
+		CSPSWindowMundusLabel:SetDimensionConstraints(0,0,theWidth-520,0)
+	else
+		CSPSWindowMundusLabel:SetDimensionConstraints(0,0,0,0)
+	end
 end
 
 function CSPS:RestorePosition()
@@ -173,8 +179,8 @@ end
 
 function CSPS.showElement(myElement, arg)
 	local showFunctions = {
-		checkCP = function()
-			local hideCPCtr = CSPS.unlockedCP == false
+		modules = function()
+			local hideCPCtr = CSPS.unlockedCP == false or CSPS.moduleExclude.cp or false
 			
 			CSPSWindowIncludeCPCheck1:SetHidden(hideCPCtr)
 			CSPSWindowIncludeCPCheck2:SetHidden(hideCPCtr)
@@ -184,6 +190,36 @@ function CSPS.showElement(myElement, arg)
 			CSPSWindowBuildCPProfileRed:SetHidden(hideCPCtr)
 			CSPSWindowBuildCPProfileBlue:SetHidden(hideCPCtr)
 			CSPSWindowIncludeBtnApplyCP:SetHidden(hideCPCtr)
+			if hideCPCtr then 
+				CSPSWindowBuildCPProfileGreen:SetWidth(0)
+				CSPSWindowBuildCPProfileRed:SetWidth(0)
+				CSPSWindowBuildCPProfileBlue:SetWidth(0)
+				CSPSWindowIncludeBtnApplyCP:SetWidth(0)
+			end
+			
+			CSPSWindowBuildOutfitProfiles:SetHidden(CSPS.moduleExclude.outfit)
+			CSPSWindowBuildOutfitProfiles:SetWidth(CSPS.moduleExclude.outfit and 0 or 27)
+			CSPSWindowManageBarsDiscsSpecialInclude9:SetHidden(CSPS.moduleExclude.outfit)
+			
+			CSPSWindowBuildQuickslotProfiles:SetHidden(CSPS.moduleExclude.qs)
+			CSPSWindowBuildQuickslotProfiles:SetWidth(CSPS.moduleExclude.qs and 0 or 27)
+			CSPSWindowManageBarsDiscsSpecialInclude8:SetHidden(CSPS.moduleExclude.qs)
+			
+			CSPSWindowBuildGearProfiles:SetHidden(CSPS.moduleExclude.gear)
+			CSPSWindowBuildGearProfiles:SetWidth(CSPS.moduleExclude.gear and 0 or 27)
+			CSPSWindowManageBarsDiscsSpecialInclude7:SetHidden(CSPS.moduleExclude.gear)
+			
+			CSPSWindowBuildSkillProfiles:SetHidden(CSPS.moduleExclude.skills)
+			CSPSWindowBuildSkillProfiles:SetWidth(CSPS.moduleExclude.skills and 0 or 27)
+			CSPSWindowManageBarsDiscsSpecialInclude1:SetHidden(CSPS.moduleExclude.skills)
+			CSPSWindowManageBarsDiscsSpecialInclude6:SetHidden(CSPS.moduleExclude.skills)
+			
+			CSPSWindowManageBarsDiscsSpecialInclude2:SetHidden(CSPS.moduleExclude.attr)
+			CSPSWindowManageBarsDiscsSpecialInclude10:SetHidden(CSPS.moduleExclude.role)
+			
+			if CSPS.moduleExclude.mundus then CSPSWindowMundus:SetWidth(0) CSPSWindowMundus:SetHidden(true) end
+			if CSPS.moduleExclude.role then CSPSWindowRoleIcon:SetWidth(0) CSPSWindowRoleIcon:SetHidden(true) end
+			
 		end,
 		cpsidebarlabels = function()
 			if arg ~= nil then CSPS.savedVariables.settings.cpSideBarLabels = arg else CSPS.savedVariables.settings.cpSideBarLabels = not CSPS.savedVariables.settings.cpSideBarLabels end
@@ -210,12 +246,6 @@ function CSPS.showElement(myElement, arg)
 		save = function()
 			if arg ~= nil then CSPSWindowBuildSave:SetHidden(not arg) end
 		end,
-		apply = function()
-			if arg ~= nil then
-				CSPS.showApply = arg
-				CSPSWindowInclude:SetHidden(not arg)
-			end
-		end,
 		hotbar = function()
 			CSPSWindowFooter:SetHidden(arg == false)
 			CSPSWindowFooter:SetHeight(arg == false and 3 or 46)
@@ -225,7 +255,6 @@ function CSPS.showElement(myElement, arg)
 			if arg ~= nil then showMe = arg end
 			CSPSWindowSubProfiles:SetHidden(not showMe)
 			if (not CSPSWindowCPImport:IsHidden() and showMe == true) or not CSPSWindowSubProfiles:IsHidden() then
-				CSPS.showElement("apply", true)
 				CSPS.showElement("save", true)
 				CSPS.unsavedChanges = true
 			end
@@ -242,7 +271,6 @@ function CSPS.showElement(myElement, arg)
 			local showMe = CSPSWindowCPImport:IsHidden()
 			if arg ~= nil then showMe = arg end
 			if not showMe then
-				CSPS.showElement("apply", true)
 				CSPS.showElement("save", true)
 				CSPS.unsavedChanges = true
 				CSPS.inCpRemapMode = false
@@ -285,10 +313,10 @@ function CSPS.hideOptions()
 end
 
 function CSPS.toggleCPCustomIcons()
-	cp.useCustomIcons = CSPS.savedVariables.settings.useCustomIcons
+	cp.useCustomIcons = CSPS.savedVariables.settings.useCustomIcons and not CSPS.moduleExclude.cp
 	cp.updateSidebarIcons()
 	
-	if CSPS.savedVariables.settings.cpCustomBar then cp.refreshCustomBar() end
+	if CSPS.savedVariables.settings.cpCustomBar and not CSPS.moduleExclude.cp then cp.refreshCustomBar() end
 end 
 
 
@@ -331,7 +359,7 @@ function CSPS.registerFragment()
 end
 
 function CSPS.toggleCPCustomBar()
-	if CSPS.savedVariables.settings.cpCustomBar then 
+	if CSPS.savedVariables.settings.cpCustomBar and not CSPS.moduleExclude.cp then 
 		cp.rearrangeCustomBar()
 		if CSPS.cpFragment == nil then CSPS.cpFragment = ZO_SimpleSceneFragment:New( CSPSCpHotbar ) end
 		sm:GetScene('hud'):AddFragment( CSPS.cpFragment  )
@@ -384,12 +412,9 @@ local function ieCtr(childName)
 	return CSPSWindowImportExport:GetNamedChild(childName)
 end
 
-function CSPS.impExpAddInfo(myAlliance, myRace, myClass)
+function CSPS.impExpAddInfo(myRace, myClass)
 	local colors = CSPS.colors
-	
-	ieCtr("AllianceValue"):SetText(myAlliance and zo_strformat("<<C:1>>", GetAllianceName(myAlliance)) or "-")
-	ieCtr("AllianceValue"):SetColor((myAlliance and (myAlliance == GetUnitAlliance('player') and colors.green or colors.orange) or colors.white):UnpackRGB())
-	
+		
 	ieCtr("RaceValue"):SetText(myRace and zo_strformat("<<C:1>>", GetRaceName(GetUnitGender('player'), myRace)) or "-")
 	ieCtr("RaceValue"):SetColor((myRace and (myRace == GetUnitRaceId('player') and colors.green or colors.orange) or colors.white):UnpackRGB())
 	
@@ -458,6 +483,7 @@ end
 function CSPS.UpdateProfileCombo()
 	CSPSWindowBuildProfiles.comboBox = CSPSWindowBuildProfiles.comboBox or ZO_ComboBox_ObjectFromContainer(CSPSWindowBuildProfiles)
 	local myComboBox = CSPSWindowBuildProfiles.comboBox	
+	myComboBox:SetHeight(610)
 	myComboBox:ClearItems()
 	myComboBox:SetSortsItems(true)
 	
@@ -548,6 +574,9 @@ function CSPS.toggleImpExpSource(myChoice, fromList)
 		ieCtr("BtnTextCPOrder1"):SetHidden(not tableToShow.cpOrd)
 		ieCtr("BtnTextCPOrder2"):SetHidden(not tableToShow.cpOrd)
 		ieCtr("BtnTextCPOrder3"):SetHidden(not tableToShow.cpOrd)
+		ieCtr("OpenLink"):SetHidden(not tableToShow.link)
+		ieCtr("LblReset"):SetHidden(not tableToShow.reset)
+		ieCtr("SelectPartsChkReset"):SetHidden(not tableToShow.reset) 
 		ieCtr("TextEdit"):SetText(tableToShow.txt or "")
 		ieCtr("BtnImp1"):SetText(tableToShow.btnImp or "")
 		ieCtr("BtnImp1").tooltip = tableToShow.btnImpTT or ""
@@ -557,7 +586,10 @@ function CSPS.toggleImpExpSource(myChoice, fromList)
 	local choiceFunctions = {}
 	if myChoice == "sf" then 
 		hideShowImpExpControls({btnImp = GS(CSPS_ImpEx_BtnImpLink), btnImpTT = GS(CSPS_ImpEx_BtnImpTT), 
-			txt = GS(CSPS_ImpEx_Standard), btnExp = GS(CSPS_ImpEx_BtnExpLink), add = true})
+			txt = GS(CSPS_ImpEx_Standard), btnExp = GS(CSPS_ImpEx_BtnExpLink), add = true})	
+	elseif myChoice == "hub" then 
+		hideShowImpExpControls({btnImp = GS(CSPS_ImpEx_BtnImpLink), btnImpTT = GS(CSPS_ImpEx_BtnImpTT), 
+			txt = GS(CSPS_ImpEx_Standard), btnExp = GS(CSPS_ImpEx_BtnExpLink), add = true, reset = true, link = true})
 	elseif myChoice == "csvCP" then
 		hideShowImpExpControls({btnImp = GS(CSPS_ImpEx_BtnImpText), btnImpTT = GS(CSPS_ImpEx_BtnImpTT), handleCP = true, txt = ""})
 	elseif myChoice == "csps" then
@@ -591,16 +623,17 @@ function CSPS.fillSrcCombo()
 	scrList:SetHandler("OnMouseExit", ZO_Options_OnMouseExit)
 	
 	local choices = {
+		["eso-hub.com"] = "hub",
 		["eso-skillfactory.com"] = "sf",
 		[GS(CSPS_ImpExp_TextSk)] = "txtExport",
 		--[string.format("%s 2/3", GS(CSPS_ImpExp_TextSk))] = "txtSk2",
 		--[string.format("%s 3/3", GS(CSPS_ImpExp_TextSk))] = "txtSk3",
 		--[GS(CSPS_ImpExp_TextOd)] = "txtOd",
-		[GS(CSPS_ImpExp_Transfer)] = "transfer",
+		[GS(CSPS_ImpExp_Transfer)] = not CSPS.moduleExclude.cp and "transfer" or nil,
 		[GS(CSPS_ImpEx_CsvCP)] = "csvCP",
-		[GS(CSPS_ImpEx_TxtCP2_1)] = "txtCP2_1",
-		[GS(CSPS_ImpEx_TxtCP2_2)] = "txtCP2_2",
-		[GS(CSPS_ImpEx_TxtCP2_3)] = "txtCP2_3",
+		[GS(CSPS_ImpEx_TxtCP2_1)] = not CSPS.moduleExclude.cp and "txtCP2_1" or nil,
+		[GS(CSPS_ImpEx_TxtCP2_2)] = not CSPS.moduleExclude.cp and "txtCP2_2" or nil,
+		[GS(CSPS_ImpEx_TxtCP2_3)] = not CSPS.moduleExclude.cp and "txtCP2_3" or nil,
 		["CSPS"] = "csps",
 	}
 	
@@ -628,7 +661,9 @@ end
 CSPS.toggleChkTexture = toggleChkTexture
 
 function CSPS.toggleCP(disciplineIndex, arg)
-	if disciplineIndex == 0 or disciplineIndex == nil then
+	if type(disciplineIndex) == "table" then
+		CSPS.applyCPc = disciplineIndex
+	elseif disciplineIndex == 0 or disciplineIndex == nil then
 		if arg ~= nil then CSPS.applyCP = arg else CSPS.applyCP = not CSPS.applyCP end
 		CSPS.applyCPc = {CSPS.applyCP, CSPS.applyCP, CSPS.applyCP}
 	else
@@ -663,6 +698,7 @@ function CSPS.toggleCPImpExpParts(arg)
 		gear = "ChkGear",
 		quickslots = "ChkQuickSlots",
 		outfit = "ChkOutfit",
+		reset = "ChkReset",
 	}
 	for i, v in pairs(partTable) do
 		toggleCheckbox(string.format("ImportExportSelectParts%s", partControls[i]), v)
@@ -800,6 +836,8 @@ function CSPS.OnWindowShow()
 		CSPS.initCPSideBar()
 		CSPS.showBuild(true) -- boolean to prevent from setting unsaved-changes to true
 		initOpen = true
+		CSPS.setTransparencyBG()
+		CSPS.setTransparencyWin()
 		if CSPS.savedVariables.settings.keepLastBuild and CSPS.currentCharData.auxProfile then
 			CSPS.loadBuild(true)
 			local profileIndex =  CSPS.currentCharData.auxProfile.profileIndex
@@ -819,7 +857,7 @@ function CSPS.OnWindowShow()
 	CSPS.toggleMouse(true)
 	
 	CSPS.refreshTree()
-	if CSPS.doGear then	
+	if (CSPS.doGear and not CSPS.moduleExclude.gear) or not CSPS.moduleExclude.qs then	
 		local waitingForGearChange = false
 		EVENT_MANAGER:RegisterForEvent(CSPS.name.."GearChange", EVENT_INVENTORY_SINGLE_SLOT_UPDATE, 
 			function(_, bagId) 
@@ -836,6 +874,20 @@ function CSPS.OnWindowHide()
 	if CSPS.savedVariables.settings.keepLastBuild then CSPS.saveBuildGo(true) end
 	EVENT_MANAGER:UnregisterForEvent(CSPS.name.."GearChange", EVENT_INVENTORY_SINGLE_SLOT_UPDATE)
 end
+
+function CSPS.setTransparencyBG(value)
+	CSPS.savedVariables.settings.bgalpha = value or CSPS.savedVariables.settings.bgalpha or 1
+	value = CSPS.savedVariables.settings.bgalpha
+	CSPSWindowBG:SetAlpha(value)
+	CSPSWindowCPSideBarBG:SetAlpha(value)
+	CSPSWindowSubProfilesBG:SetCenterColor(0,0,0,0)
+end
+
+function CSPS.setTransparencyWin(value)
+	CSPS.savedVariables.settings.winalpha = value or CSPS.savedVariables.settings.winalpha or 1
+	CSPSWindow:SetAlpha(CSPS.savedVariables.settings.winalpha)
+end
+
 
 
 --------------TWEAK-------------

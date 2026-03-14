@@ -7,6 +7,21 @@
 -- switch = number If this field is present, a message will be displayed promting to switch to a specific skill.
 -- situational = {} If this list contains entries, the user will get a message with recommended situational skills.
 -- aoe, penetration, crit, aoe, offBalance, offBalanceUp: can be used to give recommendations for certain scenarios
+
+-- check for values too high or invalid after updates:
+-- /script for i,v in pairs(CSPS.CPPresets) do if v.preset then local anything = false for j, w in pairs(v.preset) do local entry = CSPS.cp.table[w[1]] if entry then  local maxV = entry.maxValue if maxV < w[2] then d(w[1]..maxV) anything = true end else d(w[1]) anything = true end end if anything then d("Preset: "..i) end end end
+
+-- /script for i, v in pairs(CSPS.CPPresets[17].preset) do if GetChampionSkillType(v[1]) > 0 then d(v[1]..GetChampionSkillName(v[1])) end end 
+
+local GS = GetString
+local directDamage = GS(SI_CHATCHANNELCATEGORIES51)
+local dot = GS(SI_CHATCHANNELCATEGORIES52)
+local weaponspelldamage = string.format("%s/%s", GS(SI_DERIVEDSTATS25), GS(SI_DERIVEDSTATS35))
+local aoe = GS(CSPS_AOE)
+local crit = GS(CSPS_CRIT)
+local offBalance = GS(CSPS_OffBalance)
+local singleTarget = GS(CSPS_SingleTarget)
+
 		
 CSPS.CPPresets = {
 
@@ -36,7 +51,7 @@ CSPS.CPPresets = {
 50 Plentiful Harvest
 75 Master Gatherer 2
 --]]
-	[1] = {
+	[101] = {
 		name = "Standard 445+",
 		addInfo = "",
 		updated = {11, 04, 2021},
@@ -90,7 +105,7 @@ CSPS.CPPresets = {
 75 Liquid Efficiency
 50 Meticulous Disassembly
 --]]
-	[2] = {
+	[102] = {
 		name = "Farming 310+",
 		addInfo = "Prio harvesting, questing",
 		updated = {11, 04, 2021},
@@ -145,7 +160,7 @@ CSPS.CPPresets = {
 30 Rationer
 75 Liquid Efficiency
 --]]
-	[3] = {
+	[103] = {
 		name = "Craft 470+",
 		addInfo = "Use the Treasure Hunter skill path to avoid Inspiration. Gifted Rider in slot 2.",
 		updated = {17, 10, 2022},
@@ -200,7 +215,7 @@ CSPS.CPPresets = {
 30 Rationer
 75 Liquid Efficiency
 --]]
-	[4] = {
+	[104] = {
 		name = "Craft (+Inspiration) 490+",
 		addInfo = "Gifted Rider in slot 2.",
 		updated = {17, 10, 2022},
@@ -273,343 +288,123 @@ CSPS.CPPresets = {
 	},
 
 
-	-- ORIGINAL PRESETS 5.0 --
+	-- ORIGINAL PRESETS v6.0 --
 
-	CSPS.CPPresets = {
+CSPS.CPPresets = {
 	[1] = {
 		name = "Tank", 			-- Warfare
 		website = "thetankclub.com",
-		updated = {11, 18, 2022},
+		updated = {11, 08, 2025},
 		points = "(dynamic)",
 		discipline = 2,
 		role = 2,
 		source = "The Tank Club",
 		preset = {
 			{6,10}, {20,10}, {14,20}, 
-			{15,13}, {16,7}, {15,20}, 
-			{6,20}, {16,20}, {265,10}, 
-			{265,13}, {134,10}, {136,10}, {133,10}, 
-			{265,27}, {136,20}, {133,20}, {265,30}, 
-			{134,20}, {136,30}, {133,30}, {265,40}, 
-			{134,30}, {136,40}, {133,33}, {265,50}, 
-			{134,40}, {136,47}, {133,40}, {99,10}, 
-			{134,50}, {136,50}, {133,50}, {99,20}, 
-			{108,13}, {20,20}, {11,20}, {10,7}, {108,20}, 
-			{10,10}, {17,30}, {17,40}, {18,23}, {21,17}, 
-			{18,40}, {21,20}, {10,20}, {22,20}, {21,30}, 
-			{22,30}, {159,50}, {263,50}, {33,50}, {161,50},
-			{26,50}, {28,50}, {24,50}
-			--[[
-			{6, 10}, {20, 10}, {14, 33},
-			{14, 40},	{15, 7},
-			{16, 20}, {15, 20},
-			{16, 33}, {15, 40},
-			{16, 40}, {134, 10}, {136, 7}, {133, 10},
-			{136, 10}, {159, 30}, {134, 20}, 	{136, 13},
-			{159, 50}, {134, 40}, {136, 40}, {133, 30},
-			{134, 50}, 	{136, 50}, 	{133, 43}, {99, 10},
-			{6, 27}, {133, 50}, {99, 30}, {6, 40},
-			{10, 10}, {18, 13}, {99, 40}, {17, 20},
-			{18, 27}, {17, 40}, {18, 40}, {108, 40},
-			{20, 40}, {11, 40},	{10, 40}, {22, 30}, {21, 30},]]--
+			{15,13}, {16,10}, {15,20}, 
+			{16,20}, {136,50}, {265,25}, {134,25}, {133,25}, 
+			{159,50}, {265,50}, {99,20}, {134,50}, 
+			{6,20}, {10,10}, {17,20}, {10,20}, {108,10}, {108,20}, 
+			{17,40}, {18,20}, {18,40}, {11,10}, {11,20}, 
+			{133,50}, {22,30}, {21,30}, {20,20}, {28,50}, 
+			{24,50}, {260,50}, {160,50}, {263,50}, {26,50}			
 		},
 		 
-		slotted = {136,265,134,133}, --{136, 133, 134, 159},
+		slotted = {136,265,134,159}, 
 	},
 	[2] = {
 		name = "Tank",			-- Fitness
 		website = "thetankclub.com",
-		updated = {03, 10, 2021},
+		updated = {11, 08, 2025},
 		points = "(dynamic)",
 		discipline = 3,
 		role = 2,
 		source = "The Tank Club",
-		preset = {
-			{2, 10},{34, 10},{35, 46},
-			{2, 15}, {35, 50},{39, 10},{43, 15},
-			{2, 18},{43, 45},{2, 30}, {37, 15},
-			{51, 40}, {2, 43}, {34, 20},
-			{51, 50},{2, 50},	{34, 50}, {53, 10},
-			{113, 20}, {128, 13}, {113, 40},{39, 30},
-			{128, 40}, {53, 20}, {39, 40},
-			{37, 18}, {53, 50}, {44, 6}, {37, 45},
-			{44, 10}, {38, 30}, {44, 15}, {38, 40},
-			{42, 32}, {40, 45}, {50, 40}, {49, 50},
-			
+		preset = {	
+			{2,20}, {34,20}, {35,10}, 
+			{2,30}, {35,20}, {34,30}, {35,30}, 
+			{39,10}, {44,3}, {267,30}, {2,40}, 
+			{267,50}, {34,40}, {37,30}, {128,10}, 
+			{35,40}, {128,20}, {43,30}, {44,6}, 
+			{2,50}, {34,50}, {35,50}, {53,10}, 
+			{113,20}, {42,8}, {42,16}, {38,20}, 
+			{270,40}, {270,50}, {40,30}, {45,10}, 
+			{58,25}, {58,50}, {39,20}, {53,50}, 
+			{273,50}, {52,50}, {51,50}, {63,50}, 
+			{266,50}, {46,50}, {49,50}, {271,50}					
 		},
-		basestatsToFill = {35,2,34},
-		slotted = {51, 2, 34, 35},
+		slotted = {2,34,35,267},
 	},
-	[3] = {
-		name = zo_strformat("Full DPS, <<C:1>>+<<C:2>>", GetChampionSkillName(31), GetChampionSkillName(25)),  -- Warfare mag
-		website = "www.youtube.com/c/SkinnyCheeksGaming/",
-		updated = {06, 01, 2021},
-		points = "(dynamic)",
-		discipline = 2,
-		role = 5,
-		source = "Skinny Cheeks",
-		old = true,
-		preset = {
-			{11, 10}, {31, 50}, {12, 50}, {10, 20},
-			{264, 50}, {25, 50}, {11, 20}, {99, 20},
-			{17, 20},{21, 30}, {17, 40}, {20, 10},
-			{14, 20}, {18, 40}, {6, 20}, {22, 30}, 
-			{15, 20}, {16, 20}, {20, 20}, {108, 20},
-			{23, 50}, {27, 50}, 
-		},
-		slotted = {12, 25, 264, 31},
-		situational = {23, 27},
-	},
-	[4] = {
-		name = zo_strformat("Full DPS, <<C:1>>+<<C:2>>", GetChampionSkillName(31), GetChampionSkillName(25)),  -- Warfare stam
-		website = "www.youtube.com/c/SkinnyCheeksGaming/",
-		updated = {06, 01, 2021},
-		points = "(dynamic)",
-		discipline = 2,
-		role = 6,
-		source = "Skinny Cheeks",
-		old = true,
-		preset = {
-			{11, 10}, {31, 50}, {12, 50}, {10, 20},
-			{264, 50}, {25, 50}, {11, 20}, {6, 20},
-			{18, 20}, {22, 30}, {18, 40}, {20, 10},
-			{14, 20}, {17, 40}, {99, 20}, {21, 30},
-			{15, 20}, {16, 20}, {20, 20}, {108, 20},
-			{23, 50}, {27, 50}, 
-		},
-		slotted = {12, 25, 264, 31},
-		situational = {23, 27},
-	},
-	[5] = {
-		name = "Balanced",  -- Warfare mag
-		website = "www.youtube.com/c/SkinnyCheeksGaming/",
-		updated = {05, 30, 2021},
-		points = "(dynamic)", 
-		discipline = 2,
-		role = 5,
-		source = "Skinny Cheeks",
-		old = true,
-		preset = {
-			{99, 10}, {20, 10}, {14, 20}, {11, 10},
-			{31, 50}, {12, 50}, {10, 20}, {264, 50},
-			{25, 50}, {11, 20}, {99, 20}, {17, 20},
-			{21, 30}, {17, 40}, {15, 20}, {16, 20},
-			{18, 40}, {6, 20}, {22, 30}, {20, 20},
-			{108, 20}, {23, 50}, {27, 50}, 
-		},
-		slotted = {12, 25, 264, 31},
-		situational = {23, 27},
-	},
-	[6] = {
-		name = "Balanced",  -- Warfare stam
-		website = "www.youtube.com/c/SkinnyCheeksGaming/",
-		updated = {05, 30, 2021},
-		points = "(dynamic)",
-		discipline = 2,
-		role = 6,
-		source = "Skinny Cheeks",
-		old = true,
-		preset = {
-			{6, 10}, {20, 10}, {14, 20}, {11, 10},
-			{31, 50}, {12, 50}, {10, 20}, {264, 50},
-			{25, 50}, {11, 20}, {6, 20}, {18, 20},
-			{22, 30}, {18, 40}, {15, 20}, {16, 20},
-			{17, 40}, {99, 20}, {21, 30}, {20, 20},
-			{108, 20}, {23, 50}, {27, 50}, 
-		},
-		slotted = {12, 25, 264, 31},
-		situational = {23, 27},
-	},
+
 	[7] = {
 		name = "Mag DD",  -- Fitness
 		website = "www.youtube.com/c/SkinnyCheeksGaming/",
-		updated = {06, 01, 2021},
+		updated = {11, 08, 2025},
 		points = "(dynamic)",
 		discipline = 3,
 		role = 5,
 		source = "Skinny Cheeks",
 		preset = {
-			{2, 50}, {35, 50}, {38, 10}, {42, 8}, 
-			{113, 20}, {47, 50},  {34, 50}, {39, 10}, 
-			{43, 30}, {37, 30}, {128, 20}, {42, 16}, 
-			{39, 20}, {40, 30}, {50, 20}, {38, 20}, 
-			{45, 10}, {58, 50}, {44, 6},  {53, 50}, {45, 30},
+			{2,50}, {35,50}, {34,50}, {38,10}, {42,8}, {113,20}, {63,10}, {46,50}, {58,25}, {56,50}, -- fixed part
+			{37,30}, {128,20}, {38,20}, {42,16}, {39,20}, {43,30}, {44,3}, {40,30}, {50,20}, {58,50}, -- passives to fill
+			{51,50}, {270,50}, {53,50}, {273,50}, {47,50}, {266,50}, {52,50}, {48,50} -- additional slottables
 		},
-		slotted = {2, 35, 34, 47},
+		slotted = {2,35,34,46},
 	},
+	
+	
+	
 	[8] = {
 		name = "Stam DD",  -- Fitness
 		website = "www.youtube.com/c/SkinnyCheeksGaming/",
-		updated = {06, 01, 2021},
+		updated = {11, 08, 2025},
 		points = "(dynamic)",
 		discipline = 3,
 		role = 6,
 		source = "Skinny Cheeks",
 		preset = {
-			{2, 50}, {35, 50}, {38, 10}, {42, 8}, 
-			{113, 20}, {48, 50}, {34, 50}, {39, 10}, 
-			{43, 30}, {37, 30}, {128, 20}, {42, 16}, 
-			{39, 20}, {40, 30}, {50, 20}, {38, 20}, 
-			{45, 10}, {58, 50}, {44, 6},  {53, 50}, {45, 30},
+			{2,50}, {35,50}, {34,50}, {38,10}, {42,8}, {113,20}, {63,10}, {46,50}, {58,25}, {56,50}, -- fixed part
+			{37,30}, {128,20}, {38,20}, {42,16}, {39,20}, {43,30}, {44,3}, {40,30}, {50,20}, {58,50}, -- passives to fill
+			{51,50}, {270,50}, {53,50}, {273,50}, {48,50}, {266,50}, {52,50}, {47,50}, -- additional slottables
 		},
-		slotted = {2, 35, 34, 48},
+		slotted = {2,35,34,46},
 	},
-	[9] = {
-		name = "Dummy Parsing",  -- Warfare mag
-		website = "www.youtube.com/c/SkinnyCheeksGaming/",
-		updated = {06, 01, 2021},
-		points = "(dynamic)",
-		old = true,
-		discipline = 2,
-		role = 5,
-		source = "Skinny Cheeks",
-		preset = {
-			{11, 10}, {31, 50}, {12, 50}, {10, 10},
-			{264, 50}, {25, 50}, {11, 20}, {99, 20},
-			{17, 20}, {21, 30}, {17, 40}, {18, 40},
-			{6, 20}, {22, 30}, {23, 50}, {27, 50}, 
-		},
-		slotted = {12, 25, 264, 31},
-		situational = {23, 27},
-	},
-	[10] = {
-		name = "Dummy Parsing",  -- Warfare stam
-		website = "www.youtube.com/c/SkinnyCheeksGaming/",
-		updated = {06, 01, 2021},
-		points = "(dynamic)",
-		old = true,
-		discipline = 2,
-		role = 6,
-		source = "Skinny Cheeks",
-			
-		preset = {
-			{11, 10}, {31, 50}, {12, 50}, {10, 20},
-			{264, 50}, {25, 50}, {11, 20}, {6, 20},
-			{18, 20}, {22, 30}, {18, 40}, {17, 40},
-			{99, 20}, {21, 30}, {23, 50}, {27, 50}, 
-		},
-		slotted = {12, 25, 264, 31},
-		situational = {23, 27},
-	},
-	[11] = {  -- Backstabber + Biting Aura
-		name = zo_strformat("Full DPS, <<C:1>>+<<C:2>>", GetChampionSkillName(31), GetChampionSkillName(23)),
-		website = "www.youtube.com/c/SkinnyCheeksGaming/",
-		updated = {06, 01, 2021},
-		points = "(dynamic)",
-		discipline = 2,
-		role = 5,
-		source = "Skinny Cheeks",
-		old = true,
-		preset = {
-			{11, 10}, {31, 50}, {12, 50}, {10, 20},
-			{264, 50}, {23, 50}, {11, 20}, {99, 20},
-			{17, 20},{21, 30}, {17, 40}, {20, 10},
-			{14, 20}, {18, 40}, {6, 20}, {22, 30}, 
-			{15, 20}, {16, 20}, {20, 20}, {108, 20},
-			{25, 50}, {27, 50}, 
-		},
-		slotted = {12, 23, 264, 31},
-		situational = {25, 27},
-	},
-	[12] = {
-		name = zo_strformat("Full DPS, <<C:1>>+<<C:2>>", GetChampionSkillName(31), GetChampionSkillName(23)),
-		website = "www.youtube.com/c/SkinnyCheeksGaming/",
-		updated = {06, 01, 2021},
-		points = "(dynamic)",
-		discipline = 2,
-		role = 6,
-		source = "Skinny Cheeks",
-		old = true,
-		preset = {
-			{11, 10}, {31, 50}, {12, 50}, {10, 20},
-			{264, 50}, {23, 50}, {11, 20}, {6, 20},
-			{18, 20}, {22, 30}, {18, 40}, {20, 10},
-			{14, 20}, {17, 40}, {99, 20}, {21, 30},
-			{15, 20}, {16, 20}, {20, 20}, {108, 20},
-			{25, 50}, {27, 50}, 
-		},
-		slotted = {12, 23, 264, 31},
-		situational = {25, 27},
-	},
-	[13] = { -- Full DPS, Backstabber + Thaumaturge Warfare
-		name = zo_strformat("Full DPS, <<C:1>>+<<C:2>>", GetChampionSkillName(31), GetChampionSkillName(27)),
-		website = "www.youtube.com/c/SkinnyCheeksGaming/",
-		updated = {06, 01, 2021},
-		points = "(dynamic)",
-		discipline = 2,
-		role = 5,
-		source = "Skinny Cheeks",
-		old = true,
-		preset = {
-			{11, 10}, {31, 50}, {12, 50}, {10, 20},
-			{264, 50}, {27, 50}, {11, 20}, {99, 20},
-			{17, 20},{21, 30}, {17, 40}, {20, 10},
-			{14, 20}, {18, 40}, {6, 20}, {22, 30}, 
-			{15, 20}, {16, 20}, {20, 20}, {108, 20},
-			{23, 50}, {25, 50}, 
-		},
-		slotted = {12, 27, 264, 31},
-		situational = {23, 25},
-	},
-	[14] = {
-		name = zo_strformat("Full DPS, <<C:1>>+<<C:2>>", GetChampionSkillName(31), GetChampionSkillName(27)),
-		website = "www.youtube.com/c/SkinnyCheeksGaming/",
-		updated = {06, 01, 2021},
-		points = "(dynamic)",
-		discipline = 2,
-		role = 6,
-		source = "Skinny Cheeks",
-		old = true,
-		preset = {
-			{11, 10}, {31, 50}, {12, 50}, {10, 20},
-			{264, 50}, {27, 50}, {11, 20}, {6, 20},
-			{18, 20}, {22, 30}, {18, 40}, {20, 10},
-			{14, 20}, {17, 40}, {99, 20}, {21, 30},
-			{15, 20}, {16, 20}, {20, 20}, {108, 20},
-			{23, 50}, {25, 50},
-		},
-		slotted = {12, 27, 264, 31},
-		situational = {23, 25},
-	},
+	
 	[15] = {
 		name = "Healer",
-		website = "eso-u.com",
-		updated = {04, 04, 2021},
+		website = "healers-haven.com",
+		updated = {11, 08, 2025},
 		points = "(dynamic)",
-		source = "ESO University",
+		source = "Duncan88 / Healers Haven",
 		role = 4,
 		discipline = 3,
 		preset = {
-			{34, 50}, {35, 50}, {2, 50}, {37, 15}, {51, 50},
-			{38, 10}, {42, 8}, {113, 40}, {38, 40}, {42, 32},
-			{37, 30}, {39, 10}, {43, 30}, {40, 8}, {37, 45},
-			{128, 40}, 	{39, 40}, {43, 45}, {40, 45}, {53, 50},
-			{44, 15}, {45, 10}, {58, 40}, {58, 125}, {47, 50}, 
-			{46, 50}
+			{2,50}, {34,50}, {38,10}, {42,8}, {270,50}, 
+			{113,20}, {39,10}, {43,30}, {37,30}, {128,20}, {51,50}, 
+			{42,16}, {44,6}, {53,50}, {38,20}, {45,10}, {58,50}, 
+			{39,20}, {40,30}, {50,20}, {45,30}, {273,50}, {52,50}, 
+			{35,50}, {56,50}
 		},
-		slotted = {34, 35, 2, 51},
-		situational = {47, 46},
+		slotted = {2,34,270,51},
 	},
 	[16] = {
 		name = "Healer",
-		website = "eso-u.com",
-		updated = {04, 04, 2021},
+		website = "healers-haven.com",
+		updated = {11, 08, 2025},
 		points = "(dynamic)",
-		source = "ESO University",
+		source = "Duncan88 / Healers Haven",
 		role = 4,
 		discipline = 2,
 		preset = {
-			{99, 10}, {108, 40}, {24, 50}, {26, 50}, {28, 50},
-			{9, 50}, {99, 40}, {20, 10}, {14, 10}, {11, 40},
-			{10, 10}, {17, 40}, {10, 40}, {20, 40}, {16, 40},
-			{15, 40}, {14, 40}, {6, 40}, {21, 30}, {18, 40},
-			{22, 30},
+			{99,20}, {108,20}, {20,10}, {14,20}, {24,50}, {28,50}, {263,50}, {262,50}, 
+			{11,20}, {16,20}, {15,20}, {10,10}, {17,40}, {21,30}, {20,20}, {6,20}, 
+			{10,20}, {18,40}, {22,30}, {9,50}, {26,50}, {4,50}, {12,50}
 		},
-		slotted = {24, 9, 26, 28},
+		slotted = {24,28,263,262},
 	},
 	[17] = {
-		name = "Jack of all Trades (Farming)",
-		addInfo = GetString(CSPS_CPPDescr_JoaTFarming),
+		name = "Farming",
+		addInfo = GS(CSPS_CPPDescr_JoaTFarming),
 		updated = {03, 21, 2025},
 		points = "(dynamic)",
 		source = "@Orejana",
@@ -618,16 +413,16 @@ CSPS.CPPresets = {
 		preset = {
 			{68, 10}, {76, 25}, {84, 50}, {83, 50}, {78, 75},
 			{81, 50}, {91, 25}, {79, 50}, {75, 10}, {85, 30},
-			{74, 50}, {1, 50}, {66, 50}, {77, 25}, {70, 75},
-			{75, 50}, {71, 50}, {69, 50}, {90, 75}, {68, 30},
-			{86, 75}, {88, 50}, {89, 25}, {65, 50}, {67, 40},
-			{80, 75}, {92, 20},
+			{74, 50}, {1, 50}, {66, 50}, {279,25}, {77, 25}, {70, 50},
+			{75, 50}, {71, 50}, {69, 50}, {279,50}, {90, 25}, {68, 30},
+			{86,50}, {88, 50}, {89, 25}, {65, 50}, {67, 40},
+			{80, 75}, {92, 50}, {87, 30}, {82, 75}, {72, 45}
 		},
-		slotted = {66, 65},
+		slotted = {66, 78, 88, 89},
 	},
 	[18] = {
-		name = "Jack of all Trades (Fishing)",
-		addInfo = GetString(CSPS_CPPDescr_JoaTFishing),
+		name = "Fishing",
+		addInfo = GS(CSPS_CPPDescr_JoaTFishing),
 		updated = {03, 21, 2025},
 		points = "(dynamic)",
 		source = "@Orejana",
@@ -636,34 +431,34 @@ CSPS.CPPresets = {
 		preset = {
 			{69, 10}, {70, 15}, {75, 10}, {79, 50}, {78, 15},
 			{81, 10}, {91, 25}, {88, 50}, {89, 25}, {85, 30},
-			{66, 50}, {81, 50}, {78, 75}, {70, 75}, {69, 50},
+			{66, 50}, {81, 50}, {78, 75}, {70, 50}, {69, 50},
 			{74, 50}, {71, 50}, {1, 50}, {83, 50}, {84, 50},
-			{90, 75}, {76, 25}, {68, 30}, {77, 25}, {75, 50},
-			{86, 75}, {65, 50}, {67, 40}, {80, 75}, {92, 20},
+			{90, 25}, {76, 25}, {68, 30}, {77, 25}, {75, 50},
+			{86,50}, {65, 50}, {279,50}, {87,30}, {67, 40}, {80, 75}, {92, 50}, {82,75}, {72,45}
 		},
-		slotted = {66, 65},
+		slotted = {66, 88, 89, 78},
 	},
 	[19] = {
-		name = "Jack of all Trades (Thieving)",
-		addInfo = GetString(CSPS_CPPDescr_JoaTThieving),
+		name = "Thieving",
+		addInfo = GS(CSPS_CPPDescr_JoaTThieving),
 		updated = {03, 21, 2025},
 		points = "(dynamic)",
 		source = "@Orejana",
 		role = 7,
 		discipline = 1,
 		preset = {
-			{68, 30}, {76, 25}, {77, 25}, {80, 75}, {90, 75},
+			{68, 30}, {76, 25}, {77, 25}, {80, 75}, {90, 25},
 			{67, 40}, {84, 50}, {65, 50}, {66, 50}, {74, 50},
 			{71, 50}, {78, 15}, {81, 10}, {91, 25}, {79, 50},
-			{81, 50}, {78, 75}, {75, 10}, {85, 30}, {70, 75},
-			{1, 50}, {69, 50}, {83, 50}, {75, 50}, {86, 75},
-			{89, 25}, {88, 50}, {92, 20},
+			{81, 50}, {78, 75}, {75, 10}, {85, 30}, {70, 50},
+			{1, 50}, {69, 50}, {83, 50}, {75, 50}, {86,50}, {87, 30}, {279, 50},
+			{89, 25}, {88, 50}, {92, 50},{82,75},{72,45}
 		},
-		slotted = {66, 65},
+		slotted = {76, 80, 84, 65},
 	},
 	[20] = {
 		name = "Combat focus",
-		addInfo = GetString(CSPS_CPPDescr_CombatFocus),
+		addInfo = GS(CSPS_CPPDescr_CombatFocus),
 		updated = {03, 21, 2025},
 		points = "(dynamic)",
 		source = "@Irniben",
@@ -671,11 +466,11 @@ CSPS.CPPresets = {
 		discipline = 1,
 		preset = {
 			{66,20}, {69,10}, {70,15}, {75,10}, {85,10}, 
-			{86,75}, {85,20}, {66,50}, {69,20}, {75,50}, {69,50}, 
-			{85,30}, {79,50}, {70,45}, {74,50}, {71,20}, {70,75}, 
-			{71,50}, {68,30}, {67,40}, {87,33}, {1,50}, {78,15}, 
-			{81,10}, {91,25}, {92,100}, {78,75}, {81,50}, {65,50}, 
-			{82,120}, {76,25}, {77,25}, {84,50}, {89,25},
+			{86,50}, {85,20}, {66,50}, {69,20}, {75,50}, {69,50}, 
+			{85,30}, {279,25}, {79,50}, {70,45}, {74,50}, {71,20}, {70, 50}, {279,50},
+			{71,50}, {68,30}, {67,40}, {87,30}, {1,50}, {78,15}, 
+			{81,10}, {91,25}, {92,50}, {78,75}, {81,50}, {65,50}, 
+			{82,75}, {83,50}, {76,25}, {77,25}, {90,25}, {84,50}, {89,25}, {80,75}, {72,45}, {88,50},
 		},
 		slotted = {66, 92, 65, 82},
 	},
@@ -690,10 +485,10 @@ CSPS.CPPresets = {
 			{74,10}, {71,10}, {72,15}, {83,50}, {78,15}, 
 			{81,50}, {78,30}, {70,15}, {75,10}, {85,30}, 
 			{66,50}, {78,45}, {74,30}, {79,50}, {74,50}, 
-			{91,25}, {78,75}, {70,75}, {69,50}, {75,50}, 
-			{86,75}, {68,30}, {67,40}, {1,50}, {92,100}, 
+			{91,25}, {78,75}, {70, 50}, {69,50}, {279, 50}, {75,50}, 
+			{86,50}, {68,30}, {67,40}, {1,50}, {92,50}, 
 			{76,25}, {84,50}, {76,25}, {77,25}, {65,50}, 
-			{82,120},
+			{82,75}, {71,50}, {72,45}, {80,75}, {87,30}, {88,50}, {89,25}, {90,25},
 		},
 		slotted = {66, 78, 92, 65},
 	},
@@ -705,13 +500,13 @@ CSPS.CPPresets = {
 		role = 7,
 		discipline = 1,
 		preset = {
-			{74,10}, {71,10}, {72,45}, {66,50}, {83,50}, 
+			{74,10}, {71,10}, {72,45}, {66,50}, {83,50}, {279,50},
 			{78,15}, {81,50}, {74,30}, {78,30}, {70,15}, 
 			{75,10}, {85,30}, {78,45}, {79,50}, {74,50}, 
-			{91,25}, {78,75}, {70,75}, {69,50}, {75,50}, 
-			{86,75}, {68,30}, {67,40}, {1,50}, {92,100}, 
-			{76,25}, {84,50}, {76,25}, {77,25}, {65,50}, 
-			{82,120},
+			{91,25}, {78,75}, {70, 50}, {69,50}, {75,50}, 
+			{86,50}, {68,30}, {67,40}, {1,50}, {92,50}, {71,50}, {90,25}, 
+			{76,25}, {84,50}, {76,25}, {77,25}, {65,50}, {87,30},
+			{82,75},{80,75},{88,50},{89,25},
 		},
 		slotted = {66, 78, 92, 65},
 	},
@@ -726,484 +521,171 @@ CSPS.CPPresets = {
 			{66,20}, {69,10}, {70,15}, {75,10}, {85,10}, 
 			{79,50}, {85,20}, {66,50}, {69,20}, {74,20}, 
 			{85,30}, {74,50}, {78,15}, {81,10}, {91,25}, 
-			{70,45}, {69,50}, {71,20}, {86,75}, {70,75}, 
-			{75,50}, {71,50}, {68,30}, {67,40}, {87,33},
-			{1,50}, {92,100}, {78,75}, {81,50}, {65,47}, 
-			{76,25}, {77,25}, {84,50}, {89,25}, {82,120},
+			{70,45}, {69,50}, {71,20}, {86,50}, {70, 50}, 
+			{75,50}, {71,50}, {279,50}, {68,30}, {67,40}, {87,30},
+			{1,50}, {92,50}, {78,75}, {81,50}, {83,50}, {65,50}, {90,25}, {77,25},
+			{76,25}, {77,25}, {84,50}, {89,25}, {82,75}, {80,75}, {88,50}, {72,45},
 		},
 		slotted = {66, 78, 65, 92},
 	},
-	[24] = {  -- deadly aim + thaumaturge
-		name = zo_strformat("Full DPS, <<C:1>>+<<C:2>>", GetChampionSkillName(25), GetChampionSkillName(27)),
+--45 moved to old, 46 is next
+	[46] = { 
+		name = string.format("Balanced, %s", aoe), 
+		updated = {11, 08, 2025},
+		points = "(dynamic)",
 		website = "www.youtube.com/c/SkinnyCheeksGaming/",
-		updated = {06, 01, 2021},
-		points = "(dynamic)",
-		discipline = 2,
-		role = 5,
 		source = "Skinny Cheeks",
-		old = true,
+		role = 5,--mag dd
+		discipline = 2,	--warfare
 		preset = {
-			{11, 10}, {12, 50}, {10, 20},
-			{264, 50}, {25, 50}, {27, 50}, {11, 20}, {99, 20},
-			{17, 20},{21, 30}, {17, 40}, {20, 10},
-			{14, 20}, {18, 40}, {6, 20}, {22, 30}, 
-			{15, 20}, {16, 20}, {20, 20}, {108, 20},
-			{23, 50}, {31, 50},
+			{99,10},{20,10},{14,20},{11,10},{10,10},
+			{264,50},{23,50},{8,50},{277,50}, -- slot: masteratarms, biting aura, wrathful strikes, exploiter
+			{10,20},{11,20},{17,40},{21,30},{18,40},{22,30},{99,20},{15,20},{16,20},
+			{6,20},{20,20},{108,20},
+			{25,50}, --deadly aim
+			{30,50}, --direct damage heals
+			{12,50}, --fighting fitness (critical healing/damage)
+			{4,50}, --untamed aggression (weapon/spell damage)
+			{31,50}, --backstabber
+			{27,50}, --thaumaturge (dot)
+			{276,50} --force of nature (offensive penetration)
 		},
-		slotted = {12, 25, 264, 27},
-		situational = {23, 31},
+		slotted = {264,23,8,277},
 	},
-	[25] = {
-		name = zo_strformat("Full DPS, <<C:1>>+<<C:2>>", GetChampionSkillName(25), GetChampionSkillName(27)),
+	[47] = {
+		name = string.format("Full DPS, %s", aoe), 
+		updated = {11, 08, 2025},
+		points = "(dynamic)",
 		website = "www.youtube.com/c/SkinnyCheeksGaming/",
-		updated = {06, 01, 2021},
-		points = "(dynamic)",
-		discipline = 2,
-		role = 6,
 		source = "Skinny Cheeks",
-		old = true,
+		role = 5,	--mag dd
+		discipline = 2,	--warfare
 		preset = {
-			{11, 10}, {12, 50}, {10, 20},
-			{264, 50}, {25, 50}, {27, 50}, {11, 20}, {6, 20},
-			{18, 20}, {22, 30}, {18, 40}, {20, 10},
-			{14, 20}, {17, 40}, {99, 20}, {21, 30},
-			{15, 20}, {16, 20}, {20, 20}, {108, 20},
-			{23, 50}, {31, 50},
+			{11,10},{10,10},
+			{264,50},{23,50},{8,50},{277,50},-- slot: masteratarms, biting aura, wrathful strikes, explorer
+			{10,20},{11,20},{17,40},{21,30},{18,40},{22,30},{99,20},{20,10},{14,20},{15,20},{16,20},
+			{25,50}, 
+			{6,20},
+			{12,50},{4,50}, {31,50}, {27,50}, {276,50}, {30,50}, 
+			{20,20},{108,20},
 		},
-		slotted = {12, 25, 264, 27},
-		situational = {23, 31},
-	},	
-	[26] = {
-		name = zo_strformat("NB (<<C:1>>/<<C:2>>/<<C:3>>/<<C:4>>)", 
-			GetChampionSkillName(25), GetChampionSkillName(264), GetChampionSkillName(8), GetChampionSkillName(27)),  -- Warfare mag
-		website = "www.skinnycheeks.gg",
-		updated = {11, 18, 2022},
-		points = "(dynamic)",
-		discipline = 2,
-		role = 5,
-		source = "Skinny Cheeks",
-		preset = {
-			{11, 10}, {10, 20}, 
-			{25, 50}, {264, 50}, {8, 50}, {27, 50}, 
-			{11, 20}, {99, 20}, {17, 20},{21, 30}, {17, 40}, {20, 10}, {14, 20}, {18, 40}, {6, 20}, {22, 30}, {15, 20}, {16, 20}, {20, 20}, {108, 20},
-			{23, 50}, {276, 50}, {31, 50}, {12, 50}, {277, 50}, 
-		},
-		slotted = {25, 264, 8, 27},
-		aoe = {23},
-		penetration = {276},
-		crit = {31, 12},
-		offBalance = {277},
-		offBalanceUp = 25,
+		slotted = {264,23,8,277},
 	},
-	[27] = {
-		name = zo_strformat("NB (<<C:1>>/<<C:2>>/<<C:3>>/<<C:4>>)", 
-			GetChampionSkillName(25), GetChampionSkillName(264), GetChampionSkillName(8), GetChampionSkillName(27)),  -- Warfare stam
-		website = "www.skinnycheeks.gg",
-		updated = {11, 18, 2022},
+	[48] = { -- like 46 but 23 swapped for 25
+		name = string.format("Balanced, %s", singleTarget), 
+		updated = {11, 08, 2025},
 		points = "(dynamic)",
-		discipline = 2,
-		role = 6,
+		website = "www.youtube.com/c/SkinnyCheeksGaming/",
 		source = "Skinny Cheeks",
+		role = 5,--mag dd
+		discipline = 2,	--warfare
 		preset = {
-			{11, 10}, {10, 20},
-			{25, 50}, {264, 50}, {8, 50}, {27, 50}, 
-			{11, 20}, {6, 20},	{18, 20}, {22, 30}, {18, 40}, {20, 10},	{14, 20}, {17, 40}, {99, 20}, {21, 30},	{15, 20}, {16, 20}, {20, 20}, {108, 20},
-			{23, 50}, {276, 50}, {31, 50}, {12, 50}, {277, 50}, 
+			{99,10},{20,10},{14,20},{11,10},{10,10},
+			{264,50},{25,50},{8,50},{277,50}, -- slot: masteratarms, deadly aim, wrathful strikes, exploiter
+			{10,20},{11,20},{17,40},{21,30},{18,40},{22,30},{99,20},{15,20},{16,20},
+			{6,20},{20,20},{108,20},
+			{23,50}, {30,50}, {12,50}, {4,50}, {31,50},{27,50}, {276,50} 
 		},
-		slotted = {25, 264, 8, 27},
-		aoe = {23},
-		penetration = {276},
-		crit = {31, 12},
-		offBalance = {277},
-		offBalanceUp = 25,
+		slotted = {264,25,8,277},
 	},
-	[28] = {
-		name = zo_strformat("NB Trial-Dummy (<<C:1>>/<<C:2>>/<<C:3>>/<<C:4>>)", 
-			GetChampionSkillName(25), GetChampionSkillName(264), GetChampionSkillName(8), GetChampionSkillName(277)),  -- Warfare mag
-		website = "www.skinnycheeks.gg",
-		updated = {11, 18, 2022},
+	[49] = { -- like 49 but 23 swapped for 25
+		name = string.format("Full DPS, %s", singleTarget), 
+		updated = {11, 08, 2025},
 		points = "(dynamic)",
-		discipline = 2,
-		role = 5,
+		website = "www.youtube.com/c/SkinnyCheeksGaming/",
 		source = "Skinny Cheeks",
+		role = 5,	--mag dd
+		discipline = 2,	--warfare
 		preset = {
-			{11, 10}, {10, 20}, 
-			{25, 50}, {264, 50}, {8, 50},  {277, 50}, 
-			{11, 20}, {99, 20}, {17, 20},{21, 30}, {17, 40}, {20, 10}, {14, 20}, {18, 40}, {6, 20}, {22, 30}, {15, 20}, {16, 20}, {20, 20}, {108, 20},
-			{23, 50}, {276, 50}, {31, 50}, {12, 50}, {27, 50},
+			{11,10},{10,10},
+			{264,50},{25,50},{8,50},{277,50},-- slot: masteratarms, deadly aim, wrathful strikes, explorer
+			{10,20},{11,20},{17,40},{21,30},{18,40},{22,30},{99,20},{20,10},{14,20},{15,20},{16,20},
+			{23,50}, {6,20},
+			{12,50}, {4,50}, {31,50}, {27,50}, {276,50}, {30,50}, 
+			{20,20},{108,20},
 		},
-		slotted = {25, 264, 8, 277},
-		situational = {27},
-		aoe = {23},
-		penetration = {276},
-		crit = {31, 12},
+		slotted = {264,25,8,277},
 	},
-	[29] = {
-		name = zo_strformat("NB Trial-Dummy (<<C:1>>/<<C:2>>/<<C:3>>/<<C:4>>)", 
-			GetChampionSkillName(25), GetChampionSkillName(264), GetChampionSkillName(8), GetChampionSkillName(277)),  -- Warfare stam
-		website = "www.skinnycheeks.gg",
-		updated = {11, 18, 2022},
+	
+	[50] = { 
+		name = string.format("Balanced, %s", aoe), 
+		updated = {11, 08, 2025},
 		points = "(dynamic)",
-		discipline = 2,
-		role = 6,
+		website = "www.youtube.com/c/SkinnyCheeksGaming/",
 		source = "Skinny Cheeks",
+		role = 6, --stam dd
+		discipline = 2,	--warfare
 		preset = {
-			{11, 10}, {10, 20},
-			{25, 50}, {264, 50}, {8, 50},  {277, 50}, 
-			{11, 20}, {6, 20},	{18, 20}, {22, 30}, {18, 40}, {20, 10},	{14, 20}, {17, 40}, {99, 20}, {21, 30},	{15, 20}, {16, 20}, {20, 20}, {108, 20},
-			{23, 50}, {276, 50}, {31, 50}, {12, 50}, {27, 50},
+			{6,10},{20,10},{14,20},{11,10},{10,10},
+			{264,50},{23,50},{8,50},{277,50}, -- slot: masteratarms, biting aura, wrathful strikes, exploiter
+			{10,20},{11,20},{18,40},{22,30},{17,40},{21,30},{6,20},{15,20},{16,20},
+			{99,20},{20,20},{108,20},
+			{25,50}, --deadly aim
+			{30,50}, --direct damage heals
+			{12,50}, --fighting fitness (critical healing/damage)
+			{4,50}, --untamed aggression (weapon/spell damage)
+			{31,50}, --backstabber
+			{27,50}, --thaumaturge (dot)
+			{276,50} --force of nature (offensive penetration)
 		},
-		slotted = {25, 264, 8, 277},
-		situational = {27},
-		aoe = {23},
-		penetration = {276},
-		crit = {31, 12},
+		slotted = {264,23,8,277},
 	},
-	[30] = {
-		name = zo_strformat("DK (<<C:1>>/<<C:2>>/<<C:3>>/<<C:4>>)", 
-			GetChampionSkillName(25), GetChampionSkillName(8), GetChampionSkillName(27), GetChampionSkillName(264)),  -- Warfare mag
-		website = "www.skinnycheeks.gg",
-		updated = {11, 18, 2022},
+	[51] = {
+		name = string.format("Full DPS, %s", aoe), 
+		updated = {11, 08, 2025},
 		points = "(dynamic)",
-		discipline = 2,
-		role = 5,
+		website = "www.youtube.com/c/SkinnyCheeksGaming/",
 		source = "Skinny Cheeks",
+		role = 6, --stam dd
+		discipline = 2,	--warfare
 		preset = {
-			{11, 10}, {10, 20}, 
-			{25, 50}, {8, 50}, {27, 50}, {264, 50}, 
-			{11, 20}, {99, 20}, {17, 20},{21, 30}, {17, 40}, {20, 10}, {14, 20}, {18, 40}, {6, 20}, {22, 30}, {15, 20}, {16, 20}, {20, 20}, {108, 20},
-			{23, 50}, {276, 50}, {31, 50}, {12, 50}, {277, 50}, 
+			{11,10},{10,10},
+			{264,50},{23,50},{8,50},{277,50},-- slot: masteratarms, biting aura, wrathful strikes, explorer
+			{10,20},{11,20},{18,40},{22,30},{17,40},{21,30},{6,20},{20,10},{14,20},{15,20},{16,20},
+			{25,50}, 
+			{99,20},
+			{12,50},{4,50}, {31,50}, {27,50}, {276,50},
+			{20,20},{108,20}, 
+			{30,50}, 
 		},
-		slotted = {25, 8, 27, 264},
-		aoe = {23},
-		penetration = {276},
-		crit = {31, 12},
-		offBalance = {277},
-		offBalanceUp = 25,
+		slotted = {264,23,8,277},
 	},
-	[31] = {
-		name = zo_strformat("DK (<<C:1>>/<<C:2>>/<<C:3>>/<<C:4>>)", 
-			GetChampionSkillName(25), GetChampionSkillName(8), GetChampionSkillName(27), GetChampionSkillName(264)),  -- Warfare stam
-		website = "www.skinnycheeks.gg",
-		updated = {11, 18, 2022},
+	[52] = {
+		name = string.format("Balanced, %s", singleTarget), 
+		updated = {11, 08, 2025},
 		points = "(dynamic)",
-		discipline = 2,
-		role = 6,
+		website = "www.youtube.com/c/SkinnyCheeksGaming/",
 		source = "Skinny Cheeks",
+		role = 6, --stam dd
+		discipline = 2,	--warfare
 		preset = {
-			{11, 10}, {10, 20},
-			{25, 50}, {8, 50}, {27, 50}, {264, 50}, 
-			{11, 20}, {6, 20},	{18, 20}, {22, 30}, {18, 40}, {20, 10},	{14, 20}, {17, 40}, {99, 20}, {21, 30},	{15, 20}, {16, 20}, {20, 20}, {108, 20},
-			{23, 50}, {276, 50}, {31, 50}, {12, 50}, {277, 50}, 
+			{6,10},{20,10},{14,20},{11,10},{10,10},
+			{264,50},{25,50},{8,50},{277,50}, -- slot: masteratarms, deadly aim, wrathful strikes, exploiter
+			{10,20},{11,20},{18,40},{22,30},{17,40},{21,30},{6,20},{15,20},{16,20},
+			{99,20},{20,20},{108,20},
+			{23,50}, {30,50}, {12,50}, {4,50}, {31,50},{27,50}, {276,50} 
 		},
-		slotted = {25, 8, 27, 264},
-		aoe = {23},
-		penetration = {276},
-		crit = {31, 12},
-		offBalance = {277},
-		offBalanceUp = 25,
+		slotted = {264,25,8,277},
 	},
-	[32] = {
-		name = zo_strformat("Templar (<<C:1>>/<<C:2>>/<<C:3>>/<<C:4>>)", 
-			GetChampionSkillName(25), GetChampionSkillName(27), GetChampionSkillName(8), GetChampionSkillName(264)),  -- Warfare mag
-		website = "www.skinnycheeks.gg",
-		updated = {11, 18, 2022},
+	[53] = { 
+		name = string.format("Full DPS, %s", singleTarget), 
+		updated = {11, 08, 2025},
 		points = "(dynamic)",
-		discipline = 2,
-		role = 5,
+		website = "www.youtube.com/c/SkinnyCheeksGaming/",
 		source = "Skinny Cheeks",
+		role = 6, --stam dd
+		discipline = 2,	--warfare
 		preset = {
-			{11, 10}, {10, 20}, 
-			{25, 50}, {27, 50}, {8, 50}, {264, 50}, 
-			{11, 20}, {99, 20}, {17, 20},{21, 30}, {17, 40}, {20, 10}, {14, 20}, {18, 40}, {6, 20}, {22, 30}, {15, 20}, {16, 20}, {20, 20}, {108, 20},
-			{23, 50}, {276, 50}, {31, 50}, {12, 50}, {277, 50}, 
+			{11,10},{10,10},
+			{264,50},{25,50},{8,50},{277,50},-- slot: masteratarms, deadly aim, wrathful strikes, explorer
+			{10,20},{11,20},{18,40},{22,30},{17,40},{21,30},{6,20},{20,10},{14,20},{15,20},{16,20},
+			{23,50}, 
+			{99,20}, 
+			{12,50}, {4,50}, {31,50}, {27,50}, {276,50}, 
+			{20,20},{108,20},
+			{30,50}, 
 		},
-		slotted = {25, 27, 8, 264},
-		aoe = {23},
-		penetration = {276},
-		crit = {31, 12},
-		offBalance = {277},
-		offBalanceUp = 25,
-	},
-	[33] = {
-		name = zo_strformat("Templar (<<C:1>>/<<C:2>>/<<C:3>>/<<C:4>>)", 
-			GetChampionSkillName(25), GetChampionSkillName(27), GetChampionSkillName(8), GetChampionSkillName(264)), -- Warfare stam
-		website = "www.skinnycheeks.gg",
-		updated = {11, 18, 2022},
-		points = "(dynamic)",
-		discipline = 2,
-		role = 6,
-		source = "Skinny Cheeks",
-		preset = {
-			{11, 10}, {10, 20},
-			{25, 50}, {27, 50}, {8, 50}, {264, 50}, 
-			{11, 20}, {6, 20},	{18, 20}, {22, 30}, {18, 40}, {20, 10},	{14, 20}, {17, 40}, {99, 20}, {21, 30},	{15, 20}, {16, 20}, {20, 20}, {108, 20},
-			{23, 50}, {276, 50}, {31, 50}, {12, 50}, {277, 50}, 
-		},
-		slotted = {25, 27, 8, 264},
-		aoe = {23},
-		penetration = {276},
-		crit = {31, 12},
-		offBalance = {277},
-		offBalanceUp = 25,
-	},	
-	[34] = {
-		name = zo_strformat("Necro (<<C:1>>/<<C:2>>/<<C:3>>/<<C:4>>)", 
-			GetChampionSkillName(25), GetChampionSkillName(264), GetChampionSkillName(8), GetChampionSkillName(277)),   -- Warfare mag
-		website = "www.skinnycheeks.gg",
-		updated = {11, 18, 2022},
-		points = "(dynamic)",
-		discipline = 2,
-		role = 5,
-		source = "Skinny Cheeks",
-		preset = {
-			{11, 10}, {10, 20}, 
-			{8, 50}, {27, 50}, {25, 50}, {264, 50}, 
-			{11, 20}, {99, 20}, {17, 20},{21, 30}, {17, 40}, {20, 10}, {14, 20}, {18, 40}, {6, 20}, {22, 30}, {15, 20}, {16, 20}, {20, 20}, {108, 20},
-			{23, 50}, {276, 50}, {31, 50}, {12, 50}, {277, 50}, 
-		},
-		slotted = {8, 27, 25, 264},
-		aoe = {23},
-		penetration = {276},
-		crit = {31, 12},
-		offBalance = {277},
-		offBalanceUp = 30,
-	},
-	[35] = {
-		name = zo_strformat("Necro (<<C:1>>/<<C:2>>/<<C:3>>/<<C:4>>)", 
-			GetChampionSkillName(25), GetChampionSkillName(264), GetChampionSkillName(8), GetChampionSkillName(277)),  -- Warfare stam
-		website = "www.skinnycheeks.gg",
-		updated = {11, 18, 2022},
-		points = "(dynamic)",
-		discipline = 2,
-		role = 6,
-		source = "Skinny Cheeks",
-		preset = {
-			{11, 10}, {10, 20},
-			{8, 50}, {27, 50}, {25, 50}, {264, 50}, 
-			{11, 20}, {6, 20},	{18, 20}, {22, 30}, {18, 40}, {20, 10},	{14, 20}, {17, 40}, {99, 20}, {21, 30},	{15, 20}, {16, 20}, {20, 20}, {108, 20},
-			{23, 50}, {276, 50}, {31, 50}, {12, 50}, {277, 50}, 
-		},
-		slotted = {8, 27, 25, 264},
-		aoe = {23},
-		penetration = {276},
-		crit = {31, 12},
-		offBalance = {277},
-		offBalanceUp = 30,
-	},
-	[36] = {
-		name = zo_strformat("Necro Trial-Dummy (<<C:1>>/<<C:2>>/<<C:3>>/<<C:4>>)", 
-			GetChampionSkillName(8), GetChampionSkillName(27), GetChampionSkillName(25), GetChampionSkillName(277)),  -- Warfare mag
-		website = "www.skinnycheeks.gg",
-		updated = {11, 18, 2022},
-		points = "(dynamic)",
-		discipline = 2,
-		role = 5,
-		source = "Skinny Cheeks",
-		preset = {
-			{11, 10}, {10, 20}, 
-			{8, 50}, {27, 50}, {25, 50}, {277, 50}, 
-			{11, 20}, {99, 20}, {17, 20},{21, 30}, {17, 40}, {20, 10}, {14, 20}, {18, 40}, {6, 20}, {22, 30}, {15, 20}, {16, 20}, {20, 20}, {108, 20},
-			{23, 50}, {276, 50}, {31, 50}, {12, 50}, {264, 50},
-		},
-		slotted = {8, 27, 25, 277},
-		situational = {264},
-		aoe = {23},
-		penetration = {276},
-		crit = {31, 12},
-	},
-	[37] = {
-		name = zo_strformat("Necro Trial-Dummy (<<C:1>>/<<C:2>>/<<C:3>>/<<C:4>>)", 
-			GetChampionSkillName(8), GetChampionSkillName(27), GetChampionSkillName(25), GetChampionSkillName(277)),  -- Warfare stam
-		website = "www.skinnycheeks.gg",
-		updated = {11, 18, 2022},
-		points = "(dynamic)",
-		discipline = 2,
-		role = 6,
-		source = "Skinny Cheeks",
-		preset = {
-			{11, 10}, {10, 20},
-			{8, 50}, {27, 50}, {25, 50}, {277, 50}, 
-			{11, 20}, {6, 20},	{18, 20}, {22, 30}, {18, 40}, {20, 10},	{14, 20}, {17, 40}, {99, 20}, {21, 30},	{15, 20}, {16, 20}, {20, 20}, {108, 20},
-			{23, 50}, {276, 50}, {31, 50}, {12, 50}, {264, 50},
-		},
-		slotted = {8, 27, 25, 277},
-		situational = {264},
-		aoe = {23},
-		penetration = {276},
-		crit = {31, 12},
-	},
-	[38] = {
-		name = zo_strformat("Warden (<<C:1>>/<<C:2>>/<<C:3>>/<<C:4>>)", 
-			GetChampionSkillName(25), GetChampionSkillName(8), GetChampionSkillName(264), GetChampionSkillName(27)),  -- Warfare mag
-		website = "www.skinnycheeks.gg",
-		updated = {11, 18, 2022},
-		points = "(dynamic)",
-		discipline = 2,
-		role = 5,
-		source = "Skinny Cheeks",
-		preset = {
-			{11, 10}, {10, 20}, 
-			{25, 50}, {8, 50}, {264, 50}, {27, 50}, 
-			{11, 20}, {99, 20}, {17, 20},{21, 30}, {17, 40}, {20, 10}, {14, 20}, {18, 40}, {6, 20}, {22, 30}, {15, 20}, {16, 20}, {20, 20}, {108, 20},
-			{23, 50}, {276, 50}, {31, 50}, {12, 50}, {277, 50}, 
-		},
-		slotted = {25, 8, 264, 27},
-		aoe = {23},
-		penetration = {276},
-		crit = {31, 12},
-		offBalance = {277},
-		offBalanceUp = 28,
-	},
-	[39] = {
-		name = zo_strformat("Warden (<<C:1>>/<<C:2>>/<<C:3>>/<<C:4>>)", 
-			GetChampionSkillName(25), GetChampionSkillName(8), GetChampionSkillName(264), GetChampionSkillName(27)), -- Warfare stam
-		website = "www.skinnycheeks.gg",
-		updated = {11, 18, 2022},
-		points = "(dynamic)",
-		discipline = 2,
-		role = 6,
-		source = "Skinny Cheeks",
-		preset = {
-			{11, 10}, {10, 20},
-			{25, 50}, {8, 50}, {264, 50}, {27, 50}, 
-			{11, 20}, {6, 20},	{18, 20}, {22, 30}, {18, 40}, {20, 10},	{14, 20}, {17, 40}, {99, 20}, {21, 30},	{15, 20}, {16, 20}, {20, 20}, {108, 20},
-			{23, 50}, {276, 50}, {31, 50}, {12, 50}, {277, 50}, 
-		},
-		slotted = {25, 8, 264, 27},
-		aoe = {23},
-		penetration = {276},
-		crit = {31, 12},
-		offBalance = {277},
-		offBalanceUp = 28,
-	},
-	[40] = {
-		name = zo_strformat("Sorc (<<C:1>>/<<C:2>>/<<C:3>>/<<C:4>>)", 
-			GetChampionSkillName(25), GetChampionSkillName(264), GetChampionSkillName(8), GetChampionSkillName(27)),  -- Warfare mag
-		website = "www.skinnycheeks.gg",
-		updated = {11, 18, 2022},
-		points = "(dynamic)",
-		discipline = 2,
-		role = 5,
-		source = "Skinny Cheeks",
-		preset = {
-			{11, 10}, {10, 20}, 
-			{25, 50}, {264, 50}, {8, 50}, {27, 50}, 
-			{11, 20}, {99, 20}, {17, 20},{21, 30}, {17, 40}, {20, 10}, {14, 20}, {18, 40}, {6, 20}, {22, 30}, {15, 20}, {16, 20}, {20, 20}, {108, 20},
-			{23, 50}, {276, 50}, {31, 50}, {12, 50}, {277, 50}, 
-		},
-		slotted = {25, 264, 8, 27},
-		aoe = {23},
-		penetration = {276},
-		crit = {31, 12},
-		offBalance = {277},
-		offBalanceUp = 25,
-	},
-	[41] = {
-		name = zo_strformat("Sorc (<<C:1>>/<<C:2>>/<<C:3>>/<<C:4>>)", 
-			GetChampionSkillName(25), GetChampionSkillName(264), GetChampionSkillName(8), GetChampionSkillName(27)),  -- Warfare stam
-		website = "www.skinnycheeks.gg",
-		updated = {11, 18, 2022},
-		points = "(dynamic)",
-		discipline = 2,
-		role = 6,
-		source = "Skinny Cheeks",
-		preset = {
-			{11, 10}, {10, 20},
-			{25, 50}, {264, 50}, {8, 50}, {27, 50}, 
-			{11, 20}, {6, 20},	{18, 20}, {22, 30}, {18, 40}, {20, 10},	{14, 20}, {17, 40}, {99, 20}, {21, 30},	{15, 20}, {16, 20}, {20, 20}, {108, 20},
-			{23, 50}, {276, 50}, {31, 50}, {12, 50}, {277, 50}, 
-		},
-		slotted = {25, 264, 8, 27},
-		aoe = {23},
-		penetration = {276},
-		crit = {31, 12},
-		offBalance = {277},
-		offBalanceUp = 25,
-	},	
-	[42] = {
-		name = zo_strformat("Sorc Trial-Dummy (<<C:1>>/<<C:2>>/<<C:3>>/<<C:4>>)", 
-			GetChampionSkillName(25), GetChampionSkillName(264), GetChampionSkillName(8), GetChampionSkillName(277)),  -- Warfare mag
-		website = "www.skinnycheeks.gg",
-		updated = {11, 18, 2022},
-		points = "(dynamic)",
-		discipline = 2,
-		role = 5,
-		source = "Skinny Cheeks",
-		preset = {
-			{11, 10}, {10, 20}, 
-			{25, 50}, {264, 50}, {8, 50}, {277, 50}, 
-			{11, 20}, {99, 20}, {17, 20},{21, 30}, {17, 40}, {20, 10}, {14, 20}, {18, 40}, {6, 20}, {22, 30}, {15, 20}, {16, 20}, {20, 20}, {108, 20},
-			{23, 50}, {276, 50}, {31, 50}, {12, 50}, {27, 50}, 
-		},
-		slotted = {25, 264, 8, 277},
-		situational = {27},
-		aoe = {23},
-		penetration = {276},
-		crit = {31, 12},
-	},
-	[43] = {
-		name = zo_strformat("Sorc Trial-Dummy (<<C:1>>/<<C:2>>/<<C:3>>/<<C:4>>)", 
-			GetChampionSkillName(25), GetChampionSkillName(264), GetChampionSkillName(8), GetChampionSkillName(277)),  -- Warfare stam
-		website = "www.skinnycheeks.gg",
-		updated = {11, 18, 2022},
-		points = "(dynamic)",
-		discipline = 2,
-		role = 6,
-		source = "Skinny Cheeks",
-		preset = {
-			{11, 10}, {10, 20},
-			{25, 50}, {264, 50}, {8, 50}, {277, 50}, 
-			{11, 20}, {6, 20},	{18, 20}, {22, 30}, {18, 40}, {20, 10},	{14, 20}, {17, 40}, {99, 20}, {21, 30},	{15, 20}, {16, 20}, {20, 20}, {108, 20},
-			{23, 50}, {276, 50}, {31, 50}, {12, 50}, {27, 50}, 
-		},
-		slotted = {25, 264, 8, 277},
-		situational = {27},
-		aoe = {23},
-		penetration = {276},
-		crit = {31, 12},
-	},
-	[44] = {
-		name = zo_strformat("Solo (<<C:1>>/<<C:2>>/<<C:3>>/<<C:4>>)", 
-			GetChampionSkillName(276), GetChampionSkillName(12), GetChampionSkillName(25), GetChampionSkillName(8)),  -- Warfare mag
-		website = "www.skinnycheeks.gg",
-		updated = {11, 18, 2022},
-		points = "(dynamic)",
-		discipline = 2,
-		role = 5,
-		source = "Skinny Cheeks",
-		preset = {
-			{11, 10}, {10, 20}, 
-			{276, 50}, {12, 50}, {25, 50}, {8, 50}, 
-			{11, 20}, {99, 20}, {17, 20},{21, 30}, {17, 40}, {20, 10}, {14, 20}, {18, 40}, {6, 20}, {22, 30}, {15, 20}, {16, 20}, {20, 20}, {108, 20},
-			{23, 50}, {31, 50}, {27, 50}, {264, 50}, {277, 50}, 
-		},
-		slotted = {276, 12, 25, 8},
-		situational = {27, 264},
-		aoe = {23},
-		offBalance = {277},
-		offBalanceUp = 25,
-	},
-	[45] = {
-		name = zo_strformat("Solo (<<C:1>>/<<C:2>>/<<C:3>>/<<C:4>>)", 
-			GetChampionSkillName(276), GetChampionSkillName(12), GetChampionSkillName(25), GetChampionSkillName(8)),  -- Warfare stam
-		website = "www.skinnycheeks.gg",
-		updated = {11, 18, 2022},
-		points = "(dynamic)",
-		discipline = 2,
-		role = 6,
-		source = "Skinny Cheeks",
-		preset = {
-			{11, 10}, {10, 20},
-			{276, 50}, {12, 50}, {25, 50}, {8, 50}, 
-			{11, 20}, {6, 20},	{18, 20}, {22, 30}, {18, 40}, {20, 10},	{14, 20}, {17, 40}, {99, 20}, {21, 30},	{15, 20}, {16, 20}, {20, 20}, {108, 20},
-			{23, 50}, {31, 50}, {27, 50}, {264, 50}, {277, 50}, 
-		},
-		slotted = {276, 12, 25, 8},
-		situational = {27, 264},
-		aoe = {23},
-		offBalance = {277},
-		offBalanceUp = 25,
+		slotted = {264,25,8,277},
 	},
 }
 --]=]
