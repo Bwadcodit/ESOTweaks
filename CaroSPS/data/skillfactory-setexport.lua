@@ -656,6 +656,24 @@ local sfSetIds = {
 	[779] = 20386, -- Beacon of Oblivion
 	[780] = 20387, -- Aetheric Lancer
 	[781] = 20388, -- Aerie's Cry	
+	[782] = 21046, -- Tracker's Lash
+	[783] = 21047, -- Shared Pain
+	[784] = 21048, -- Siegemaster's Focus
+	[791] = 21049, -- Bulwark Ruination
+	[792] = 21050, -- Farstrider
+	[793] = 21051, -- Netch Oil
+	[794] = 21715, -- Vandorallen's Resonance
+	[795] = 21716, -- Jerensi's Bladestorm
+	[796] = 21717, -- Lucilla's Windshield
+	[797] = 21718, -- Squall of Retribution
+	[798] = 21719, -- Heroic Unity
+	[799] = 21720, -- Fledgling's Nest
+	[800] = 21721, -- Noxious Boulder
+	[801] = 21722, -- Orpheon the Tactician
+	[802] = 21723, -- Arkay's Charity
+	[803] = 21724, -- Lamp Knight's Art
+	[804] = 21725, -- Blackfeather Flight
+	
 	-- /script SetCVar("language.2", "en")
 } -- /script xyz = GetNextItemSetCollectionId(xyz) StartChatInput("["..xyz.."] = 0, -- "..GetItemSetName(xyz))
 
@@ -831,14 +849,6 @@ local sfSlots = {
 	[EQUIP_SLOT_POISON] = 15,
 	[EQUIP_SLOT_BACKUP_POISON] = 16,
 }
-
-function CSPS.GetSetList()
-	local mySetList = {}
-	for i, v in pairs(sfSetIds) do
-		table.insert(mySetList, i)
-	end
-	return (mySetList)
-end
 
 function CSPS.GetSkillFactorySetData(myItem, slotId)
 	if not myItem or myItem == "" then return false end

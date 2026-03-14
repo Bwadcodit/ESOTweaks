@@ -56,16 +56,14 @@ for i, v in pairs(reRoute1) do routeBack1[v] = i end
 
 local function getItemIdsFromLink(itemLink, firstId)
 	local firstId = firstId or GetItemLinkItemId(itemLink)
-	--local idTable = {}
-	--for value in string.gmatch(itemLink, ":(%d+)") do
-	--	table.insert(idTable, tonumber(value))
-	--end
-	-- -- >last number
+
 	local secondId = tonumber(string.match(itemLink, ":%d+:(%d+):"))
 	local thirdId = tonumber(string.match(itemLink, "%d:%d+:(%d+):"))
 	local lastId = tonumber(string.match(itemLink, ":(%d+)|"))
 	return firstId, secondId, thirdId, lastId
 end
+
+CSPS.getItemIdsFromLink = getItemIdsFromLink
 	
 local collectibleCategoryIdByBarCat = {
 	[HOTBAR_CATEGORY_QUICKSLOT_WHEEL] = {
@@ -104,6 +102,74 @@ local function doesActionFitSlot(hbIndex, slotIndex, slotData)
 	return false
 end
 
+function CSPS.findItemLinkForTwoIds(firstId, lastId)
+	if not firstId then return "" end
+	local bagsToSearch = {BAG_BACKPACK, BAG_BANK, BAG_SUBSCRIBER_BANK}
+	for _, bagId in pairs(bagsToSearch) do
+		for slotIndex = 0, GetBagSize(bagId) - 1 do
+			if GetItemId(bagId, slotIndex) == firstId then
+				local itemLink = GetItemLink(bagId, slotIndex)
+				if not lastId or lastId == 0 then 
+					return itemLink 
+				end
+				
+				local _, _, _, entryLastId = getItemIdsFromLink(itemLink)
+				if entryLastId == lastId then
+					return itemLink 
+				end
+			end
+		end
+	end
+	return string.format("|H0:item:%s:%s:%s:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:%s|h|h", firstId, 308, 50, lastId or 0)
+end
+
+local function findItemToSlot(barCategory, slotData, bagId)
+	if not bagId then
+		local _, bagSlot, fitsExactly = findItemToSlot(barCategory, slotData, BAG_BACKPACK)
+		if fitsExactly then 
+			return BAG_BACKPACK, bagSlot, true 
+		else
+			local _, slotBank, fitsExactlyBank = findItemToSlot(barCategory, slotData, BAG_BANK)
+			local _, slotBankPlus, fitsExactlyBankPlus = findItemToSlot(barCategory, slotData, BAG_SUBSCRIBER_BANK)
+			if fitsExactlyBank then
+				return BAG_BANK, slotBank, true
+			elseif fitsExactlyBankPlus then
+				return BAG_SUBSCRIBER_BANK, slotBankPlus, true
+			elseif bagSlot then
+				return BAG_BACKPACK, bagSlot, false
+			elseif slotBank then
+				return BAG_BANK, slotBank, false
+			elseif slotBankPlus then
+				return BAG_SUBSCRIBER_BANK, slotBankPlus, false
+			else
+				return nil
+			end
+		end
+		
+	end
+	local itemToSlot = false
+	local myItemId, myItemSecondId, myItemThirdId, myItemLastId = getItemIdsFromLink(slotData.value)
+	for bagSlot=0, GetBagSize(bagId)-1 do
+		if IsValidItemForSlot(bagId, bagSlot, 1, barCategory) then
+			local oneItem = GetItemLink(bagId, bagSlot)
+			
+			if oneItem == itemLink then return bagId, bagSlot, true end
+			
+			local oneItemId = GetItemId(bagId, bagSlot)
+			
+			if oneItemId == myItemId then
+				itemToSlot = bagSlot
+				local _, secondId, thirdId, lastId = getItemIdsFromLink(oneItem, oneItemId)
+			
+				if myItemSecondId == secondId and myItemThirdId == thirdId and myItemLastId == lastId then
+					return bagId, bagSlot, true
+				end
+			end	
+		end
+	end
+	return itemToSlot and bagId or false, itemToSlot, false
+end
+
 local function applySingleSlot(hbIndex, slotIndex, slotData)
 	slotData = slotData or qsBars and qsBars[hbIndex] and qsBars[hbIndex][slotIndex]
 	
@@ -120,31 +186,10 @@ local function applySingleSlot(hbIndex, slotIndex, slotData)
 		end
 		return true
 	else
-		local myItemId, myItemSecondId, myItemThirdId, myItemLastId = getItemIdsFromLink(slotData.value)
 		
-		local itemToSlot = false
 		
-		for bagpackSlotIndex=0, GetBagSize(BAG_BACKPACK)-1 do
-			if IsValidItemForSlot(BAG_BACKPACK, bagpackSlotIndex, 1, barCategories[hbIndex]) then
-				local oneItem = GetItemLink(BAG_BACKPACK, bagpackSlotIndex)
-				
-				if oneItem == slotData.value then itemToSlot = bagpackSlotIndex break end
-				
-				local oneItemId = GetItemId(BAG_BACKPACK, bagpackSlotIndex)
-				
-				if oneItemId == myItemId then
-					itemToSlot = bagpackSlotIndex
-					local _, secondId, thirdId, lastId = getItemIdsFromLink(oneItem, oneItemId)
-					if myItemSecondId == secondId and myItemThirdId == thirdId and myItemLastId == lastId then
-						if CallSecureProtected("SelectSlotItem", BAG_BACKPACK, bagpackSlotIndex, routeBack1[slotIndex], barCategories[hbIndex])  == false then 
-							cspsPost(string.format("%s - %s %s: %s", GS(SI_PROMPT_TITLE_ERROR), GS(SI_BINDING_NAME_GAMEPAD_ASSIGN_QUICKSLOT), slotIndex, slotData.value)) 
-							return false
-						end
-						return true
-					end
-				end
-			end
-		end
+		local bagId, itemToSlot, fitsExactly = findItemToSlot(barCategories[hbIndex], slotData, BAG_BACKPACK)
+		
 		if itemToSlot then
 			if CallSecureProtected("SelectSlotItem", BAG_BACKPACK, itemToSlot, routeBack1[slotIndex], barCategories[hbIndex])  == false then 
 				cspsPost(string.format("%s - %s %s: %s", GS(SI_PROMPT_TITLE_ERROR), GS(SI_BINDING_NAME_GAMEPAD_ASSIGN_QUICKSLOT), slotIndex, slotData.value)) 
@@ -237,7 +282,7 @@ local function onQsChange()
 	if CSPSWindow:IsHidden() then return end
 	if waitingForQSChanges then return end
 	waitingForQSChanges = true
-	zo_callLater(function() waitingForQSChanges = false CSPS.getTreeControl():RefreshVisible() end, 840)
+	zo_callLater(function() waitingForQSChanges = false CSPS.refreshTree() end, 840)
 end
 
 
@@ -274,6 +319,7 @@ end
 
 function CSPS.compressQS(tableToCompress, cat) -- if specifying a category never give the whole table to this function, only the bartable!
 	tableToCompress = tableToCompress or cat and qsBars[cat] or qsBars
+	if #tableToCompress == 0 then return "-" end
 	tableToCompress = cat and {tableToCompress} or tableToCompress
 	
 	local auxTable = {}
@@ -281,7 +327,7 @@ function CSPS.compressQS(tableToCompress, cat) -- if specifying a category never
 	--fill header data ("qs" to see that it's not an old sv-entry, followed by the hbIndex)
 	table.insert(auxTable, "qs")
 	table.insert(auxTable, cat or 0)
-	
+
 	for hbIndex, barTable in pairs(tableToCompress) do
 		table.insert(auxTable, compressSingleBar(barTable))
 	end
@@ -357,7 +403,7 @@ end
 
 
 function CSPS.extractQS(compressedString, fillTable)
-	if not compressedString or compressedString == "" or type(compressedString) ~= "string" then return false end
+	if not compressedString or compressedString == "" or compressedString == "-" or type(compressedString) ~= "string" then return false end
 
 	fillTable = fillTable or {}
 	local auxTable = {SplitString(";", compressedString)}
@@ -369,7 +415,7 @@ function CSPS.extractQS(compressedString, fillTable)
 	local cat = tonumber(auxTable[1])
 	table.remove(auxTable, 1)
 	local activeAux = false
-	if cat == 0 or cat == 1 then
+	if cat == 0 or cat == 1 and #auxTable > 0 then
 		local lastEntry = auxTable[#auxTable]
 		if string.sub(lastEntry,1,3) == "aq:" then
 			activeAux = tonumber(string.sub(lastEntry, 4, 4))
@@ -497,7 +543,7 @@ function CSPS.cancelQuickSlotEdit()
 	CSPSWindowCollectibles:SetHidden(true)
 	slotToEdit = false
 	outfitCollectibleType = false
-	CSPS.getTreeControl():RefreshVisible()
+	CSPS.refreshTree()
 end
 
 local function setQuickSlot(actionType, actionValue)
@@ -513,7 +559,7 @@ local function setQuickSlot(actionType, actionValue)
 	slotData.type = actionType
 	slotData.value = actionValue
 	slotToEdit = false
-	CSPS.getTreeControl():RefreshVisible()
+	CSPS.refreshTree()
 end
 
 function CSPS_qsCollectibleList:New( control )
@@ -942,14 +988,28 @@ local function NodeSetupQS(node, control, data, open, userRequested, enabled)
 	local fitsSlot = doesActionFitSlot(data.barIndex, data.qsIndex, myAction)
 	
 	ctrIndicator:SetHidden(not myAction or myAction.type == 0)
-				
-	ctrIndicator:SetTexture(fitsSlot and  "esoui/art/inventory/inventory_icon_equipped.dds" or "esoui/art/inventory/inventory_sell_forbidden_icon.dds")
-	ctrIndicator:SetColor((fitsSlot and ZO_SUCCEEDED_TEXT or ZO_ERROR_COLOR):UnpackRGB())
+	
+	if fitsSlot then 
+		ctrIndicator:SetTexture("esoui/art/inventory/inventory_icon_equipped.dds")
+		ctrIndicator:SetColor(ZO_SUCCEEDED_TEXT:UnpackRGB())
+	elseif myAction and myAction.type == ACTION_TYPE_ITEM then
+		local bagId, bagSlot, fitsExactly = findItemToSlot(barCategories[data.barIndex], myAction)
+		if bagSlot then
+			ctrIndicator:SetTexture(bagId == BAG_BACKPACK and  "esoui/art/tooltips/icon_bag.dds" or "esoui/art/tooltips/icon_bank.dds")
+			ctrIndicator:SetColor((fitsExactly and GetItemQualityColor(ITEM_QUALITY_ARTIFACT) or ZO_ORANGE):UnpackRGB())
+		else
+			ctrIndicator:SetTexture("esoui/art/inventory/inventory_sell_forbidden_icon.dds")
+			ctrIndicator:SetColor(ZO_ERROR_COLOR:UnpackRGB())
+		end
+	elseif myAction and myAction.type ~= 0 then
+		ctrIndicator:SetTexture("esoui/art/inventory/inventory_sell_forbidden_icon.dds")
+		ctrIndicator:SetColor(ZO_ERROR_COLOR:UnpackRGB())
+	end
 	
 	ctrMinus:SetHidden(not myAction or myAction.type == 0)
 	ctrMinus:SetHandler("OnClicked", function() 		
 		data.barTable[data.qsIndex] = false
-		CSPS.getTreeControl():RefreshVisible()
+		CSPS.refreshTree()
 	end)
 	ctrMinus:SetHandler("OnMouseEnter", function()
 		ZO_Tooltips_ShowTextTooltip(ctrMinus, RIGHT, GS(SI_ABILITY_ACTION_CLEAR_SLOT))
@@ -994,7 +1054,7 @@ local function NodeSetupQS(node, control, data, open, userRequested, enabled)
 			slotToEdit = {bar = data.barIndex, slot = data.qsIndex}
 			
 			CSPS.openCollectibleList()
-			CSPS.getTreeControl():RefreshVisible()
+			CSPS.refreshTree()
 			return
 		elseif shift then
 			applySingleSlot(data.barIndex, data.qsIndex, myAction)

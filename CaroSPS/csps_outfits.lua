@@ -35,10 +35,13 @@ function outfits.read()
 	if not STATS.control:IsHidden() then currentlyEquipped = STATS.pendingEquipOutfitIndex end
 	
 	outfits.current.montur = currentlyEquipped
+	if outfits.current.montur == 0 and not CSPS.savedVariables.settings.ignoreEmptyOutfitslots then outfits.montur = nil end
 	outfits.current.title = GetCurrentTitleIndex()
+	if outfits.current.title == 0 and not CSPS.savedVariables.settings.ignoreEmptyOutfitslots then outfits.title = nil end
 	outfits.current.slots = {}
 	for _, outfitCollectibleType in pairs(outfitCollectibleTypes) do
 		outfits.current.slots[outfitCollectibleType] = GetActiveCollectibleByType(outfitCollectibleType, GAMEPLAY_ACTOR_CATEGORY_PLAYER)
+		if outfits.current.slots[outfitCollectibleType] == 0 and not CSPS.savedVariables.settings.ignoreEmptyOutfitslots then outfits.current.slots[outfitCollectibleType] = nil end
 	end
 end
 
@@ -84,7 +87,7 @@ function outfits.compress(outfitTable)
 	if not outfitTable.slots then return nil end
 	local compressedSlots = {}
 	for outfitCollectibleType, collectibleId in pairs(outfits.current.slots) do
-		if collectibleId and collectibleId ~= 0 then table.insert(compressedSlots, string.format("%s:%s", outfitCollectibleType, collectibleId)) end
+		if collectibleId then table.insert(compressedSlots, string.format("%s:%s", outfitCollectibleType, collectibleId)) end
 	end
 	local compressedString = {outfitTable.montur or "-", outfitTable.title or "-", table.concat(compressedSlots, ",")}
 	return table.concat(compressedString, ";")
@@ -92,13 +95,11 @@ end
 
 function outfits.extract(compressedString, outfitTable)
 	outfitTable = outfitTable or outfits.current
-	outfitTable.montur = 0
-	outfitTable.title = 0
 	outfitTable.slots = {}
 	if not compressedString or compressedString == "" then return outfitTable end
 	local montur, title, slots = SplitString(";", compressedString)
-	outfitTable.montur = tonumber(montur)
-	outfitTable.title = tonumber(title)
+	outfitTable.montur = montur ~= "-" and tonumber(montur) or nil
+	outfitTable.title = title ~= "-" and tonumber(title) or nil
 	if slots and slots ~= "" then
 		for _, collectibleEntry in pairs({SplitString(",", slots)}) do
 			local outfitCollectibleType, collectibleId = SplitString(":", collectibleEntry)
@@ -233,7 +234,7 @@ function outfits.showTitleMenu()
 	local placeholderPosition = #sortedTitleNames
 	table.insert(sortedTitleListNames, string.format("%s (%s)", GS(SI_CONSOLEACTIVITYTYPE1), GS(SI_DUNGEONDIFFICULTY2)))
 	table.insert(sortedTitleNames, trialAchieve)
-	table.insert(sortedTitleListNames, string.format("%s", GS(SI_INSTANCEDISPLAYTYPE3)))
+	table.insert(sortedTitleListNames, string.format("%s", GS(SI_INSTANCETYPE3)))
 	
 	for i, v in pairs({5,10,15,50}) do
 		if otherTitles[v] then
@@ -278,6 +279,7 @@ local function NodeSetupOutfit(node, control, data, open, userRequested, enabled
 	local ctrIndicator = control:GetNamedChild("Indicator")
 	local ctrIcon = control:GetNamedChild("Icon")
 	local ctrMinus = control:GetNamedChild("BtnMinus")
+	local ctrUnequip = control:GetNamedChild("BtnUnequip")
 	
 	ctrIndicator:SetHidden(true) -- will add this later
 	control:SetHandler("OnMouseUp", function(self, button, upInside, ctrl, alt, shift)
@@ -285,7 +287,7 @@ local function NodeSetupOutfit(node, control, data, open, userRequested, enabled
 		if button == 2 then
 			if data.outfitCollectibleType then
 				CSPS.openCollectibleList(data.outfitCollectibleType)
-				CSPS.getTreeControl():RefreshVisible()
+				CSPS.refreshTree()
 			elseif data.isTitle then
 				outfits.showTitleMenu()
 			elseif data.isMontur then
@@ -345,22 +347,43 @@ local function NodeSetupOutfit(node, control, data, open, userRequested, enabled
 			end -- GS(SI_APPLY))
 			
 			ctrMinus:SetHidden(false)
-			ctrMinus:SetHandler("OnClicked", function() outfits.current.montur = 0 CSPS.unsavedChanges = true CSPS.refreshTree() end)
+			ctrMinus:SetHandler("OnClicked", function() outfits.current.montur = nil CSPS.unsavedChanges = true CSPS.refreshTree() end)
+			ctrUnequip:SetHidden(false)
+			ctrUnequip:SetHandler("OnClicked", function() outfits.current.montur = 0 CSPS.unsavedChanges = true CSPS.refreshTree() end)
+		elseif outfits.current.montur then
+			control.tooltipFunction = function() ZO_Tooltips_ShowTextTooltip(ctrText, RIGHT, GS(CSPS_QS_TT_Edit)) end
+			ctrMinus:SetHidden(false)
+			ctrMinus:SetHandler("OnClicked", function() outfits.current.montur = nil CSPS.unsavedChanges = true CSPS.refreshTree() end)
+			ctrUnequip:SetHidden(true)
+			monturName = GS(SI_QUICKSLOTS_EMPTY)
 		else
 			control.tooltipFunction = function() ZO_Tooltips_ShowTextTooltip(ctrText, RIGHT, GS(CSPS_QS_TT_Edit)) end
 			ctrMinus:SetHidden(true)
+			ctrUnequip:SetHidden(false)
+			ctrUnequip:SetHandler("OnClicked", function() outfits.current.montur = 0 CSPS.unsavedChanges = true CSPS.refreshTree() end)
+			monturName = "-"
 		end
 		ctrText:SetText(string.format("%s: %s", GS(SI_OUTFIT_SELECTOR_TITLE), monturName))
 		ctrIcon:SetTexture("ESOUI/art/restyle/keyboard/dyes_tabicon_outfitstyledye_up.dds")
 	elseif data.isTitle then
 		local title = GetTitle(outfits.current.title)
 		title = title ~= "" and title or "-"
-		if title == "-" then
+		if not outfits.current.title then 
+			title = GS(SI_QUICKSLOTS_EMPTY)
+			ctrMinus:SetHidden(false)
+			ctrMinus:SetHandler("OnClicked", function() outfits.current.title = nil CSPS.unsavedChanges = true  CSPS.refreshTree() end)
+			ctrUnequip:SetHidden(false)
+			ctrUnequip:SetHandler("OnClicked", function() outfits.current.title = 0 CSPS.unsavedChanges = true CSPS.refreshTree() end)
+			control.tooltipFunction = function() ZO_Tooltips_ShowTextTooltip(ctrText, RIGHT, GS(CSPS_QS_TT_Edit)) end
+		elseif title == "-" then
 			ctrMinus:SetHidden(true)
+			ctrUnequip:SetHidden(true)
 			control.tooltipFunction = function() ZO_Tooltips_ShowTextTooltip(ctrText, RIGHT, GS(CSPS_QS_TT_Edit)) end
 		else
 			ctrMinus:SetHidden(false)
-			ctrMinus:SetHandler("OnClicked", function() outfits.current.title = 0 CSPS.unsavedChanges = true  CSPS.refreshTree() end)
+			ctrMinus:SetHandler("OnClicked", function() outfits.current.title = nil CSPS.unsavedChanges = true  CSPS.refreshTree() end)
+			ctrUnequip:SetHidden(false)
+			ctrUnequip:SetHandler("OnClicked", function() outfits.current.title = 0 CSPS.unsavedChanges = true CSPS.refreshTree() end)
 			control.tooltipFunction = function()
 				InitializeTooltip(InformationTooltip, ctrText, LEFT, 0, 0, RIGHT)
 				InformationTooltip:AddLine(zo_strformat("<<C:1>>", title), "ZoFontWinH2")
@@ -387,7 +410,9 @@ local function NodeSetupOutfit(node, control, data, open, userRequested, enabled
 		if slotData and slotData ~= 0 then
 			name, description, textureName = GetCollectibleInfo(slotData)
 			ctrMinus:SetHidden(false)
-			ctrMinus:SetHandler("OnClicked", function() outfits.current.slots[data.outfitCollectibleType] = 0 CSPS.unsavedChanges = true  CSPS.refreshTree() end)
+			ctrMinus:SetHandler("OnClicked", function() outfits.current.slots[data.outfitCollectibleType] = nil CSPS.unsavedChanges = true  CSPS.refreshTree() end)
+			ctrUnequip:SetHidden(false)
+			ctrUnequip:SetHandler("OnClicked", function() outfits.current.slots[data.outfitCollectibleType] = 0 CSPS.unsavedChanges = true CSPS.refreshTree() end)			
 			control.tooltipFunction = function()
 				InitializeTooltip(InformationTooltip, ctrText, LEFT, 0, 0, RIGHT)
 				InformationTooltip:AddLine(zo_strformat("<<C:1>>", name), "ZoFontWinH2")
@@ -398,8 +423,17 @@ local function NodeSetupOutfit(node, control, data, open, userRequested, enabled
 				InformationTooltip:AddLine(string.format("|t26:26:esoui/art/miscellaneous/icon_lmb.dds|t + %s: %s", GS("SI_KEYCODE", CSPS.savedVariables.settings.jumpShiftKey or 7), GS(SI_APPLY)), "ZoFontGame")
 				InformationTooltip:AddLine(GS(CSPS_QS_TT_Edit), "ZoFontGame")
 			end
+		elseif slotData then
+			ctrUnequip:SetHidden(true)
+			ctrMinus:SetHidden(false)
+			ctrMinus:SetHandler("OnClicked", function() outfits.current.slots[data.outfitCollectibleType] = nil CSPS.unsavedChanges = true  CSPS.refreshTree() end)
+			control.tooltipFunction = function() ZO_Tooltips_ShowTextTooltip(ctrText, RIGHT, GS(CSPS_QS_TT_Edit)) end
+			name = GS(SI_QUICKSLOTS_EMPTY)
 		else
+			ctrUnequip:SetHidden(false)
+			ctrUnequip:SetHandler("OnClicked", function() outfits.current.slots[data.outfitCollectibleType] = 0 CSPS.unsavedChanges = true CSPS.refreshTree() end)
 			ctrMinus:SetHidden(true)
+			
 			control.tooltipFunction = function() ZO_Tooltips_ShowTextTooltip(ctrText, RIGHT, GS(CSPS_QS_TT_Edit)) end
 		end
 		ctrText:SetText(zo_strformat("<<1>>: <<C:2>>", GS("SI_COLLECTIBLECATEGORYTYPE", data.outfitCollectibleType), name))
@@ -431,20 +465,4 @@ function CSPS.setupOutfitTree()
 		table.insert(fillContent, {"CSPSOutfitLE", {outfitCollectibleType = outfitCollectibleType}})
 	end
 	local overNode = myTree:AddNode("CSPSLH", {name = GetCollectibleCategoryNameByCategoryId(13), isMainCat=true, variant=9, fillContent=fillContent})
-end
-
-function outfits.toggleShowInTree()
-	CSPSWindowBuildOutfitProfiles:SetHidden(not CSPS.savedVariables.settings.showOutfits)
-	CSPSWindowBuildOutfitProfiles:SetWidth(CSPS.savedVariables.settings.showOutfits and 27 or 0)
-	CSPSWindowManageBarsDiscsSpecialInclude9:SetHidden(not CSPS.savedVariables.settings.showOutfits)
-	if not CSPS.tabEx then return end
-	local myNode = CSPS.sectionNodes[9]
-	if CSPS.savedVariables.settings.showOutfits then
-		if not myNode then CSPS.setupOutfitTree() return end
-		myNode.control:SetHidden(false)
-	else
-		if not myNode then return end
-		myNode:SetOpen(false)
-		myNode.control:SetHidden(true)
-	end
 end

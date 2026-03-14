@@ -535,3 +535,28 @@ function CSPS.getPoisonIds(firstId, crown)
 	return returnTable
 end
 
+
+local mySetList = false
+
+function CSPS.GetSetList()
+	if mySetList then return mySetList end
+	local mySetList = {}
+	if LibSets then
+		for i, v in pairs(LibSets:GetAllSetIds()) do
+			table.insert(mySetList, i)
+		end
+		return (mySetList)
+	end
+	local setItd = GetNextItemSetCollectionId()
+	local lastSetId = 0
+	while setId do
+		lastSetId = setId
+		setId = GetNextItemSetCollectionId(setId)
+	end
+	for i=0, lastSetId + 50 do --should be enough to always include craftables...
+		if GetItemSetType(i) ~= 0 then 
+			table.insert(mySetList, i)
+		end
+	end
+	return mySetList
+end

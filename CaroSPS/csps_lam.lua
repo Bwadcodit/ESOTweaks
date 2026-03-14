@@ -9,13 +9,46 @@ function CSPS.setupLam()
 	
 	local panelData = {
 		type = "panel",
-		name = "Caro's Skill and Champion Point Saver",
-		displayName =  "|c9e0911Caro|r's Skill and Champion Point Saver",
+		name = "Caro's Skill Point Saver",
+		displayName =  "|c9e0911Caro|r's Skill Point Saver",
 		author = "|c1d6dadIrniben|r",
 		registerForRefresh = true,
     }
 	
+	options.importQsSlots = options.importQsSlots or {{8,7,6,5},{1,2,3,4}}
+	local quickSlotPositionNames = {"-"}
 	
+	for i=1,8 do table.insert(quickSlotPositionNames, string.format("%s) %s", i, GS("CSPS_QuickSlotPosition", i))) end
+	
+	local optionsForHubImport = {}
+	local buffFoodPotionImport = {zo_strformat("<<C:1>>/<<C:2>>", GS(SI_ITEMTYPE4), GS(SI_ITEMTYPE12)), zo_strformat("<<C:1>>", GS(SI_ITEMTYPE7))} --food/drink, potion
+	for j=1,2 do
+		for i=1,4 do
+			table.insert(optionsForHubImport, {
+				type = "dropdown",
+				name = string.format("%s %s", buffFoodPotionImport[j], i),
+				width = "full",
+				choices = quickSlotPositionNames,
+				choicesValues = {0,1,2,3,4,5,6,7,8},
+				sort = "value-up",
+				default = 0,
+				--disabled = function() return(not options.cpCustomBar) end,
+				getFunc = function() return options.importQsSlots[j][i] or 0 end,
+				setFunc = function(value) 
+					for jj=1,2 do
+						for ii=1,4 do
+							if options.importQsSlots[jj][ii] == value and not (ii==i and jj==j) then
+								options.importQsSlots[jj][ii] = 0
+							end
+						end
+					end
+					options.importQsSlots[j][i] = value
+				end,
+				--disabled = function() return CSPS.moduleExclude.cp end,
+			})
+		end
+	end
+		
 	local optionsData = {
 		{
 			type = "header",
@@ -30,6 +63,7 @@ function CSPS.setupLam()
 			tooltip = GS(CSPS_ShowHb),
 			getFunc = function() return not options.hideHotbar end,
 			setFunc = function(value) options.hideHotbar = not value CSPS.showElement("hotbar", value) end,
+			disabled = function() return CSPS.moduleExclude.skills end,
 		},
 		{
 			type = "checkbox",
@@ -54,12 +88,12 @@ function CSPS.setupLam()
 		},		
 		{
 			type = "checkbox",
-			name = GetCollectibleCategoryNameByCategoryId(13),
+			name = GS(CSPS_IgnoreEmptyOutfitSlots),
 			width = "full",
-			getFunc = function() return options.showOutfits end,
+			disabled = function() return CSPS.moduleExclude.outfit end,
+			getFunc = function() return not options.ignoreEmptyOutfitslots end,
 			setFunc = function(value) 
-					options.showOutfits = value
-					CSPS.outfits.toggleShowInTree()
+					options.ignoreEmptyOutfitslots = not value
 				end,
 		},
 		
@@ -86,6 +120,64 @@ function CSPS.setupLam()
 					end
 				end,
 		},
+		{
+			type = "slider",
+			name = GS(CSPS_LAM_VersionHistory),
+			width = "full",
+			tooltip = GS(CSPS_LAM_VersionHistoryTT),
+			min = 0,
+			max = 8,
+			decimals = 0, 
+			getFunc = function() return options.versionHistory or 0 end,
+			setFunc = function(value) 
+					options.versionHistory = value ~= 0 and value or false
+				end,
+		},		
+		{
+			type = "checkbox",
+			name = GS(CSPS_LAM_ShowAllClassSkills),
+			tooltip = GS(CSPS_LAM_ShowAllClassSkillsTT),
+			width = "full",
+			getFunc = function() return options.showAllClassSkills end,
+			setFunc = function(value) 
+					options.showAllClassSkills = value
+					if not CSPS.tabEx then return end
+					CSPS.reCreateClassSkillTree()
+					if not value then
+						local classesInBuild = {}
+						for i,v in pairs(CSPS.currentClassSkillLines) do
+							classesInBuild[v] = true
+						end
+						for i=1, 3*GetNumClasses() do
+							if not classesInBuild[i] then CSPS.removeSkillLine(1, i) end
+						end
+					end
+					CSPS.refreshTree()
+				end,
+			disabled = function() return CSPS.moduleExclude.skills end,
+		},
+		{
+			type = "slider",
+			name = GS(CSPS_LAM_BGAlpha),
+			width = "full",
+			tooltip = GS(CSPS_LAM_BGAlpha),
+			min = 40,
+			max = 100,
+			decimals = 0, 
+			getFunc = function() return options.bgalpha * 100 or 100 end,
+			setFunc = function(value) CSPS.setTransparencyBG(value/100)	end,
+		},
+		{
+			type = "slider",
+			name = GS(CSPS_LAM_WinAlpha),
+			width = "full",
+			tooltip = GS(CSPS_LAM_WinAlpha),
+			min = 40,
+			max = 100,
+			decimals = 0, 
+			getFunc = function() return options.winalpha * 100 or 100 end,
+			setFunc = function(value) CSPS.setTransparencyWin(value/100)	end,
+		},		
 		
 		{
 			type = "submenu",
@@ -149,7 +241,7 @@ function CSPS.setupLam()
 				},
 				{
 					type = "checkbox",
-					name = zo_strformat("<<C:1>>", GS(SI_CHAMPION_POINT_EARNED)),
+					name = zo_strformat(GS(SI_CHAMPION_POINT_EARNED), 1),
 					width = "full",
 					tooltip = GS(SI_CHAMPION_POINT_EARNED),
 					getFunc = function() return options.openOnCPGain  end,
@@ -178,6 +270,7 @@ function CSPS.setupLam()
 						options.sortCPs = value 
 						CSPS.cp.reSortList()
 					end,
+					disabled = function() return CSPS.moduleExclude.cp end,
 				},
 				{
 					type = "checkbox",
@@ -189,6 +282,7 @@ function CSPS.setupLam()
 							options.useCustomIcons = value
 							CSPS.toggleCPCustomIcons()
 						end,
+					disabled = function() return CSPS.moduleExclude.cp end,
 				},
 				{
 					type = "checkbox",
@@ -202,6 +296,7 @@ function CSPS.setupLam()
 								CSPS.toggleCPCustomBar()
 							end
 						end,
+					disabled = function() return CSPS.moduleExclude.cp end,
 				},
 				{
 					type = "dropdown",
@@ -217,6 +312,7 @@ function CSPS.setupLam()
 						options.cpCustomBar = value 
 						CSPS.toggleCPCustomBar() 
 					end,
+					disabled = function() return CSPS.moduleExclude.cp end,
 				},
 				{
 					type = "checkbox",
@@ -225,6 +321,7 @@ function CSPS.setupLam()
 					tooltip = GS(CSPS_LAM_ShowOutdatedPresets),
 					getFunc = function() return options.showOutdatedPresets end,
 					setFunc = function(value) options.showOutdatedPresets = value end,
+					disabled = function() return CSPS.moduleExclude.cp end,
 				},
 			}
 		},
@@ -244,9 +341,9 @@ function CSPS.setupLam()
 					getFunc = function() return options.maxLevelDiff or 10 end,
 					setFunc = function(value) 
 							options.maxLevelDiff = value
-							CSPS.getTreeControl():RefreshVisible()
+							CSPS.refreshTree()
 						end,
-					disabled = function() return not CSPS.doGear end,
+					disabled = function() return not CSPS.doGear or CSPS.moduleExclude.gear end,
 				},
 				
 				{
@@ -258,7 +355,7 @@ function CSPS.setupLam()
 					setFunc = function(value) 
 							CSPS.setGearMarkerOption(value)
 						end,
-					disabled = function() return not CSPS.doGear end,
+					disabled = function() return not CSPS.doGear or CSPS.moduleExclude.gear end,
 				},
 				{
 					type = "checkbox",
@@ -269,7 +366,7 @@ function CSPS.setupLam()
 					setFunc = function(value) 
 							CSPS.setGearMarkerOptionData(value)
 						end,
-					disabled = function() return not (CSPS.doGear and options.showGearMarkers) end,
+					disabled = function() return not CSPS.doGear or CSPS.moduleExclude.gear or not options.showGearMarkers end,
 				},	
 				{
 					type = "checkbox",
@@ -279,9 +376,9 @@ function CSPS.setupLam()
 					getFunc = function() return not options.hideNumSetItems end,
 					setFunc = function(value) 
 							options.hideNumSetItems = not value 
-							CSPS.getTreeControl():RefreshVisible()
+							CSPS.refreshTree()
 						end,
-					disabled = function() return not (CSPS.doGear and options.showGearMarkers) end,
+					disabled = function() return not CSPS.doGear or CSPS.moduleExclude.gear or not options.showGearMarkers end,
 				},	
 				
 			}				
@@ -336,6 +433,7 @@ function CSPS.setupLam()
 					width = "full",
 					getFunc = function() return not options.suppressCpNotSaved end,
 					setFunc = function(value) options.suppressCpNotSaved = not value	end,
+					disabled = function() return CSPS.moduleExclude.cp end,
 				},
 				{
 					type = "checkbox",
@@ -375,8 +473,19 @@ function CSPS.setupLam()
 					setFunc = function(value) 
 							options.applyAllExclude.skills = not value
 						end,
-					disabled = function() return not options.showApplyAll end,
+					disabled = function() return CSPS.moduleExclude.skills or not options.showApplyAll end,
+				}, 
+				{
+					type = "checkbox",
+					name = GS(SI_COLLECTIBLECATEGORYTYPE30),
+					width = "full",
+					getFunc = function() return not options.applyAllExclude.skillStyles end,
+					setFunc = function(value) 
+							options.applyAllExclude.skillStyles = not value
+						end,
+					disabled = function() return CSPS.moduleExclude.skillStyles or not options.showApplyAll end,
 				},
+				
 				{
 					type = "checkbox",
 					name = GS(SI_CHARACTER_MENU_STATS),
@@ -385,7 +494,7 @@ function CSPS.setupLam()
 					setFunc = function(value) 
 							options.applyAllExclude.attr = not value
 						end,
-					disabled = function() return not options.showApplyAll end,
+					disabled = function() return CSPS.moduleExclude.attr or not options.showApplyAll end,
 				},
 				{
 					type = "checkbox",
@@ -395,7 +504,7 @@ function CSPS.setupLam()
 					setFunc = function(value) 
 							options.applyAllExclude.cp = not value
 						end,
-					disabled = function() return not options.showApplyAll end,
+					disabled = function() return CSPS.moduleExclude.cp or not options.showApplyAll end,
 				},
 				{
 					type = "checkbox",
@@ -405,7 +514,7 @@ function CSPS.setupLam()
 					setFunc = function(value) 
 							options.applyAllExclude.hb = not value
 						end,
-					disabled = function() return not options.showApplyAll end,
+					disabled = function() return CSPS.moduleExclude.hb or not options.showApplyAll end,
 				},
 				{
 					type = "checkbox",
@@ -415,7 +524,7 @@ function CSPS.setupLam()
 					setFunc = function(value) 
 							options.applyAllExclude.gear = not value
 						end,
-					disabled = function() return not options.showApplyAll or not CSPS.doGear end,
+					disabled = function() return CSPS.moduleExclude.gear or not options.showApplyAll or not CSPS.doGear end,
 				},
 				{
 					type = "checkbox",
@@ -425,22 +534,152 @@ function CSPS.setupLam()
 					setFunc = function(value) 
 							options.applyAllExclude.qs = not value
 						end,
-					disabled = function() return not options.showApplyAll end,
+					disabled = function() return CSPS.moduleExclude.qs or not options.showApplyAll end,
 				},
 				{
 					type = "checkbox",
 					name = GetCollectibleCategoryNameByCategoryId(13),
 					width = "full",
-					getFunc = function() return options.showOutfits and not options.applyAllExclude.outfit end,
+					getFunc = function() return not options.applyAllExclude.outfit end,
 					setFunc = function(value) 
 							options.applyAllExclude.outfit = not value
 						end,
-					disabled = function() return not options.showOutfits or not options.showApplyAll end,
+					disabled = function() return CSPS.moduleExclude.outfit or not options.showApplyAll end,
+				},
+				{
+					type = "checkbox",
+					name = GS(SI_GROUP_LIST_PANEL_PREFERRED_ROLES_LABEL),
+					width = "full",
+					getFunc = function() return not options.applyAllExclude.role end,
+					setFunc = function(value) 
+							options.applyAllExclude.role = not value
+						end,
+					disabled = function() return CSPS.moduleExclude.role or not options.showApplyAll end,
+				},
+				
+			}			
+		},
+		{
+			type = "submenu",
+			name = GS(CSPS_LAM_Modules),
+			icon = "esoui/art/campaign/campaign_tabicon_summary_up.dds",
+			controls = {
+				--[[
+				{
+					type = "checkbox",
+					name = string.format("%s: %s", GS(CSPS_LAM_Module), GS(SI_CHARACTER_MENU_SKILLS)),
+					width = "full",
+					getFunc = function() return not options.moduleExclude.skills end,
+					setFunc = function(value) 
+							options.applyAllExclude.skills = not value
+						end,
+					requiresReload = true,
+				}, 
+				{
+					type = "checkbox",
+					name = string.format("%s: %s", GS(CSPS_LAM_Module), GS(SI_COLLECTIBLECATEGORYTYPE30)),
+					width = "full",
+					getFunc = function() return not options.moduleExclude.skillStyles end,
+					setFunc = function(value) 
+							options.moduleExclude.skillStyles = not value
+						end,
+					requiresReload = true,
+				},
+				
+				{
+					type = "checkbox",
+					name = string.format("%s: %s", GS(CSPS_LAM_Module), GS(SI_CHARACTER_MENU_STATS)),
+					width = "full",
+					getFunc = function() return not options.moduleExclude.attr end,
+					setFunc = function(value) 
+							options.moduleExclude.attr = not value
+						end,
+					requiresReload = true,
+				},
+				{
+					type = "checkbox",
+					name = string.format("%s: %s", GS(CSPS_LAM_Module), GS(SI_STAT_GAMEPAD_CHAMPION_POINTS_LABEL)),
+					width = "full",
+					getFunc = function() return not options.moduleExclude.cp end,
+					setFunc = function(value) 
+							options.moduleExclude.cp = not value
+						end,
+					requiresReload = true,
+				},
+				{
+					type = "checkbox",
+					name = string.format("%s: %s", GS(CSPS_LAM_Module), GS(SI_INTERFACE_OPTIONS_ACTION_BAR)),
+					width = "full",
+					getFunc = function() return not options.moduleExclude.hb end,
+					setFunc = function(value) 
+							options.moduleExclude.hb = not value
+						end,
+					requiresReload = true,
+				},
+				]]--
+				{
+					type = "checkbox",
+					name = string.format("%s: %s", GS(CSPS_LAM_Module), GS(SI_GAMEPAD_DYEING_EQUIPMENT_HEADER)),
+					width = "full",
+					getFunc = function() return CSPS.doGear and not options.moduleExclude.gear end,
+					setFunc = function(value) 
+							options.moduleExclude.gear = not value
+						end,
+					disabled = function() return not CSPS.doGear end,
+					requiresReload = true,
+				},
+				{
+					type = "checkbox",
+					name = string.format("%s: %s", GS(CSPS_LAM_Module), GS(SI_HOTBARCATEGORY10)),
+					width = "full",
+					getFunc = function() return not options.moduleExclude.qs end,
+					setFunc = function(value) 
+							options.moduleExclude.qs = not value
+						end,
+					requiresReload = true,
+				},
+				{
+					type = "checkbox",
+					name = string.format("%s: %s", GS(CSPS_LAM_Module), GetCollectibleCategoryNameByCategoryId(13)),
+					width = "full",
+					getFunc = function() return not options.moduleExclude.outfit end,
+					setFunc = function(value) 
+							options.moduleExclude.outfit = not value
+						end,
+					requiresReload = true,
+				},
+				{
+					type = "checkbox",
+					name = string.format("%s: %s", GS(CSPS_LAM_Module), GS(SI_GROUP_LIST_PANEL_PREFERRED_ROLES_LABEL)),
+					width = "full",
+					getFunc = function() return not options.moduleExclude.role end,
+					setFunc = function(value) 
+							options.moduleExclude.role = not value
+						end,
+					requiresReload = true,
+				},
+				{
+					type = "checkbox",
+					name = string.format("%s: %s", GS(CSPS_LAM_Module), GS(SI_STATS_MUNDUS_TITLE)),
+					width = "full",
+					getFunc = function() return not options.moduleExclude.mundus end,
+					setFunc = function(value) 
+							options.moduleExclude.mundus = not value
+						end,
+					requiresReload = true,
 				},
 				
 			}
 		},
+		{
+			type = "submenu",
+			name = "ESO-Hub Import",
+			icon = "esoui/art/campaign/campaign_tabicon_summary_up.dds",
+			controls = optionsForHubImport
+		},
 	}
+	
+
 	
 	if not LibSets then 
 		for i, v in pairs(optionsData) do

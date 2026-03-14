@@ -27,6 +27,7 @@ function CSPS.profilePlus()
 	CSPS.selectProfile(newProfileId)
 	if CSPS.currentProfile ~= 0 then CSPS.saveBuildGo() end
 	CSPS.UpdateProfileCombo()	
+	return CSPS.profiles[newProfileId], CSPS.profiles, newProfileId
 end
 
 local function renameProfileGo(txt)
@@ -68,34 +69,47 @@ function CSPS.deleteProfileGo()
 end
 
 
-local function applyAll(excludeSkills, excludeAttributes, excludeGreenCP, excludeBlueCP, excludeRedCP, excludeHotbar, excludeGear, excludeQuickslots, excludeOutfit)
+local function applyAll(excludeSkills, excludeAttributes, excludeGreenCP, excludeBlueCP, excludeRedCP, excludeHotbar, excludeGear, excludeQuickslots, excludeOutfit, excludeSkillStyles, excludeRole)
+	
+	local function afterSkills(skSuccess)
+		local function afterAttributes()	
+			if not (excludeGreenCP and excludeBlueCP and excludeRedCP) then
+				CSPS.toggleCP(1, not excludeGreenCP)
+				CSPS.toggleCP(2, not excludeBlueCP)
+				CSPS.toggleCP(3, not excludeRedCP)
+				
+				cp.applyGo(true)
+			end
+			
+			if not excludeGear and CSPS.doGear then CSPS.equipAllFittingGear() end
+			if not CSPS.savedVariables.settings.moduleExclude.outfit and not excludeOutfit then CSPS.outfits.apply() end
+			
+			if not excludeQuickslots then 
+				CSPS.loadConnectedQuickSlots() 
+				CSPS.applyQS()
+			end
+			
+			if not excludeRole then CSPS.applyRole() end
+		end
+		if skSuccess and not excludeHotbar then 
+			CSPS.hbApply()
+		end
+		if not excludeAttributes then 
+			SCENE_MANAGER:Show("hud")
+			zo_callLater(function() CSPS.applyAttr(true, function() 
+				SCENE_MANAGER:Show("hud") 
+				zo_callLater(function() afterAttributes() end, 240)
+			end) end, 420)
+			
+		else
+			afterAttributes()
+		end
+	end
 	
 	if not excludeSkills then 
-		if not excludeHotbar then 
-			CSPS.applySkills(true, CSPS.hbApply)
-		else
-			CSPS.applySkills(true) 
-		end
-	elseif not excludeHotbar then 
-		CSPS.hbApply()
-	end
-	
-	if not excludeAttributes then CSPS.applyAttr(true) end
-	
-	if not (excludeGreenCP and excludeBlueCP and excludeRedCP) then
-		CSPS.toggleCP(1, not excludeGreenCP)
-		CSPS.toggleCP(2, not excludeBlueCP)
-		CSPS.toggleCP(3, not excludeRedCP)
-		
-		cp.applyGo(true)
-	end
-	
-	if not excludeGear and CSPS.doGear then CSPS.equipAllFittingGear() end
-	if CSPS.savedVariables.settings.showOutfits and not excludeOutfit then CSPS.outfits.apply() end
-	
-	if not excludeQuickslots then 
-		CSPS.loadConnectedQuickSlots() 
-		CSPS.applyQS()
+		CSPS.applySkills(true, function() afterSkills(true) end, function() afterSkills(false) end, excludeSkillStyles) -- skipDiag, callOnSuccess, callOnFail
+	else
+		afterSkills()
 	end
 end
 
@@ -107,7 +121,7 @@ function CSPS.btnApplyAll(mouseButton)
 		return
 	end
 	local toExclude = CSPS.savedVariables.settings.applyAllExclude
-	applyAll(toExclude.skills, toExclude.attr, toExclude.cp, toExclude.cp, toExclude.cp, toExclude.hb, toExclude.gear, toExclude.qs, toExclude.outfit)
+	applyAll(toExclude.skills, toExclude.attr, toExclude.cp, toExclude.cp, toExclude.cp, toExclude.hb, toExclude.gear, toExclude.qs, toExclude.outfit, toExclude.skillStyles, toExclude.role)
 end
 
 function CSPS.showApplyAllTooltip(control)
@@ -116,12 +130,13 @@ function CSPS.showApplyAllTooltip(control)
 	ZO_Tooltip_AddDivider(InformationTooltip)
 	local toExclude = CSPS.savedVariables.settings.applyAllExclude
 	local toExcludeTexts = {
-		skills = GS(SI_CHARACTER_MENU_SKILLS), attr = GS(SI_CHARACTER_MENU_STATS), cp = GS(SI_STAT_GAMEPAD_CHAMPION_POINTS_LABEL), hb = GS(SI_INTERFACE_OPTIONS_ACTION_BAR), gear = GS(SI_GAMEPAD_DYEING_EQUIPMENT_HEADER), qs = GS(SI_HOTBARCATEGORY10), outfit = GetCollectibleCategoryNameByCategoryId(13),
+		skills = GS(SI_CHARACTER_MENU_SKILLS), attr = GS(SI_CHARACTER_MENU_STATS), cp = GS(SI_STAT_GAMEPAD_CHAMPION_POINTS_LABEL), hb = GS(SI_INTERFACE_OPTIONS_ACTION_BAR), gear = GS(SI_GAMEPAD_DYEING_EQUIPMENT_HEADER), qs = GS(SI_HOTBARCATEGORY10), outfit = GetCollectibleCategoryNameByCategoryId(13), role = GS(SI_GROUP_LIST_PANEL_PREFERRED_ROLES_LABEL),
 	}
 	local excludeOrder = {"skills", "attr", "cp", "hb"} -- last three entries inserted manually
 	if CSPS.doGear then table.insert(excludeOrder, "gear") end
 	table.insert(excludeOrder, "qs")
 	if CSPS.savedVariables.settings.showOutfits then table.insert(excludeOrder, "outfit") end
+	table.insert(excludeOrder, "role")
 	for i, v in pairs(excludeOrder) do
 		local r,g,b = CSPS.colors.orange:UnpackRGB()
 		if not toExclude[v] then			
@@ -133,7 +148,7 @@ function CSPS.showApplyAllTooltip(control)
 	InformationTooltip:AddLine(string.format("|t26:26:esoui/art/miscellaneous/icon_rmb.dds|t: %s", GS(SI_GAMEPAD_OPTIONS_MENU)))
 end
 
-function CSPS.loadAndApplyByName(profileName, excludeSkills, excludeAttributes, excludeGreenCP, excludeBlueCP, excludeRedCP, excludeHotbar, excludeGear, excludeQuickslots)
+function CSPS.loadAndApplyByName(profileName, excludeSkills, excludeAttributes, excludeGreenCP, excludeBlueCP, excludeRedCP, excludeHotbar, excludeGear, excludeQuickslots, excludeSkillStyles)
 	local indexToLoad = false
 	if profileName == GS(CSPS_Txt_StandardProfile) then
 		indexToLoad = 0
@@ -147,7 +162,7 @@ function CSPS.loadAndApplyByName(profileName, excludeSkills, excludeAttributes, 
 end
 
 
-function CSPS.loadAndApplyByIndex(indexToLoad, excludeSkills, excludeAttributes, excludeGreenCP, excludeBlueCP, excludeRedCP, excludeHotbar, excludeGear, excludeQuickslots, excludeOutfit)
+function CSPS.loadAndApplyByIndex(indexToLoad, excludeSkills, excludeAttributes, excludeGreenCP, excludeBlueCP, excludeRedCP, excludeHotbar, excludeGear, excludeQuickslots, excludeOutfit, excludeSkillStyles)
 	if indexToLoad == 0 then
 		CSPSWindowBuildProfiles.comboBox:SetSelectedItem(GS(CSPS_Txt_StandardProfile))
 	else
@@ -155,5 +170,19 @@ function CSPS.loadAndApplyByIndex(indexToLoad, excludeSkills, excludeAttributes,
 	end 
 	CSPS.selectProfile(indexToLoad)
 	CSPS.loadBuild()
-	applyAll(excludeSkills, excludeAttributes, excludeGreenCP, excludeBlueCP, excludeRedCP, excludeHotbar, excludeGear, excludeQuickslots, excludeOutfit)
+	applyAll(excludeSkills, excludeAttributes, excludeGreenCP, excludeBlueCP, excludeRedCP, excludeHotbar, excludeGear, excludeQuickslots, excludeOutfit, excludeSkillStyles)
+end
+
+
+function CSPS.showProfileVersionHistory()
+	if not CSPS.savedVariables.settings.versionHistory then return end
+	local myProfile = CSPS.currentProfile == 0 and CSPS.currentCharData or CSPS.profiles[CSPS.currentProfile]
+	if not myProfile.history or #myProfile.history == 0 then return end
+	ClearMenu()
+	for i, v in ipairs(myProfile.history)  do
+		AddCustomMenuItem(string.format("%s) %s", i, os.date("%c", v.lastSaved)), function() 
+			CSPS.loadBuild(false, v)
+		end) 
+	end
+	ShowMenu() 
 end

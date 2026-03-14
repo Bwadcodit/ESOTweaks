@@ -212,7 +212,7 @@ local L = {}
 	L.CSPS_MSG_Unslotted = "Следующие способности не удалось выставить на панель:"
 	L.CSPS_MSG_NoCPProfiles = "\n\n|cff7723ВНИМАНИЕ!|r\nЭто не лучший способ хранить профили ОГ! Если вы хотите сохранить профиль только лишь Очков Героя, воспользуйтесь тремя кнопками сверху справа, чтобы открыть раздел Очков Героя. Там вы найдёте отдельные кнопки для создания и сохранения профилей. (|t28:28:esoui/art/champion/champion_points_magicka_icon-hud-32.dds|t, |t28:28:esoui/art/champion/champion_points_health_icon-hud-32.dds|t, |t28:28:esoui/art/champion/champion_points_stamina_icon-hud-32.dds|t)"
 	L.CSPS_MSG_CPPaths = "Самые дешёвые пути к открытию «<<C:1>>»:\n\n<<2>>"
-	L.CSPS_MSG_CPPathOpt = "|c<<1>><<2>>-й вариант (<<3>>)|r:" -- 1 color 2 number 3 points
+	L.CSPS_MSG_CPPathOpt = "|c<<1>><<2>>-й вариант (<<3>>)|r" -- 1 color 2 number 3 points
 	
 	--	Errorcodes
 	L.CSPS_ErrorNumber1 = "Эта способность уже изучена."

@@ -905,14 +905,7 @@ end
 
 
 function CSPS.text(arg)
-	if type(arg) == "table" then
-		for i, v in pairs(arg) do
-			if type(v) ~= "string" then return end
-		end
-		arg = table.concat(arg, "\n")
-	elseif type(arg) ~= "string" then 
-		return 
-	end
+	if type(arg) ~= "string" then return end
 	CSPS.toggleImportExport(true)
 	CSPSWindowImportExportTextEdit:SetText(arg)
 end

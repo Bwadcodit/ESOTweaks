@@ -38,6 +38,28 @@ local gearSlotIcons = {
 	[EQUIP_SLOT_BACKUP_POISON] = "gearslot_poison",
 }
 
+local weaponTypeIcons = {
+	[WEAPONTYPE_AXE] = "esoui/art/tradinghouse/tradinghouse_weapons_1h_axe_up.dds",
+	[WEAPONTYPE_BOW] = "esoui/art/inventory/inventory_tabicon_bow_up.dds",
+	[WEAPONTYPE_DAGGER] = "esoui/art/tradinghouse/tradinghouse_weapons_1h_dagger_up.dds",
+	[WEAPONTYPE_FIRE_STAFF] = "esoui/art/tradinghouse/tradinghouse_weapons_staff_flame_up.dds",
+	[WEAPONTYPE_FROST_STAFF] = "esoui/art/tradinghouse/tradinghouse_weapons_staff_frost_up.dds",
+	[WEAPONTYPE_HAMMER] = "esoui/art/tradinghouse/tradinghouse_weapons_1h_mace_up.dds",
+	[WEAPONTYPE_HEALING_STAFF] = "esoui/art/progression/icon_healstaff.dds",
+	[WEAPONTYPE_LIGHTNING_STAFF] = "esoui/art/tradinghouse/tradinghouse_weapons_staff_lightning_up.dds",
+	[WEAPONTYPE_SHIELD] = "esoui/art/inventory/inventory_tabicon_shield_up.dds",
+	[WEAPONTYPE_SWORD] = "esoui/art/tradinghouse/tradinghouse_weapons_1h_sword_up.dds",
+	[WEAPONTYPE_TWO_HANDED_AXE] = "esoui/art/tradinghouse/tradinghouse_weapons_2h_axe_up.dds",
+	[WEAPONTYPE_TWO_HANDED_HAMMER] = "esoui/art/tradinghouse/tradinghouse_weapons_2h_mace_up.dds",
+	[WEAPONTYPE_TWO_HANDED_SWORD] = "esoui/art/tradinghouse/tradinghouse_weapons_2h_sword_up.dds",
+}
+
+local armorTypeIcons = {
+	[ARMORTYPE_LIGHT] = "esoui/art/inventory/inventory_tabicon_armorlight_up.dds",
+	[ARMORTYPE_MEDIUM] = "esoui/art/inventory/inventory_tabicon_armormedium_up.dds",
+	[ARMORTYPE_HEAVY] = "esoui/art/inventory/inventory_tabicon_armorheavy_up.dds",
+}
+
 local gearSlotsBody = {
 	[EQUIP_SLOT_CHEST] = true,
 	[EQUIP_SLOT_HAND] = true,
@@ -60,6 +82,11 @@ local gearSlotsBackbar = {
 	[EQUIP_SLOT_BACKUP_OFF] = true,
 }
 
+local gearSlotsMainHand = {
+	[EQUIP_SLOT_MAIN_HAND] = true,
+	[EQUIP_SLOT_BACKUP_MAIN] = true,
+}
+
 local gearSlotsJewelry = {
 	[EQUIP_SLOT_NECK] = true,
 	[EQUIP_SLOT_RING1] = true,
@@ -70,7 +97,6 @@ local gearSlotsPoison = {
 	[EQUIP_SLOT_POISON] = true,
 	[EQUIP_SLOT_BACKUP_POISON] = true,
 }
-
 
 local isTwoHanded = {
     [WEAPONTYPE_FIRE_STAFF] = true,
@@ -109,6 +135,8 @@ local equipSlotToEquipType = {
 
 -- EQUIP_SLOT_COSTUME		[EQUIP_TYPE_COSTUME
 
+local trueFalseColors = {[true] = ZO_SUCCEEDED_TEXT, [false] = ZO_ERROR_COLOR}
+
 local poisonItemLink = "|H0:item:%s:308:50:0:0:0:0:0:0:0:0:0:0:0:0:36:0:0:0:0:%s|h|h"
 
 local itemIdsGlyphsArmor = {
@@ -135,13 +163,16 @@ local itemIdsGlyphsJewelry = {
 local enchantIds = false
 local enchantNames = false
 local enchantGlyphs = false
-	
+
+local vCategories = {"type", "enchant", "trait", "quality"}
+local traitIcons = false
 
 local myCPLevel = math.min(GetUnitChampionPoints("player") or 0, 160)
 myCPLevel = math.floor(myCPLevel/10)*10
 local myLevel = GetUnitLevel("player")	
 	
 local function tableContains(myTable, myEntry)
+	if not myTable or not myEntry then return false end
 	for i, v in pairs(myTable) do
 		if v == myEntry then return true end
 	end
@@ -166,15 +197,14 @@ local function buildGlyphTables()
 			local _, enchantNameFull = GetItemLinkEnchantInfo(itemLink)
 			local enchantId = GetItemLinkDefaultEnchantId(itemLink)
 			local enchantName = v ~= 68343 and v ~= 166047 and
-				(string.match(enchantNameFull, "(.+)%s*Enchantment") or string.match(enchantNameFull, ":%s*(.+)") or 
-				string.match(enchantNameFull, "Enchantement%s*(.+)"))
+				(string.match(enchantNameFull, "(.+)%s*Enchantment") or string.match(enchantNameFull, ":.%s*(.+)") or string.match(enchantNameFull, ":%s*(.+)") or string.match(enchantNameFull, "Enchantement%s*(.+)"))
 			local enchantSearchCategory = GetEnchantSearchCategoryType(enchantId)
 			if enchantId == 179 then enchantSearchCategory = ENCHANTMENT_SEARCH_CATEGORY_PRISMATIC_REGEN end
 			enchantName = enchantName or GS("SI_ENCHANTMENTSEARCHCATEGORYTYPE", enchantSearchCategory) or ""
 			-- d(itemLink.." - "..enchantName)
 			enchantIds[v] = enchantId
 			enchantGlyphs[enchantId] = v
-			enchantNames[enchantId] = enchantName
+			enchantNames[enchantId] = zo_strformat("<<C:1>>", enchantName)
 		end
 	end
 end
@@ -279,25 +309,11 @@ local function getSetItemInfo(setId, gearSlot, itemType,  traitType, itemQuality
 					return icon, itemLink, nil, nil
 			end
 		end
-		return icon, "---", nil, nil
+		return false, "---", nil, nil
 	end
 	
 end
 CSPS.getSetItemInfo = getSetItemInfo
-
-local function setupBoxLabelPair(control, description, isTextField)
-	control.label:SetText(description)
-	control.box.data = control.box.data or {}
-	control.box.data.tooltipText = description
-	control.box:SetHandler("OnMouseEnter", ZO_Options_OnMouseEnter)
-	control.box:SetHandler("OnMouseExit", ZO_Options_OnMouseExit)
-	
-	if not isTextField then 
-		control.box.comboBox = control.box.comboBox or ZO_ComboBox_ObjectFromContainer(control.box) 
-		control.box.comboBox:SetSortsItems(false)
-	end
-
-end
 
 local function doesSetFitGearSlot(gearSlot, setId)
 	if not gearSlot then return true end
@@ -323,37 +339,12 @@ local function doesSetFitGearSlot(gearSlot, setId)
 	return true
 end
 
-local function fillComboBox(control, choiceList, filterFunc, nameFunc, callback, selectText)
-	local comboBox = control.comboBox
-	comboBox:ClearItems()
-	if not choiceList then return end
-	for i, v in pairs(choiceList) do
-		if not filterFunc or filterFunc(i,v) then
-			comboBox:AddItem(comboBox:CreateItemEntry(nameFunc(i, v), function() callback(i, v) PlaySound(SOUNDS.POSITIVE_CLICK) end), ZO_COMBOBOX_SUPPRESS_UPDATE)
-		end
+local function buildTraitIconTable()
+	traitIcons = {}
+	for i=1, GetNumSmithingTraitItems() do
+		local itemTraitType, _, textureName = GetSmithingTraitItemInfo(i)
+		if itemTraitType then traitIcons[itemTraitType] = textureName end
 	end
-	comboBox:UpdateItems()
-	comboBox:SetSelectedItem(selectText)
-end
-
-
-local function fillTraitCombo(gearSlot, selectTrait, isShield)
-	
-	local armorTraits = {ITEM_TRAIT_TYPE_ARMOR_DIVINES, ITEM_TRAIT_TYPE_ARMOR_IMPENETRABLE, ITEM_TRAIT_TYPE_ARMOR_INFUSED, ITEM_TRAIT_TYPE_ARMOR_NIRNHONED, ITEM_TRAIT_TYPE_ARMOR_PROSPEROUS, ITEM_TRAIT_TYPE_ARMOR_REINFORCED, ITEM_TRAIT_TYPE_ARMOR_STURDY, ITEM_TRAIT_TYPE_ARMOR_TRAINING, ITEM_TRAIT_TYPE_ARMOR_WELL_FITTED}
-	local jewelryTraits = {ITEM_TRAIT_TYPE_JEWELRY_ARCANE, ITEM_TRAIT_TYPE_JEWELRY_BLOODTHIRSTY, ITEM_TRAIT_TYPE_JEWELRY_HARMONY, ITEM_TRAIT_TYPE_JEWELRY_HEALTHY, ITEM_TRAIT_TYPE_JEWELRY_INFUSED,  ITEM_TRAIT_TYPE_JEWELRY_PROTECTIVE, ITEM_TRAIT_TYPE_JEWELRY_ROBUST, ITEM_TRAIT_TYPE_JEWELRY_SWIFT, ITEM_TRAIT_TYPE_JEWELRY_TRIUNE}
-	local weaponTraits = {ITEM_TRAIT_TYPE_WEAPON_CHARGED, ITEM_TRAIT_TYPE_WEAPON_DECISIVE, ITEM_TRAIT_TYPE_WEAPON_DEFENDING, ITEM_TRAIT_TYPE_WEAPON_INFUSED, ITEM_TRAIT_TYPE_WEAPON_NIRNHONED, ITEM_TRAIT_TYPE_WEAPON_POWERED, ITEM_TRAIT_TYPE_WEAPON_PRECISE, ITEM_TRAIT_TYPE_WEAPON_SHARPENED, ITEM_TRAIT_TYPE_WEAPON_TRAINING}
-	local myTraits = gearSlotsHands[gearSlot] and not isShield and weaponTraits or gearSlotsJewelry[gearSlot] and jewelryTraits or armorTraits
-	
-	selectTrait = selectTrait or gearSelector.trait
-	if selectTrait and not tableContains(myTraits, selectTrait) then selectTrait = false end
-	
-	selectTrait = selectTrait or isShield and ITEM_TRAIT_TYPE_ARMOR_DIVINES or gearSlotsHands[gearSlot] and ITEM_TRAIT_TYPE_WEAPON_PRECISE or 
-	gearSlotsJewelry[gearSlot] and ITEM_TRAIT_TYPE_JEWELRY_ARCANE or ITEM_TRAIT_TYPE_ARMOR_DIVINES
-	
-	gearSelector.trait = selectTrait
-	selectTrait = GS("SI_ITEMTRAITTYPE", selectTrait)
-	
-	fillComboBox(ctrGear.trait.box, myTraits, false,  function(i,v) return(GS("SI_ITEMTRAITTYPE", v)) end, function(i,v) gearSelector.trait = v end, selectTrait)
 end
 
 local function getWeaponTypeName(weaponType)
@@ -364,134 +355,180 @@ local function getWeaponTypeName(weaponType)
 	end
 end
 
-local function fillEnchantCombo(gearSlot, selectEnchant)
-	if not enchantIds then buildGlyphTables() end	
-	
-	local myGlyphs = gearSlotsHands[gearSlot] and gearSelector.type ~= WEAPONTYPE_SHIELD and itemIdsGlyphsWeapon
-		or gearSlotsJewelry[gearSlot] and itemIdsGlyphsJewelry or itemIdsGlyphsArmor
-
-	selectEnchant = selectEnchant or gearSelector.enchant 
-
-	if selectEnchant and not tableContains(myGlyphs, enchantGlyphs[selectEnchant]) then selectEnchant = false end
-	
-	selectEnchant = selectEnchant or enchantIds[myGlyphs[1]]
-	
-	gearSelector.enchant = selectEnchant
-	selectEnchant = enchantNames[selectEnchant]
-
-	fillComboBox(ctrGear.enchantment.box, myGlyphs, false, function(i,v) return zo_strformat("<<C:1>>", enchantNames[enchantIds[v]]) end, 
-		function(i,v) 
-			gearSelector.enchant = enchantIds[v]
-		end, 
-		selectEnchant)
+local function getTextAndIcon(category, gearSlot, value)
+	if not value then return "-", "esoui/art/buttons/radiobuttondisabledup.dds" end -- disabled texture?
+	local returnFuncs  = {
+		["type"] = function()
+			if gearSlotsHands[gearSlot] then
+				return getWeaponTypeName(value), weaponTypeIcons[value]
+			else
+				return GS("SI_ARMORTYPE", value), armorTypeIcons[value]
+			end
+		end,
+		["enchant"] = function()
+			local itemLink = string.format("|H0:item:%s:369:50:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0:0|h|h", enchantGlyphs[value])
+			return enchantNames[value], GetItemLinkIcon(itemLink)
+		end,
+		["quality"] = function()
+			local qualityIcons = {
+				[ITEM_QUALITY_LEGENDARY] = "esoui/art/icons/jewelrycrafting_booster_refined_chromium.dds", 
+				[ITEM_QUALITY_ARTIFACT] = "esoui/art/icons/jewelrycrafting_booster_refined_zircon.dds", 
+				[ITEM_QUALITY_ARCANE] = "esoui/art/icons/jewelrycrafting_booster_refined_iridium.dds", 
+				[ITEM_QUALITY_MAGIC] = "esoui/art/icons/jewelrycrafting_booster_refined_terne.dds", 
+				[ITEM_QUALITY_NORMAL] = "esoui/art/buttons/radiobuttondisabledup.dds",
+				[ITEM_DISPLAY_QUALITY_MYTHIC_OVERRIDE] = "esoui/art/icons/antiquities_u30_mythic_ring_fragment05.dds",
+			}
+			return GetItemQualityColor(value):Colorize(GS("SI_ITEMDISPLAYQUALITY", value)), qualityIcons[value] or ""
+			--ICON?
+		end,
+		["trait"] = function()
+			if not traitIcons then buildTraitIconTable() end
+			return GS("SI_ITEMTRAITTYPE", value), traitIcons[value]
+		end,
+	}
+	return returnFuncs[category]()
 end
 
-local function fillTypeCombo(gearSlot, selectText, setArmorTypes)
-
-	local armorTypes = setArmorTypes and #setArmorTypes > 0 and setArmorTypes or {ARMORTYPE_LIGHT, ARMORTYPE_MEDIUM, ARMORTYPE_HEAVY}
-	local weaponTypes = {WEAPONTYPE_AXE, WEAPONTYPE_SWORD, WEAPONTYPE_HAMMER, WEAPONTYPE_DAGGER, WEAPONTYPE_TWO_HANDED_AXE, WEAPONTYPE_TWO_HANDED_SWORD, WEAPONTYPE_TWO_HANDED_HAMMER, WEAPONTYPE_BOW, WEAPONTYPE_FIRE_STAFF, WEAPONTYPE_FROST_STAFF, WEAPONTYPE_LIGHTNING_STAFF, WEAPONTYPE_HEALING_STAFF, WEAPONTYPE_SHIELD}
-			
-	if gearSlotsHands[gearSlot] and GetItemSetType(gearSelector.setId) == ITEM_SET_TYPE_WEAPON then
-		weaponTypes = {}
-		for i=1, GetNumItemSetCollectionPieces(gearSelector.setId) do
-			local collectionPieceWeaponType = GetItemLinkWeaponType(GetItemSetCollectionPieceItemLink(GetItemSetCollectionPieceInfo(gearSelector.setId,i)))
-			if collectionPieceWeaponType > 0 then table.insert(weaponTypes, collectionPieceWeaponType) end
-		end
-	end
-	selectText = selectText or gearSelector.type
-	
-	if selectText and gearSlotsHands[gearSlot] and not tableContains(weaponTypes, selectText) then selectText = false end
-	if selectText and gearSlotsBody[gearSlot] and not tableContains(armorTypes, selectText) then selectText = false end
-	
-	selectText = selectText or gearSlotsHands[gearSlot] and weaponTypes[1] or gearSlotsBody[gearSlot] and armorTypes[1] or 0
-	
-	gearSelector.type = selectText
-	selectText = gearSlotsHands[gearSlot] and getWeaponTypeName(selectText) or GS("SI_ARMORTYPE", selectText)
-
-	if gearSlotsHands[gearSlot] then
-		fillComboBox(ctrGear.type.box, weaponTypes, false, function(i,v) return(getWeaponTypeName(v)) end, 
-			function(i,v) 
-				if v == WEAPONTYPE_SHIELD and gearSelector.type ~= WEAPONTYPE_SHIELD then
-					 gearSelector.type = v 
-					 gearSelector.trait = nil
-					 fillTraitCombo(gearSlot, false, true)
-					 gearSelector.enchant = nil
-					 fillEnchantCombo(gearSlot, false)
-				elseif  v ~= WEAPONTYPE_SHIELD and gearSelector.type == WEAPONTYPE_SHIELD then
-					gearSelector.type = v 
-					 gearSelector.trait = nil
-					fillTraitCombo(gearSlot, false, false)
-					gearSelector.enchant = nil
-					fillEnchantCombo(gearSlot, false)
-				else
-					gearSelector.type = v 
-				end				
-			end, selectText)
-	elseif gearSlotsJewelry[gearSlot] then
-		fillComboBox(ctrGear.type.box, false, false, function(i,v) end, 
-			function(i,v) end, "")
+local function isSlotShield(gearSlot)
+	if gearSlot then 
+		return theGear[gearSlot] and gearSlotsHands[gearSlot] and theGear[gearSlot]["type"] == WEAPONTYPE_SHIELD
 	else
-		fillComboBox(ctrGear.type.box, armorTypes, false, function(i,v) return(GS("SI_ARMORTYPE", v)) end, 
-			function(i,v) 
-				gearSelector.type = v 
-			end, selectText)
+		return gearSelector.gearSlot and gearSlotsHands[gearSelector.gearSlot] and gearSelector.type == WEAPONTYPE_SHIELD
 	end
 end
 
-local function fillQualityCombo(mythic, selectText, setType)
-	selectText = selectText or gearSelector.quality or ITEM_QUALITY_LEGENDARY 
+local function getValueList(category, gearSlot, isShield)
+	local setId = gearSlot and theGear[gearSlot].setId or not gearSlot and gearSelector.setId 
+	setId = setId ~= 0 and setId or false
 	
-	local qualityList = {ITEM_QUALITY_NORMAL, ITEM_QUALITY_MAGIC, ITEM_QUALITY_ARCANE, ITEM_QUALITY_ARTIFACT, ITEM_QUALITY_LEGENDARY}
-	if mythic then 
-		qualityList = {ITEM_DISPLAY_QUALITY_MYTHIC_OVERRIDE} 
-	elseif setType ~= ITEM_SET_TYPE_CRAFTED then
-		table.remove(qualityList, 1)
-		if setType ~= ITEM_SET_TYPE_WORLD then
-			table.remove(qualityList, 1)
+	returnFuncs = {
+		["trait"] = function()
+			gearSlot = gearSlot or gearSelector.gearSlot
+			local armorTraits = {ITEM_TRAIT_TYPE_ARMOR_DIVINES, ITEM_TRAIT_TYPE_ARMOR_IMPENETRABLE, ITEM_TRAIT_TYPE_ARMOR_INFUSED, ITEM_TRAIT_TYPE_ARMOR_NIRNHONED, ITEM_TRAIT_TYPE_ARMOR_PROSPEROUS, ITEM_TRAIT_TYPE_ARMOR_REINFORCED, ITEM_TRAIT_TYPE_ARMOR_STURDY, ITEM_TRAIT_TYPE_ARMOR_TRAINING, ITEM_TRAIT_TYPE_ARMOR_WELL_FITTED}
+			local jewelryTraits = {ITEM_TRAIT_TYPE_JEWELRY_BLOODTHIRSTY, ITEM_TRAIT_TYPE_JEWELRY_ARCANE, ITEM_TRAIT_TYPE_JEWELRY_HARMONY, ITEM_TRAIT_TYPE_JEWELRY_HEALTHY, ITEM_TRAIT_TYPE_JEWELRY_INFUSED,  ITEM_TRAIT_TYPE_JEWELRY_PROTECTIVE, ITEM_TRAIT_TYPE_JEWELRY_ROBUST, ITEM_TRAIT_TYPE_JEWELRY_SWIFT, ITEM_TRAIT_TYPE_JEWELRY_TRIUNE}
+			local weaponTraits = {ITEM_TRAIT_TYPE_WEAPON_PRECISE, ITEM_TRAIT_TYPE_WEAPON_CHARGED, ITEM_TRAIT_TYPE_WEAPON_DECISIVE, ITEM_TRAIT_TYPE_WEAPON_DEFENDING, ITEM_TRAIT_TYPE_WEAPON_INFUSED, ITEM_TRAIT_TYPE_WEAPON_NIRNHONED, ITEM_TRAIT_TYPE_WEAPON_POWERED, ITEM_TRAIT_TYPE_WEAPON_SHARPENED, ITEM_TRAIT_TYPE_WEAPON_TRAINING}
+			return gearSlotsHands[gearSlot] and not isShield and weaponTraits or gearSlotsJewelry[gearSlot] and jewelryTraits or armorTraits
+		end,
+		["enchant"] = function()
+			gearSlot = gearSlot or gearSelector.gearSlot
+			local myTable = {}
+			for i, v in pairs(gearSlotsHands[gearSlot] and not isShield and itemIdsGlyphsWeapon or gearSlotsJewelry[gearSlot] and itemIdsGlyphsJewelry or itemIdsGlyphsArmor) do
+				table.insert(myTable, enchantIds[v])
+			end
+			return myTable
+		end,
+		["type"] = function()
+			gearSlot = gearSlot or gearSelector.gearSlot
+			local armorTypes = {ARMORTYPE_LIGHT, ARMORTYPE_MEDIUM, ARMORTYPE_HEAVY}
+			if gearSlotsBody[gearSlot] and setId and GetItemSetType(setId) ~= ITEM_SET_TYPE_CRAFTED then 
+				armorTypes = {}
+				local armorTypesChecked = {}
+				for i=1, GetNumItemSetCollectionPieces(setId) do
+					local armorType = GetItemLinkArmorType(GetItemSetCollectionPieceItemLink(GetItemSetCollectionPieceInfo(setId, i)))
+					if armorType ~= 0 and not armorTypesChecked[armorType] then
+						table.insert(armorTypes, armorType)
+						armorTypesChecked[armorType] = true
+					end
+				end
+			end
+			local weaponTypes = {WEAPONTYPE_AXE, WEAPONTYPE_SWORD, WEAPONTYPE_HAMMER, WEAPONTYPE_DAGGER, WEAPONTYPE_TWO_HANDED_AXE, WEAPONTYPE_TWO_HANDED_SWORD, WEAPONTYPE_TWO_HANDED_HAMMER, WEAPONTYPE_BOW, WEAPONTYPE_FIRE_STAFF, WEAPONTYPE_FROST_STAFF, WEAPONTYPE_LIGHTNING_STAFF, WEAPONTYPE_HEALING_STAFF, WEAPONTYPE_SHIELD}
+			if gearSlotsHands[gearSlot] and setId and GetItemSetType(setId) == ITEM_SET_TYPE_WEAPON then
+				weaponTypes = {}
+				for i=1, GetNumItemSetCollectionPieces(setId) do
+					local collectionPieceWeaponType = GetItemLinkWeaponType(GetItemSetCollectionPieceItemLink(GetItemSetCollectionPieceInfo(setId,i)))
+					if collectionPieceWeaponType > 0 then table.insert(weaponTypes, collectionPieceWeaponType) end
+				end
+			end
+	
+			return gearSlotsBody[gearSlot] and armorTypes or gearSlotsHands[gearSlot] and weaponTypes or false
+		end,
+		["quality"] = function()
+			local setId = gearSlot and theGear[gearSlot].setId or not gearSlot and gearSelector.setId 
+			if not setId then return false end
+			local setType = GetItemSetType(setId)
+				
+			local qualityList = {ITEM_QUALITY_LEGENDARY, ITEM_QUALITY_ARTIFACT, ITEM_QUALITY_ARCANE, ITEM_QUALITY_MAGIC, ITEM_QUALITY_NORMAL}
+			if GetNumItemSetCollectionPieces(setId) == 1  and setType ~= ITEM_SET_TYPE_WEAPON then --mythic
+				qualityList = {ITEM_DISPLAY_QUALITY_MYTHIC_OVERRIDE} 
+			elseif setType ~= ITEM_SET_TYPE_CRAFTED then
+				table.remove(qualityList, #qualityList)
+				if setType ~= ITEM_SET_TYPE_WORLD then
+					table.remove(qualityList, #qualityList)
+				end
+			end	
+			return qualityList
+		end
+	}
+	return returnFuncs[category]()
+end
+
+local function checkGearData(gearSlot, setDefault)
+	local myTable = gearSlot and theGear[gearSlot] or gearSelector
+	local returnTable = {}
+	for _, v in pairs(vCategories) do
+		local myList = getValueList(v, gearSlot, isSlotShield(gearSlot))
+		myTable[v] = tableContains(myList, myTable[v]) and myTable[v] or myList and setDefault and myList[1] or nil
+		returnTable[v] = not myList
+	end
+	return returnTable
+end
+
+local function refreshGearSelector()
+	if not gearSelector.setId then
+		for i, v in pairs(vCategories) do
+			ctrGear[v]:SetHidden(true)
 		end
 	end
+	local hideTable = checkGearData(nil, true)
+	for _, v in pairs(vCategories) do
+		ctrGear[v]:SetHidden(hideTable[v])
+		local labelText, textureName = getTextAndIcon(v, gearSelector.gearSlot, gearSelector[v])
+		ctrGear[v]["label"]:SetText(labelText)
+		ctrGear[v]["icon"]:SetTexture(textureName)
+	end
 	
-	if selectText and not tableContains(qualityList, selectText) then selectText = qualityList[#qualityList] end
+end
 
-	gearSelector.quality = selectText
-	selectText = GetItemQualityColor(selectText):Colorize(GS("SI_ITEMDISPLAYQUALITY", selectText))
+local function showVCatMenu(category, gearSlot, control)
+	ClearMenu()
+	local isWeapon = gearSlotsHands[gearSlot or gearSelector.gearSlot]
+	local myList = getValueList(category, gearSlot, isSlotShield(gearSlot))
+	if not myList then return end
 	
-	fillComboBox(ctrGear.quality.box, qualityList, false, function(i,v) return(GetItemQualityColor(v):Colorize(GS("SI_ITEMDISPLAYQUALITY", v))) end, function(i,v) gearSelector.quality = v end, selectText)
+	for _, v in pairs(myList) do
+		local myName, myIcon = getTextAndIcon(category, gearSlot or gearSelector.gearSlot, v)
+		AddCustomMenuItem(string.format("|t26:26:%s|t %s", myIcon, myName),
+			function()
+				if gearSlot then 
+					theGear[gearSlot][category] = v
+					checkGearData(gearSlot, true)
+					CSPS.refreshTree()
+				else 
+					gearSelector[category] = v
+					refreshGearSelector()
+				end	
+			end)
+	end
+	if gearSlot then
+		AddCustomMenuItem("-", function() end)
+		AddCustomMenuItem(GS(SI_SAVING_EDIT_BOX_EDIT), function() CSPS.showGearWin(control.ctrBtnEdit, gearSlot) end)
+	end
+	ShowMenu()
 end
 
 local function setSetId(setId)
 	gearSelector.setId = setId
 	local gearSlot = gearSelector.gearSlot
 	if not setId then
-		ctrGear.type:SetHidden(true)
-		ctrGear.quality:SetHidden(true)
-		ctrGear.trait:SetHidden(true)
-		ctrGear.enchantment:SetHidden(true)
+	
+		gearSelector.isMythic = false
 	else
-		local setArmorTypes = false
-		if gearSlotsBody[gearSlot] and GetItemSetType(setId) ~= ITEM_SET_TYPE_CRAFTED then
-			local armorTypesChecked = {}
-			setArmorTypes = {}
-			for i=1, GetNumItemSetCollectionPieces(setId) do
-				local armorType = GetItemLinkArmorType(GetItemSetCollectionPieceItemLink(GetItemSetCollectionPieceInfo(setId, i)))
-				if armorType ~= 0 and not armorTypesChecked[armorType] then
-					table.insert(setArmorTypes, armorType)
-					armorTypesChecked[armorType] = true
-				end
-			end
-		end
 		local setType = GetItemSetType(setId)
 		local mySetItem = theGear[gearSlot] or {}
-		fillTraitCombo(gearSlot, mySetItem.trait or false)
-		fillQualityCombo(GetNumItemSetCollectionPieces(setId) == 1  and setType ~= ITEM_SET_TYPE_WEAPON, mySetItem.quality or false, setType)
-		fillTypeCombo(gearSlot, mySetItem.type or false, setArmorTypes)
-		fillEnchantCombo(gearSlot, mySetItem.enchant or false)
-	
-		ctrGear.quality:SetHidden(GetNumItemSetCollectionPieces(setId) == 1 and setType ~= ITEM_SET_TYPE_WEAPON)
-		ctrGear.type:SetHidden(gearSlotsJewelry[gearSlot])
-		ctrGear.trait:SetHidden(false)
-		ctrGear.enchantment:SetHidden(false)
+		gearSelector.isMythic = GetNumItemSetCollectionPieces(setId) == 1 and setType ~= ITEM_SET_TYPE_WEAPON
+		
 	end
+	refreshGearSelector()
 end
 
 local function formatSetName(setId)
@@ -535,25 +572,107 @@ local function getActiveSets()
 	return setCounts
 end
 
-local function showSetContextMenu(gearSlot)
+local function addTooltipEnchantFromItemLink(itemLink, r,g,b)
+	local _, enchantHeader, enchantDescription = GetItemLinkEnchantInfo(itemLink)
+	local enchantText = string.format("%s\n%s", string.upper(enchantHeader), enchantDescription)
+	if enchantHeader == "" then	enchantText = string.upper(GS(SI_ENCHANTMENTSEARCHCATEGORYTYPE0)) end
+	InformationTooltip:AddLine(enchantText, "ZoFontGame", r, g, b, CENTER, MODIFY_TEXT_TYPE_NONE, TEXT_ALIGN_CENTER, true)
+end
+
+local function addTooltipTraitInfoFromItemLink(itemLink, traitType, r,g,b) --
+	local lTraitType, traitDescription = GetItemLinkTraitInfo(itemLink) 
+	if traitType and lTraitType ~= traitType then cspsD("Traittype differs: "..traitType.." vs "..lTraitType) end
+	traitType = traitType or lTraitType
+	local traitName = zo_strformat("<<Z:1>>", GS("SI_ITEMTRAITTYPE", traitType))
+	if traitType > 0 then traitName = string.format("%s\n%s", traitName, traitDescription) end
+	InformationTooltip:AddLine(traitName, "ZoFontGame", r, g, b, CENTER, MODIFY_TEXT_TYPE_NONE, TEXT_ALIGN_CENTER, true)
+end
+
+local function addTooltipItemInfo(itemLink, itemQuality, icon, armorType, setDoesNotFit, typeFits, qualityFits, warnLevel, levelText)
+	icon = icon ~= "" and icon or GetItemLinkIcon(itemLink)
+	itemQuality = itemQuality or GetItemLinkQuality(itemLink)
+	local qualityColor = GetItemQualityColor(itemQuality) or ZO_NORMAL_TEXT
+	local r,g,b = qualityColor:UnpackRGB()
+	if setDoesNotFit then r,g,b = ZO_ERROR_COLOR:UnpackRGB() end
+	InformationTooltip:AddLine(zo_strformat("|t28:28:<<1>>|t <<C:2>>", icon ,  GetItemLinkName(itemLink)), "ZoFontWinH2", r, g, b, CENTER, MODIFY_TEXT_TYPE_NONE, TEXT_ALIGN_CENTER, true)
+	
+	r,g,b = ZO_NORMAL_TEXT:UnpackRGB()
+	
+	local qualityText = GS("SI_ITEMDISPLAYQUALITY", itemQuality or 1)
+	if qualityFits ~= nil then qualityText = trueFalseColors[qualityFits]:Colorize(qualityText) end
+	
+	qualityText = warnLevel and string.format("%s, %s", qualityText, trueFalseColors[false]:Colorize(levelText)) or qualityText
+	
+	qualityText = armorType and string.format("%s, %s", (typeFits ~= nil and trueFalseColors[typeFits] or ZO_NORMAL_TEXT):Colorize(GS("SI_ARMORTYPE", armorType)), qualityText) or qualityText
+	
+	InformationTooltip:AddLine(qualityText, "ZoFontGame", r, g, b, CENTER, MODIFY_TEXT_TYPE_NONE, TEXT_ALIGN_CENTER, true)
+	
+end
+
+local function addTooltipSetInfo(itemLink, gearSlot, subtractOne)
+
+	local hasSet, _, numBonuses, _, _, linkSetId = GetItemLinkSetInfo(itemLink)
+	
+	if not hasSet then return end
+
+	local setCount = theGear[gearSlot].setCount
+	local numActive = setCount and math.max(setCount[1] + setCount[2], setCount[1] + setCount[3]) or 42
+	numActive = subtractOne and numActive - 1 or numActive
+	
+	local activeBoni, inactiveBoni = {}, {}
+	for i=1, numBonuses do
+		local numRequired, bonusDescription = GetItemLinkSetBonusInfo(itemLink, false, i)
+		if numActive >= numRequired then 
+			table.insert(activeBoni, (string.gsub(bonusDescription, "\n\r\n", " ")))
+		else
+			table.insert(inactiveBoni, (string.gsub(bonusDescription, "\n\r\n", " ")))
+		end
+	end
+	if #activeBoni > 0 then
+		r, g, b = ZO_SELECTED_TEXT:UnpackRGB()
+		InformationTooltip:AddLine(table.concat(activeBoni, "\n"), "ZoFontGame", r, g, b, CENTER, MODIFY_TEXT_TYPE_NONE, TEXT_ALIGN_CENTER, true)
+	end
+	if #inactiveBoni > 0 then
+		r, g, b = ZO_DISABLED_TEXT:UnpackRGB()
+		InformationTooltip:AddLine(table.concat(inactiveBoni, "\n"), "ZoFontGame", r, g, b, CENTER, MODIFY_TEXT_TYPE_NONE, TEXT_ALIGN_CENTER, true)
+	end
+end
+
+local function hideGearWindow()
+	if CSPS.gearWindow then CSPS.gearWindow:SetHidden(true) end
+	gearSelector.gearSlot = false
+	EVENT_MANAGER:UnregisterForEvent(CSPS.name.."GearWinHider", EVENT_GLOBAL_MOUSE_DOWN)
+	CSPS.refreshSetCount()
+	CSPS.refreshTree()
+end
+
+local function showSetContextMenu(gearSlot, control)
+	local setDirectly = gearSlot and true or false
 	gearSlot = gearSlot or gearSelector.gearSlot
 	if gearSlotsPoison[gearSlot] then return false, false end
 	local setCounts = getActiveSets()
 
-	local function iterateBag(bagId, tableToFill)
+	local function iterateBag(bagId, tableToFill, tableToFill2)
 		for slotIndex=0, GetBagSize(bagId) do
-			local hasSet, _, _, _, _, setId = GetItemLinkSetInfo(GetItemLink(bagId, slotIndex))
+			local itemLink = GetItemLink(bagId, slotIndex)
+			local hasSet, _, _, _, _, setId = GetItemLinkSetInfo(itemLink)
 			if hasSet then tableToFill[setId] = true end
+			local equipType = GetItemLinkEquipType(itemLink)
+			if tableToFill2 and hasSet and equipType and equipType ~= 0 and equipSlotToEquipType[gearSlot][equipType] then
+				table.insert(tableToFill2, {itemLink = itemLink, bagId = bagId, slotIndex = slotIndex})
+			end
 		end
 	end
 	
 	local setsInInventory = {}
-	iterateBag(BAG_BACKPACK, setsInInventory)
+	local setItemsInventory = {}
+	iterateBag(BAG_BACKPACK, setsInInventory, setItemsInventory)
 	iterateBag(BAG_WORN, setsInInventory)
 	
 	local setsInBank = {}
-	iterateBag(BAG_BANK, setsInBank)
-	iterateBag(BAG_SUBSCRIBER_BANK, setsInBank)
+	local setItemsBank = {}
+	iterateBag(BAG_BANK, setsInBank, setItemsBank)
+	iterateBag(BAG_SUBSCRIBER_BANK, setsInBank, setItemsBank)
 	
 	local function createSubMenu(setIdList)
 		local idByName = {}
@@ -571,18 +690,105 @@ local function showSetContextMenu(gearSlot)
 			local setId = idByName[formattedSetName]			
 			table.insert(mySubMenu, {label = formattedSetName, 
 				callback = function() 
-					CSPSWindowGearWindowSetsEdit:SetText(formattedSetName) 
-					setSetId(setId)
+					if setDirectly then
+						theGear[gearSlot] = theGear[gearSlot] or {}
+						local gearData = theGear[gearSlot]
+						gearData.setId = setId
+						checkGearData(gearSlot, true)
+						local _, itemLink = getSetItemInfo(setId, gearSlot, gearData.type,  gearData.trait, gearData.quality)
+						local itemId = GetItemLinkItemId(itemLink)
+						local crafted = GetItemSetType(setId) == ITEM_SET_TYPE_CRAFTED
+						if itemLink and itemId then
+							gearData.link = buildItemLink(itemId, gearData.quality, gearData.enchant and enchantGlyphs[gearData.enchant], crafted, gearData.trait)
+						end
+						CSPS.refreshSetCount()
+						CSPS.refreshTree()
+					else
+						CSPSWindowGearWindowSetsEdit:SetText(formattedSetName) 
+						setSetId(setId)
+					end
 				end})
 		end
 		return mySubMenu
 	end
-	
+	local function createSubMenuForItems(itemList)
+		
+		local mySubMenu = {}
+		for i, v in pairs(itemList) do
+			table.insert(mySubMenu, {label = v.itemLink, 
+			callback = function() 
+				CSPS.setFromBagAndSlot(gearSlot, v.bagId, v.slotIndex) 
+				hideGearWindow()
+			end, 
+			tooltip = function(itemControl, inside) 
+				if not inside then ZO_Tooltips_HideTextTooltip() return end
+				InitializeTooltip(InformationTooltip, itemControl, LEFT)
+				addTooltipItemInfo(v.itemLink, nil, nil, gearSlotsBody[gearSlot] and GetItemLinkArmorType(v.itemLink), nil)
+				addTooltipTraitInfoFromItemLink(v.itemLink)
+				addTooltipEnchantFromItemLink(v.itemLink)
+				-- addTooltipSetInfo(v.itemLink, gearSlot, true)
+			end})
+		end
+		return mySubMenu
+	end
 	ClearMenu()	
+	--
+	--
+	--
+	--
+	local needsSeparator = false
+	if CSPS.helperFunctions.anyEntryNotFalse(setCounts) then
+		AddCustomSubMenuItem(string.format("%s (%s)", GS(SI_MASTER_WRIT_DESCRIPTION_SET), GS(SI_RESTYLE_SHEET_HEADER)), createSubMenu(setCounts))
+		needsSeparator = true
+	end
+	if CSPS.helperFunctions.anyEntryNotFalse(setsInInventory) then
+		AddCustomSubMenuItem(string.format("%s (%s)", GS(SI_MASTER_WRIT_DESCRIPTION_SET), GS(SI_BAG1)), createSubMenu(setsInInventory))
+		needsSeparator = true
+	end
+	if CSPS.helperFunctions.anyEntryNotFalse(setsInBank) then
+		AddCustomSubMenuItem(string.format("%s (%s)", GS(SI_MASTER_WRIT_DESCRIPTION_SET), GS(SI_BAG2)), createSubMenu(setsInBank))
+		needsSeparator = true
+	end
+	if needsSeparator then AddCustomMenuItem("-", function() end) end
 	
-	AddCustomSubMenuItem(GS(SI_CHARACTER_EQUIP_TITLE), createSubMenu(setCounts)) 
-	AddCustomSubMenuItem(GS(SI_GAMEPAD_INVENTORY_CATEGORY_HEADER), createSubMenu(setsInInventory)) 	
-	AddCustomSubMenuItem(GS(SI_GUILDHISTORYCATEGORY2), createSubMenu(setsInBank)) 	
+	local itemLinkCurrentlyWorn = GetItemLink(BAG_WORN, gearSlot, LINK_STYLE_DEFAULT)
+	if itemLinkCurrentlyWorn ~= "" then
+		AddCustomMenuItem(GS(SI_CHARACTER_EQUIP_TITLE), function() CSPS.setGearSlotFromBagWorn(gearSlot) hideGearWindow() end)
+	end
+	if #setItemsInventory > 0 then
+		AddCustomSubMenuItem(string.format("%s (%s)", GS(SI_INVENTORY_MODE_ITEMS), GS(SI_BAG1)), createSubMenuForItems(setItemsInventory))
+	end
+	if #setItemsBank > 0 then
+		AddCustomSubMenuItem(string.format("%s (%s)", GS(SI_INVENTORY_MODE_ITEMS), GS(SI_BAG2)), createSubMenuForItems(setItemsBank))
+	end
+	
+	if setDirectly and control then
+		local equipItem = control.equipItem
+		local retrieveItem = control.retrieveItem
+		if control.editFunc then 
+			AddCustomMenuItem("-", function() end)
+			AddCustomMenuItem(GS(SI_SAVING_EDIT_BOX_EDIT), function() control.editFunc() end)
+		end
+		if equipItem or retrieveItem then
+			AddCustomMenuItem("-", function() end)
+			if equipItem then
+				AddCustomMenuItem(GS(SI_ITEM_ACTION_EQUIP), function() EquipItem(unpack(equipItem)) end)
+			end
+			if retrieveItem then
+				AddCustomMenuItem(GS(SI_BANK_WITHDRAW), 
+					function() 
+						if GetInteractionType() == INTERACTION_BANK then
+							if IsProtectedFunction("RequestMoveItem") then
+								CallSecureProtected("RequestMoveItem", retrieveItem[1], retrieveItem[2], BAG_BACKPACK, FindFirstEmptySlotInBag(BAG_BACKPACK), 1)
+							else
+								RequestMoveItem(retrieveItem[1], retrieveItem[2], BAG_BACKPACK, FindFirstEmptySlotInBag(BAG_BACKPACK), 1)
+							end
+						end
+					end)
+			end
+		end
+		
+	end
 	
 	ShowMenu()
 			
@@ -595,9 +801,8 @@ local function setSelectorPoison(firstId, secondId)
 	end
 	secondId = secondId or 0
 	gearSelector.firstId = firstId
-	gearSelector.secondId = secondId or 0
-	local itemLink = string.format(poisonItemLink, firstId, secondId)
-	gearSelector.itemLink = itemLink
+	gearSelector.secondId = secondId
+	gearSelector.link = string.format(poisonItemLink, firstId, secondId)
 end
 
 
@@ -636,13 +841,13 @@ function CSPSGearSelectorPoisonList:Setup( )
 end
 
 local poisonSelection = {}
+local usePoisonEffectNames = false
 
 function CSPSGearSelectorPoisonList:BuildMasterList()
 	self.masterList = {}
-	local useEffectNames = not ctrGear.poisonBox2:IsHidden()
 	for i, v in pairs(poisonSelection) do
 		local name = CSPS.getAlternatePoisonName(v[2] or 0)
-		name = useEffectNames and name or string.format(poisonItemLink, v[1] or 0, v[2] or 0)
+		name = usePoisonEffectNames and name or string.format(poisonItemLink, v[1] or 0, v[2] or 0)
 		table.insert(self.masterList, {name = name, firstId = v[1], secondId = v[2] or 0})
 	end
 end
@@ -671,87 +876,111 @@ function CSPS.poisonListMouseUp(control, button, upInside)
 	CSPS.ctrPoisonList:RefreshVisible()
 end
 
-local function fillPoisonList(myList, getFromInventory)
-	
-	poisonSelection = myList or {}
-	if getFromInventory then
-		poisonSelection = {}
-		local poisonsFound = {}
-		local myBags = {BAG_BACKPACK, BAG_BANK, BAG_SUBSCRIBER_BANK}
-		for _, bagId in pairs(myBags) do
-			for slotIndex = 0, GetBagSize(bagId) do
-				if GetItemType(bagId, slotIndex) == ITEMTYPE_POISON then
-					local itemLink = GetItemLink(bagId, slotIndex)
-					local firstId = GetItemLinkItemId(itemLink)
-					local secondId = tonumber(string.match(itemLink, ":(%d+)|")) or 0
-					poisonsFound[firstId] = poisonsFound[firstId] or {}
-					if not poisonsFound[firstId][secondId] then
-						poisonsFound[firstId][secondId] = true
-						table.insert(poisonSelection, {firstId, secondId})
-					end
+local function getPoisonsFromInventory()
+	local poisonsInInventory = {}
+	local poisonsFound = {}
+	local myBags = {BAG_BACKPACK, BAG_BANK, BAG_SUBSCRIBER_BANK}
+	for _, bagId in pairs(myBags) do
+		for slotIndex = 0, GetBagSize(bagId) do
+			if GetItemType(bagId, slotIndex) == ITEMTYPE_POISON then
+				local itemLink = GetItemLink(bagId, slotIndex)
+				local firstId = GetItemLinkItemId(itemLink)
+				local secondId = tonumber(string.match(itemLink, ":(%d+)|")) or 0
+				poisonsFound[firstId] = poisonsFound[firstId] or {}
+				if not poisonsFound[firstId][secondId] then
+					poisonsFound[firstId][secondId] = true
+					table.insert(poisonsInInventory, {firstId = firstId, secondId = secondId, link = itemLink})
 				end
 			end
 		end
 	end
+	return poisonsInInventory
+end
+
+local function fillPoisonList(myList)
+	poisonSelection = myList or getPoisonsFromInventory()
 	CSPS.ctrPoisonList:RefreshData()
 end
 
-local function fillFirstPoisonDropdown()
-	ctrGear.poisonBox2:SetHidden(true)
-	local invBank = string.format("%s/%s ...", GS(SI_MAIN_MENU_INVENTORY), GS(SI_CURRENCYLOCATION1))
-
+local function showPoisonMenu(gearSlot, control)
+	ClearMenu()
+	local function setPoison(poisonTable)
+		theGear[gearSlot or gearSelector.gearSlot] = {firstId = poisonTable.firstId or poisonTable[1], secondId = poisonTable.secondId or poisonTable[2], link=poisonTable.link}
+		CSPS.refreshTree()
+		
+		if not gearSlot then hideGearWindow() return end
+		CSPS.refreshTree()
+	end
+	local function createPoisonSubmenu(poisonIdList, callback)
+		local poisonSubMenu = {}
+		for i, v in pairs(poisonIdList) do
+			if type(v) == "table" then -- if it's not a table it's just the first id and the callback function fills the list!
+				v.link = v.link or string.format(poisonItemLink, v.firstId or v[1] or 0, v.secondId or v[2] or 0) 
+			end
+			table.insert(poisonSubMenu, {label = type(v) == "table" and v.link or string.format(poisonItemLink, v or 0, 0), 	
+			callback = function() (callback or setPoison)(v) end,
+			tooltip = type(v) == "table" and function(menuControl, inside) if inside then CSPS.showPoisonTooltip(menuControl, nil, v.firstId or v[1] or 0, v.secondId or v[2] or 0) else ZO_Tooltips_HideTextTooltip() end end})
+		end
+		return poisonSubMenu
+	end
+	AddCustomSubMenuItem(string.format("%s/%s ...", GS(SI_MAIN_MENU_INVENTORY), GS(SI_CURRENCYLOCATION1)), createPoisonSubmenu(getPoisonsFromInventory()))
+	
+	
 	local typicalPoisons = {
 		{76827, 138240},	-- health poison ix
 		{79690, 0},	-- crown lethal poison
 	}
 	
-	local myChoices = {
-		[invBank] = function() ctrGear.poisonBox2:SetHidden(true) fillPoisonList({}, true) end,
-		[GS(CSPS_Txt_StandardProfile)] = function() ctrGear.poisonBox2:SetHidden(true) fillPoisonList(typicalPoisons, false) end,
-		[GS(SI_ITEMTYPEDISPLAYCATEGORY28)] = function() ctrGear.poisonBox2:SetHidden(true) fillPoisonList(CSPS.getPoisonIds(false, true), false) end, -- crown poisons
-		[GS(SI_ITEM_FORMAT_STR_CRAFTED)] = function() 
-				fillComboBox(ctrGear.poisonBox2.box, 
-				CSPS.getPoisonIds(), false, 
-				function(i,v) return string.format(poisonItemLink, v, 0) end, 
-				function(i,v) fillPoisonList(CSPS.getPoisonIds(v)) end, 
-				"...")
-				ctrGear.poisonBox2:SetHidden(false)
-		end,
-	}
+	AddCustomSubMenuItem(GS(CSPS_Txt_StandardProfile), createPoisonSubmenu(typicalPoisons))
+	AddCustomSubMenuItem(GS(SI_ITEMTYPEDISPLAYCATEGORY28),	createPoisonSubmenu(CSPS.getPoisonIds(false, true))) -- crown poisons
 	
-	fillComboBox(ctrGear.poisonBox1.box, 
-		myChoices, false, 
-		function(i,v) return i end, 
-		function(i,v) v() end, 
-		selectText)
+	AddCustomSubMenuItem(GS(SI_ITEM_FORMAT_STR_CRAFTED), createPoisonSubmenu(CSPS.getPoisonIds(), 
+		function(firstId) 
+			CSPS.showGearWin(control, gearSlot) 
+			fillPoisonList(CSPS.getPoisonIds(firstId))
+			--[[
+			zo_callLater(function()
+				ClearMenu()
+				for i, v in pairs(CSPS.getPoisonIds(firstId)) do
+					local name = CSPS.getAlternatePoisonName(v[2] or 0)
+					name = name or string.format(poisonItemLink, v[1] or 0, v[2] or 0)
+					AddCustomMenuItem(name, function() setPoison(v) end)
+					AddCustomMenuTooltip(function(control, inside) if inside then CSPS.showPoisonTooltip(control, nil, v.firstId or v[1] or 0, v.secondId or v[2] or 0) else ZO_Tooltips_HideTextTooltip() end end)
+					
+				end
+				ShowMenu()
+			end, 42) -- we need a little delay so ESO can close the old menu
+			]]--
+		end))
+	AddCustomMenuItem("-", function() end)
+	AddCustomMenuItem(GS(SI_DIALOG_REMOVE), function() theGear[gearSlot] = false CSPS.refreshTree() end)
+	AddCustomMenuItem(GS(SI_DIALOG_CANCEL), function() end)
 	
+	ShowMenu()	
 end
 
 function CSPS.InitGearWindow(control)
+	ctrGear.title = control:GetNamedChild("Title")
 	local setText = control:GetNamedChild("SetsEdit")
 	ctrGear.sets = {box = setText, label = GetControl(control, "SetsLabel")}
 	ctrGear.type = GetControl(control, "Type")
 	ctrGear.quality = GetControl(control, "Quality")
 	ctrGear.trait = GetControl(control, "Trait")
-	ctrGear.enchantment = GetControl(control, "Enchantment")
+	ctrGear.enchant = GetControl(control, "Enchantment")
 	ctrGear.window = control
 	ctrGear.btnOK = GetControl(control, "Ok")
+	ctrGear.btnRemove = GetControl(control, "Remove")
 	ctrGear.gearStuff = GetControl(control, "SetItemFields")
 	ctrGear.poisonStuff = GetControl(control, "PoisonFields")
-	ctrGear.poisonBox1 = GetControl(control, "GeneralPoisons")
-	ctrGear.poisonBox2 = GetControl(control, "PoisonsSpecific")
 	ctrGear.poisonList = GetControl(control, "PoisonFieldsList")
 	CSPS.ctrPoisonList = CSPSGearSelectorPoisonList:New(ctrGear.poisonStuff)
-	
-	setupBoxLabelPair(ctrGear.type, GS(SI_SMITHING_HEADER_ITEM))
-	setupBoxLabelPair(ctrGear.quality, GS(SI_ITEMLISTSORTTYPE3))
-	setupBoxLabelPair(ctrGear.trait, GS(SI_SMITHING_HEADER_TRAIT))
-	setupBoxLabelPair(ctrGear.enchantment, GS(SI_ITEM_FORMAT_STR_ENCHANT_HEADER))
-	setupBoxLabelPair(ctrGear.poisonBox1, "")
-	setupBoxLabelPair(ctrGear.poisonBox2, "")
-	
-	setupBoxLabelPair(ctrGear.sets, GS(SI_ITEM_SETS_BOOK_TITLE), true) -- true not to try to setup a combobox
-	
+		
+	--setText.data = setText.data or {}
+	--setText.data.tooltipText = GS(SI_ITEM_SETS_BOOK_TITLE)
+	--setText:SetHandler("OnMouseEnter", ZO_Options_OnMouseEnter)
+	--setText:SetHandler("OnMouseExit", ZO_Options_OnMouseExit)
+
+
 	local itemSetNameAutoComplete = ZO_AutoComplete:New(setText, NO_INCLUDE_FLAGS, NO_EXCLUDE_FLAGS, DEFAULT_ONLINE_ONLY, MAX_RESULTS, AUTO_COMPLETION_AUTOMATIC_MODE, AUTO_COMPLETION_USE_ARROWS)
 	
 	local setOptions = {}
@@ -785,28 +1014,36 @@ function CSPS.InitGearWindow(control)
 			end, "getSetNameResult")
 	setText:SetHandler("OnMouseUp",
 		function(_, mouseButton, upInside)
-			if upInside and mouseButton == 2 then showSetContextMenu(gearSelector.gearSlot) end
+			if upInside and mouseButton == 2 then showSetContextMenu() end
 		end)
 		
 	control:GetNamedChild("BtnListSelect"):SetHandler("OnClicked",
 		function()
-			showSetContextMenu(gearSelector.gearSlot)
+			if gearSlotsPoison[gearSelector.gearSlot] then 
+				showPoisonMenu()
+			else
+				showSetContextMenu()
+			end
 		end)
+	for _, v in pairs(vCategories) do
+		ctrGear[v]:SetHandler("OnMouseUp", function(_, mouseButton, upInside) 
+			if upInside then showVCatMenu(v) end
+		end)
+	end
 end
 
-local function hideGearWindow(anchorControl)
+local function clickOutsideGearWindow(anchorControl)
 	local control = WINDOW_MANAGER:GetMouseOverControl()
 	for i = 1, 15 do
 		if control == CSPS.gearWindow or control == ZO_Menu then return end
 		local controlName = control:GetName()
-		if string.sub(controlName, 1, 10) == "ZO_SubMenu" or string.sub(controlName, 1, 16) == "ZO_CustomSubMenu" then return end
+		if string.sub(controlName, 1, 10) == "ZO_SubMenu" or string.sub(controlName, 1, 16) == "ZO_CustomSubMenu" or string.sub(controlName, 1, 11) == "ZO_ComboBox" then return end
 		if anchorControl and control == anchorControl then return end
 		if control == control:GetParent() then break end
 		control = control:GetParent()
 		if control == nil then break end
 	end
-	CSPS.gearWindow:SetHidden(true)
-	EVENT_MANAGER:UnregisterForEvent(CSPS.name.."GearWinHider", EVENT_GLOBAL_MOUSE_DOWN)
+	hideGearWindow()
 end
 
 
@@ -816,34 +1053,36 @@ function CSPS.showGearWin(control, gearSlot)
 	CSPS.gearWindow:ClearAnchors()
 	if control then 
 		CSPS.gearWindow:SetAnchor(RIGHT, control, LEFT, -10, 0)
+		CSPS.gearWindow:SetAnchor(LEFT, CSPSWindow, CENTER, -100, 0, ANCHOR_CONSTRAINS_X)
 	end
 	gearSelector.gearSlot = gearSlot
+	CSPS.refreshTree()
 	local mySetItem = theGear[gearSlot] or {}
 	local _, setOptionsT = getSetAutoCompleteOptions(gearSlot)
 	
 	if gearSlotsPoison[gearSlot] then 
+		ctrGear.title:SetText(GS(SI_ITEMTYPEDISPLAYCATEGORY23))
 		ctrGear.gearStuff:SetHidden(true)
 		ctrGear.poisonStuff:SetHidden(false)
-		local myPoison = theGear[gearSlot] or {}
-		setSelectorPoison(myPoison.firstId, myPoison.secondId or 0, true)
-		fillFirstPoisonDropdown()
-		fillPoisonList({}, false)
-		ctrGear.poisonBox2:SetHidden(true)
+		CSPS.gearWindow:SetHeight(420)
 	else
+		ctrGear.title:SetText(GS(SI_ITEM_SETS_BOOK_TITLE))
 		ctrGear.gearStuff:SetHidden(false)
+		CSPS.gearWindow:SetHeight(139)
 		ctrGear.poisonStuff:SetHidden(true)
-		ctrGear.sets.box:SetText(mySetItem.setId and setOptionsT[mySetItem.setId] or "")	
+		for _, v in pairs(vCategories) do
+			gearSelector[v] = mySetItem[v]
+		end
+		ctrGear.sets.box:SetText(mySetItem.setId and setOptionsT[mySetItem.setId] or "")
 		setSetId(mySetItem.setId)
 	end
 	
 	ctrGear.btnOK:SetHandler("OnClicked", function()
 		if gearSlotsPoison[gearSelector.gearSlot] then
 			if gearSelector.firstId then
-				local myTable = {firstId = gearSelector.firstId, secondId = gearSelector.secondId or 0, link = gearSelector.itemLink}
+				local myTable = {firstId = gearSelector.firstId, secondId = gearSelector.secondId or 0, link = gearSelector.link}
 				theGear[gearSelector.gearSlot] = myTable
-				CSPS.gearWindow:SetHidden(true)
-				EVENT_MANAGER:UnregisterForEvent(CSPS.name.."GearWinHider", EVENT_GLOBAL_MOUSE_DOWN)
-				CSPS.getTreeControl():RefreshVisible()
+				hideGearWindow()
 			end
 		else
 			if gearSelector.setId then
@@ -863,32 +1102,28 @@ function CSPS.showGearWin(control, gearSlot)
 					myTable.link = buildItemLink(itemId, myTable.quality, myTable.enchant and enchantGlyphs[myTable.enchant], crafted, myTable.trait)
 				end
 				theGear[gearSelector.gearSlot] = myTable
-				CSPS.gearWindow:SetHidden(true)
-				EVENT_MANAGER:UnregisterForEvent(CSPS.name.."GearWinHider", EVENT_GLOBAL_MOUSE_DOWN)
-				CSPS.refreshSetCount()
-				CSPS.getTreeControl():RefreshVisible()
+				hideGearWindow()
 			end
 		end
 	end)
-	EVENT_MANAGER:RegisterForEvent(CSPS.name.."GearWinHider", EVENT_GLOBAL_MOUSE_DOWN, function() hideGearWindow(control) end)
+	
+	ctrGear.btnRemove:SetHandler("OnClicked", function()
+		theGear[gearSelector.gearSlot] = false
+		hideGearWindow()
+	end)
+	
+	EVENT_MANAGER:RegisterForEvent(CSPS.name.."GearWinHider", EVENT_GLOBAL_MOUSE_DOWN, function() clickOutsideGearWindow(control) end)
 	CSPS.gearWindow:SetHidden(false)
 end
-
-
-function CSPS.testGearWin()
-	if not CSPS.gearWindow then CSPS.gearWindow = WINDOW_MANAGER:CreateControlFromVirtual("CSPSWindowGearWindow", CSPSWindow, "CSPSGearWindow") end
-	CSPS.showGearWin()
-	CSPS.gearWindow:SetAnchor(TOP, CSPSWindow, BOTTOM)
-end
-
-
 
 
 function CSPS.buildGearString()
 	local myGearString = {}
 	local myGearStringUnique = {}
+	local numberOfItems = 0
 	for _, gearSlot in pairs(gearSlots) do
 		local slotTable = theGear[gearSlot]
+		if slotTable then numberOfItems = numberOfItems + 1 end
 		if gearSlotsPoison[gearSlot] then
 			table.insert(myGearString, slotTable and 
 				string.format("%s:%s",
@@ -914,7 +1149,7 @@ function CSPS.buildGearString()
 	myGearStringUnique = table.concat(myGearStringUnique, ";") or nil
 	myGearString = table.concat(myGearString, ";")
 	
-	return myGearString, myGearStringUnique
+	return myGearString, myGearStringUnique, numberOfItems
 end
 
 local function checkPoisonForTable(itemLink, myTable)
@@ -1053,7 +1288,7 @@ CSPS.findSetItem = findSetItem
 local function showPoisonTooltip(control, gearSlot, firstId, secondId)
 	if not firstId then return end
 	local itemLink = string.format(poisonItemLink, firstId, secondId or 0)
-	InitializeTooltip(InformationTooltip, control, LEFT)
+	InitializeTooltip(InformationTooltip, control, gearSlot and LEFT or RIGHT)
 	local icon = GetItemLinkIcon(itemLink)
 	local r,g,b = GetItemQualityColor(GetItemLinkDisplayQuality(itemLink)):UnpackRGB()
 	
@@ -1115,71 +1350,24 @@ local function showSetItemTooltip(control, setId, gearSlot, itemType,  traitType
 	
 	local crafted = GetItemSetType(setId) == ITEM_SET_TYPE_CRAFTED
 	itemLink = buildItemLink(itemId, itemQuality, enchantId and enchantGlyphs[enchantId], crafted, traitType)
-	if setId == 0 then icon = GetItemLinkIcon(itemLink) end
-	
-	local qualityColor = itemQuality and GetItemQualityColor(itemQuality) or ZO_NORMAL_TEXT
-	local r,g,b = qualityColor:UnpackRGB()
-	
+			
 	local wornItem = GetItemLink(BAG_WORN, gearSlot)
 	local setIdFits, enchantFits, qualityFits, typeFits, traitFits = checkItemForSlot(wornItem, gearSlot)
 	local warnLevel, levelText = checkItemLevel(wornItem)
 	
-	local trueFalseColors = {[true] = ZO_SUCCEEDED_TEXT, [false] = ZO_ERROR_COLOR}
-	if not setIdFits then r,g,b = ZO_ERROR_COLOR:UnpackRGB() end
-	
-	InformationTooltip:AddLine(zo_strformat("|t28:28:<<1>>|t <<C:2>>", icon ,  GetItemLinkName(itemLink)), "ZoFontWinH2", r, g, b, CENTER, MODIFY_TEXT_TYPE_NONE, TEXT_ALIGN_CENTER, true)
-	
-	local qualityText = GS("SI_ITEMDISPLAYQUALITY", itemQuality or 1)
-	qualityText = trueFalseColors[qualityFits]:Colorize(qualityText)
-	if warnLevel then
-		qualityText = string.format("%s, %s", qualityText, trueFalseColors[false]:Colorize(levelText))
-	end
-	if gearSlotsBody[gearSlot] then 
-		qualityText = string.format("%s, %s", trueFalseColors[typeFits]:Colorize(GS("SI_ARMORTYPE", itemType)), qualityText)
-	end
-	r,g,b = ZO_NORMAL_TEXT:UnpackRGB()
-	InformationTooltip:AddLine(qualityText, "ZoFontGame", r, g, b, CENTER, MODIFY_TEXT_TYPE_NONE, TEXT_ALIGN_CENTER, true)
-	
+	addTooltipItemInfo(itemLink, itemQuality, icon, gearSlotsBody[gearSlot] and itemType or false, not setIdFits, typeFits, qualityFits, warnLevel, levelText)
+		
 	ZO_Tooltip_AddDivider(InformationTooltip)
 		
 	if traitType then
-		local _, traitDescription = GetItemLinkTraitInfo(itemLink) 
 		r,g,b =  trueFalseColors[traitFits]:UnpackRGB()
-		local traitName = zo_strformat("<<Z:1>>", GS("SI_ITEMTRAITTYPE", traitType))
-		if traitType > 0 then traitName = string.format("%s\n%s", traitName, traitDescription) end
-		InformationTooltip:AddLine(traitName, "ZoFontGame", r, g, b, CENTER, MODIFY_TEXT_TYPE_NONE, TEXT_ALIGN_CENTER, true)
+		addTooltipTraitInfoFromItemLink(itemLink, traitType, r,g,b)
 	end
 	
 	r,g,b =  trueFalseColors[enchantFits]:UnpackRGB()
-	local _, enchantHeader, enchantDescription = GetItemLinkEnchantInfo(itemLink)
-	local enchantText = string.format("%s\n%s", string.upper(enchantHeader), enchantDescription)
-	if enchantHeader == "" then	enchantText = string.upper(GS(SI_ENCHANTMENTSEARCHCATEGORYTYPE0)) end
-	InformationTooltip:AddLine(enchantText, "ZoFontGame", r, g, b, CENTER, MODIFY_TEXT_TYPE_NONE, TEXT_ALIGN_CENTER, true) 
+	addTooltipEnchantFromItemLink(itemLink, r,g,b)
 
-	local hasSet, _, numBonuses, _, _, linkSetId = GetItemLinkSetInfo(itemLink)
-	
-	if hasSet then
-		local setCount = theGear[gearSlot].setCount
-		local numActive = setCount and math.max(setCount[1] + setCount[2], setCount[1] + setCount[3]) or 42
-		
-		local activeBoni, inactiveBoni = {}, {}
-		for i=1, numBonuses do
-			local numRequired, bonusDescription = GetItemLinkSetBonusInfo(itemLink, false, i)
-			if numActive >= numRequired then 
-				table.insert(activeBoni, (string.gsub(bonusDescription, "\n\r\n", " ")))
-			else
-				table.insert(inactiveBoni, (string.gsub(bonusDescription, "\n\r\n", " ")))
-			end
-		end
-		if #activeBoni > 0 then
-			r, g, b = ZO_SELECTED_TEXT:UnpackRGB()
-			InformationTooltip:AddLine(table.concat(activeBoni, "\n"), "ZoFontGame", r, g, b, CENTER, MODIFY_TEXT_TYPE_NONE, TEXT_ALIGN_CENTER, true)
-		end
-		if #inactiveBoni > 0 then
-			r, g, b = ZO_DISABLED_TEXT:UnpackRGB()
-			InformationTooltip:AddLine(table.concat(inactiveBoni, "\n"), "ZoFontGame", r, g, b, CENTER, MODIFY_TEXT_TYPE_NONE, TEXT_ALIGN_CENTER, true)
-		end
-	end
+	addTooltipSetInfo(itemLink, gearSlot)
 	
 	if not (setIdFits and enchantFits and qualityFits and typeFits and traitFits) then 
 		local fitsExactly, couldFit, foundUnique = findSetItem(gearSlot)
@@ -1229,13 +1417,13 @@ local function showSetItemTooltip(control, setId, gearSlot, itemType,  traitType
 			local myItemText = false
 			if GetItemSetType(setId) == ITEM_SET_TYPE_CRAFTED then
 				myItemText = GS(SI_ITEM_FORMAT_STR_CRAFTED)
-				local traitsNeeded = LibSets.GetTraitsNeeded(setId)
+				local traitsNeeded = LibSets and LibSets.GetTraitsNeeded(setId)
 				if traitsNeeded then 
 					local canCraft = CSPS.canCraftSetItem(setId, gearSlot, gearSlotsBody[gearSlot] and itemType, gearSlotsHands[gearSlot] and itemType)
 					if canCraft ~= nil then traitsNeeded = trueFalseColors[canCraft]:Colorize(traitsNeeded) end
 					myItemText = string.format("%s (%s)", myItemText, traitsNeeded) 
 				end
-				local mySetZoneIds = LibSets.GetZoneIds(setId)
+				local mySetZoneIds = LibSets and LibSets.GetZoneIds(setId)
 				if mySetZoneIds then
 					local zoneIdsChecked = {}
 					local setZoneNames = {}
@@ -1293,13 +1481,13 @@ end
 
 function CSPS.extractGearString(myGearString, myGearStringUnique)
 	local myGear = {}
-	if not myGearString or myGearString == "" then
+	if not myGearString or myGearString == "" or myGearString == "-" then
 		for i, gearSlot in pairs(gearSlots) do
 			myGear[gearSlot] = false	
 		end
 		return myGear
 	end
-	local singleUniqueStrings = myGearStringUnique and {SplitString(";", myGearStringUnique)} or {}
+	local singleUniqueStrings = myGearStringUnique and myGearStringUnique ~= "-" and {SplitString(";", myGearStringUnique)} or {}
 	local singleGearStrings = {SplitString(";", myGearString)}
 	for i, gearSlot in pairs(gearSlots) do
 		if singleGearStrings[i] == "0" then
@@ -1356,7 +1544,7 @@ local function setArmorOrWeaponFromLink(gearSlot, itemLink, itemUniqueID)
 	local hasSetInfo, _, _, _, neededNumber, itemSetId = GetItemLinkSetInfo(itemLink, false)
 	slotTable.setId = hasSetInfo and itemSetId or 0
 	slotTable.quality = GetItemLinkDisplayQuality(itemLink)
-	if slotTable.quality == ITEM_DISPLAY_QUALITY_MYTHIC_OVERRIDE then slotTable.mystic = true end
+	if slotTable.quality == ITEM_DISPLAY_QUALITY_MYTHIC_OVERRIDE then slotTable.mythic = true end
 	local enchantId = GetItemLinkFinalEnchantId(itemLink)
 	slotTable.enchant = enchantId
 	slotTable.trait = GetItemLinkTraitInfo(itemLink)
@@ -1376,14 +1564,7 @@ local function removeDuplicateUniqueId(itemUniqueID)
 	end
 end
 
-local function receiveDrag(gearSlot)
-	local acceptedCursorContentTypes = {[MOUSE_CONTENT_INVENTORY_ITEM] = true, [MOUSE_CONTENT_EQUIPPED_ITEM] = true}
-	if not acceptedCursorContentTypes[GetCursorContentType()] then return false end
-
-	local bagId = GetCursorBagId()
-	local slotIndex = GetCursorSlotIndex()
-	ClearCursor()
-		
+local function setFromBagAndSlot(gearSlot, bagId, slotIndex)
 	local itemLink = GetItemLink(bagId, slotIndex)
 	local itemType = GetItemType(bagId, slotIndex)
 	local itemUniqueID = Id64ToString(GetItemUniqueId(bagId, slotIndex))
@@ -1393,7 +1574,7 @@ local function receiveDrag(gearSlot)
 	if gearSlotsPoison[gearSlot] then
 		if itemType ~= ITEMTYPE_POISON then return false end
 		setPoisonFromIdAndLink(gearSlot, itemLink, itemId)
-		CSPS:getTreeControl():RefreshVisible()
+		CSPS.refreshTree()
 		
 		return true
 	end
@@ -1423,7 +1604,7 @@ local function receiveDrag(gearSlot)
 		if itemUniqueID then removeDuplicateUniqueId(itemUniqueID) end
 		setArmorOrWeaponFromLink(gearSlot, itemLink, itemUniqueID)
 		CSPS.refreshSetCount()
-		CSPS:getTreeControl():RefreshVisible()
+		CSPS.refreshTree()
 		return true
 	end
 	
@@ -1438,14 +1619,29 @@ local function receiveDrag(gearSlot)
 		setArmorOrWeaponFromLink(gearSlot, itemLink, itemUniqueID)
 	end
 	CSPS.refreshSetCount()
-	CSPS:getTreeControl():RefreshVisible()
+	CSPS.refreshTree()
 	return true
+end
+
+CSPS.setFromBagAndSlot = setFromBagAndSlot
+
+local function receiveDrag(gearSlot)
+	local acceptedCursorContentTypes = {[MOUSE_CONTENT_INVENTORY_ITEM] = true, [MOUSE_CONTENT_EQUIPPED_ITEM] = true}
+	if not acceptedCursorContentTypes[GetCursorContentType()] then return false end
+
+	local bagId = GetCursorBagId()
+	local slotIndex = GetCursorSlotIndex()
+	ClearCursor()
+		
+	setFromBagAndSlot(gearSlot, bagId, slotIndex)
 		
 end
 
 local function NodeSetupGear(node, control, data, open, userRequested, enabled)
 	--Entries in data: Text, Value, entrColor
 	local mySlot = data.gearSlot
+	control.ctrSelected:SetHidden(gearSelector.gearSlot ~= mySlot)
+	control.ctrSelected:SetColor(CSPS.cpColors[6]:UnpackRGB())
 	local myTable = theGear[mySlot]
 	local itemFitIndicators = {
 			{texture = "esoui/art/inventory/inventory_icon_equipped.dds", color = ZO_SUCCEEDED_TEXT}, -- result = 1, item is equipped
@@ -1566,10 +1762,23 @@ local function NodeSetupGear(node, control, data, open, userRequested, enabled)
 						zo_callLater(function() showSetItemTooltip(control.ctrEnchantment, myTable.setId, mySlot, myTable.type, myTable.trait, myTable.quality, myTable.enchant) end, 420)
 					end
 				elseif mouseButton == 2 and control.editFunc then
-					control.editFunc()	
+					showSetContextMenu(mySlot, control)
 				end
 			end)
 			
+			control.ctrEnchantment:SetHandler("OnMouseUp", function(_, mouseButton, upInside)
+				if not upInside then return end
+				showVCatMenu("enchant", mySlot, control)
+				end)
+			control.ctrTrait:SetHandler("OnMouseUp", function(_, mouseButton, upInside)
+				if not upInside then return end
+				showVCatMenu("trait", mySlot, control)
+				end)
+			control.ctrIcon:SetHandler("OnMouseUp", function(_, mouseButton, upInside)
+				if not upInside then return end
+				showVCatMenu("type", mySlot, control)
+				end)
+				
 			local setIdFits, enchantFits, qualityFits, typeFits, traitFits = checkItemForSlot(GetItemLink(BAG_WORN, mySlot), mySlot)
 	 		
 
@@ -1628,11 +1837,14 @@ local function NodeSetupGear(node, control, data, open, userRequested, enabled)
 		control.editFunc = 
 			function()
 				if CSPS.gearWindow and not CSPS.gearWindow:IsHidden() and gearSelector.gearSlot == mySlot then 
-					EVENT_MANAGER:UnregisterForEvent(CSPS.name.."GearWinHider", EVENT_GLOBAL_MOUSE_DOWN)
-					CSPS.gearWindow:SetHidden(true)
+					hideGearWindow()
 					return
 				end
-				CSPS.showGearWin(control.ctrBtnEdit, mySlot)
+				if gearSlotsPoison[mySlot] then 
+					showPoisonMenu(mySlot, control.ctrBtnEdit)
+				else
+					CSPS.showGearWin(control.ctrBtnEdit, mySlot)
+				end
 			end
 		control.ctrBtnEdit:SetHandler("OnClicked", control.editFunc)
 		control.ctrBtnEdit:SetHidden(false)
@@ -1807,22 +2019,28 @@ function CSPS.setupGearTree()
 	
 end
 
+local function setGearSlotFromBagWorn(gearSlot)
+	local itemLink = GetItemLink(BAG_WORN, gearSlot, LINK_STYLE_DEFAULT)
+	local itemUniqueID = Id64ToString(GetItemUniqueId(BAG_WORN, gearSlot))
+	itemUniqueID = itemUniqueID ~= "0" and itemUniqueID or false
+	local itemId = GetItemLinkItemId(itemLink)
+	
+	if itemId == 44904 then -- the actual functions are way up above because of the receive-drag-function that uses them too
+		setMara(gearSlot, itemLink, itemUniqueID)
+	elseif not gearSlotsPoison[gearSlot] and itemLink ~= "" then
+		setArmorOrWeaponFromLink(gearSlot, itemLink, itemUniqueID)
+	elseif itemLink ~= "" then
+		setPoisonFromIdAndLink(gearSlot, itemLink, itemId)
+	end
+end
+
+CSPS.setGearSlotFromBagWorn = setGearSlotFromBagWorn
+
 function CSPS.getCurrentGear()	
 	--local ringOfMara = false
 	for _, gearSlot in ipairs(gearSlots) do
 		theGear[gearSlot] = false
-		local itemLink = GetItemLink(BAG_WORN, gearSlot, LINK_STYLE_DEFAULT)
-		local itemUniqueID = Id64ToString(GetItemUniqueId(BAG_WORN, gearSlot))
-		itemUniqueID = itemUniqueID ~= "0" and itemUniqueID or false
-		local itemId = GetItemLinkItemId(itemLink)
-		
-		if itemId == 44904 then -- the actual functions are way up above because of the receive-drag-function that uses them too
-			setMara(gearSlot, itemLink, itemUniqueID)
-		elseif not gearSlotsPoison[gearSlot] and itemLink ~= "" then
-			setArmorOrWeaponFromLink(gearSlot, itemLink, itemUniqueID)
-		elseif itemLink ~= "" then
-			setPoisonFromIdAndLink(gearSlot, itemLink, itemId)
-		end
+		setGearSlotFromBagWorn(gearSlot)
 	end
 
 		--[[
@@ -1883,5 +2101,82 @@ function CSPS.setTheGear(newGear)
 		end
 	end
 	CSPS.refreshSetCount()
-	CSPS.getTreeControl():RefreshVisible()
+	CSPS.refreshTree()
 end
+
+function CSPS.importGearFromHub(gearString)
+	local gearList = {SplitString(",", gearString)}
+		
+	if not enchantIds then buildGlyphTables() end -- need enchantNames for varification
+	
+	local myGear = {}
+	
+	for _, gearStr in pairs(gearList) do
+		for i=1,3 do
+			gearStr = string.gsub(gearStr, "::", ":0:")
+		end
+		
+		local gearData = {SplitString(":", gearStr)}
+		--equip-slot:gear-weight/weapon-type/jewelry-type:set-id:trait-id:enchant-id or glyph-id (or just equip-slot:itemId for poison)
+		local equipSlot = tonumber(gearData[1])
+		if equipSlot and gearSlotIcons[equipSlot] then -- check if equipSlot is supported by the addon
+			myGear[equipSlot] = {}
+			local myTable = myGear[equipSlot]
+			if gearSlotsPoison[equipSlot] then
+				local firstId = tonumber(gearData[2])
+				local secondIdArray = CSPS.getPoisonIds(firstId)
+				local secondId = gearData[3] and tonumber(gearData[3]) or secondIdArray and secondIdArray[1] or 0
+				myTable.firstId = firstId
+				myTable.secondId = secondId
+				myTable.link = string.format(poisonItemLink, firstId, secondId)
+			else
+				myTable.setId = tonumber(gearData[3]) or 0
+				local setType = GetItemSetType(myTable.setId)
+				myTable.setId = setType ~= 0 and myTable.setId or 0
+				myTable.mythic = GetNumItemSetCollectionPieces(myTable.setId) == 1  and setType ~= ITEM_SET_TYPE_WEAPON
+				myTable.quality = myTable.mythic and ITEM_DISPLAY_QUALITY_MYTHIC_OVERRIDE or ITEM_QUALITY_LEGENDARY -- not saved
+				
+				myTable.trait = tonumber(gearData[4]) or 0
+				
+				myTable.enchant = tonumber(gearData[5]) or 0 --saved by glyphId
+				myTable.enchant = enchantIds[myTable.enchant] or 0
+				
+				if gearSlotsJewelry[equipSlot] then
+					-- nothing
+				elseif gearSlotsBody[equipSlot] then
+					myTable.type = tonumber(gearData[2]) or 0
+				
+				elseif gearSlotsHands[equipSlot] then
+					myTable.type = tonumber(gearData[2]) or 0
+				
+				end
+			end
+		end
+	end
+	CSPS.setTheGear(myGear)
+	
+end
+
+function CSPS.exportGearToESOHUB()
+	local gearStr = {}
+	local glyphByEnchant = {}
+	if not enchantGlyphs then buildGlyphTables() end -- need enchantNames for varification
+	
+	for equipSlot, gearData in pairs(theGear) do
+		if gearData then
+			local slotTable = {equipSlot}
+			if gearSlotsPoison[equipSlot] then
+				table.insert(slotTable, gearData.firstId or 0)
+				table.insert(slotTable, gearData.secondId or 0)
+			elseif gearSlotsHands[equipSlot] or gearSlotsBody[equipSlot] or gearSlotsJewelry[equipSlot] then
+				table.insert(slotTable, gearData.type or 0) --2
+				table.insert(slotTable, gearData.setId or 0) --3
+				table.insert(slotTable, gearData.trait or 0) --4
+				table.insert(slotTable, gearData.enchant and enchantGlyphs[gearData.enchant] or 0) --5
+			end
+			table.insert(gearStr, table.concat(slotTable, ":"))
+		end
+	end
+	return table.concat(gearStr, ",")
+end
+

@@ -16,6 +16,7 @@ local cp = CSPS.cp
 local accountWideMode = true -- will be set to false on initConnect
 local modeIcons = {[true] = "esoui/art/inventory/inventory_currencytab_accountwide_up.dds", [false] = "esoui/art/inventory/inventory_currencytab_oncharacter_up.dds"}
 
+local triggerAddingFunctions = {}
 
 
 local triggers = {
@@ -467,9 +468,11 @@ function CSPS.groupApply(myGroupId, accountWide)
 	end
 	
 	if buildProfile then	
-		for i=1, 8 do
+		for i=1, 10 do
 			excludeFromApplyAll[i] = buildProfile[i] or false
 		end
+		excludeFromApplyAll[11] = excludeFromApplyAll[10] -- remap role
+		excludeFromApplyAll[10] = excludeFromApplyAll[1] -- do skillStyles when skills are active
 		CSPS.selectProfile(buildProfile.profileIndex)
 		CSPS.loadBuild()
 	end
@@ -502,7 +505,6 @@ function CSPS.groupApply(myGroupId, accountWide)
 	if buildProfile then CSPS.applyAll(unpack(excludeFromApplyAll)) end
 	
 	CSPS.unsavedChanges = true
-	CSPS.showElement("apply", true)
 	CSPS.showElement("save", true)
 	CSPS.refreshTree()
 
@@ -512,7 +514,6 @@ function CSPS.applyCurrentGroup()
 	CSPS.groupApply(currentGroup, accountWideMode)
 end
 
-local triggerAddingFunctions = {}
 
 local function compareOldTrigger(oldEntry)
 	local oldEntry, accountWide = CSPS.getCpHbId(oldEntry)
@@ -921,13 +922,14 @@ function CSPS.initConnect()
 		
 	
 	local disciplineNames = {GS(SI_CHARACTER_MENU_SKILLS), GS(SI_CHARACTER_MENU_STATS), false, false, false, -- don't apply the loop to the cp checkboxes
-		GS(SI_INTERFACE_OPTIONS_ACTION_BAR), GS(SI_GAMEPAD_DYEING_EQUIPMENT_HEADER), GS(SI_HOTBARCATEGORY10), GetCollectibleCategoryNameByCategoryId(13)}
+		GS(SI_INTERFACE_OPTIONS_ACTION_BAR), GS(SI_GAMEPAD_DYEING_EQUIPMENT_HEADER), GS(SI_HOTBARCATEGORY10), GetCollectibleCategoryNameByCategoryId(13), GS(SI_GROUP_LIST_PANEL_PREFERRED_ROLES_LABEL)}
 	
 	local cpDiscReroute = {[3] = 2, [4] = 3, [5] = 1}
 	
 	local allButtons = {}
-		
-	for i=1, 9 do
+
+	
+	for i=1, 10 do
 		local chkButton = CSPSWindowManageBarsDiscsSpecial:GetNamedChild("Include"..i)
 		allButtons[i] = chkButton
 		if disciplineNames[i] then -- = if not CP
@@ -943,13 +945,15 @@ function CSPS.initConnect()
 			chkButton.setStateFunc = function(value) CSPS.barManagerSetCP(chkButton, i, true) end
 		end
 	end	
-	-- top row: Include1, 6, 2, 9
+	-- top row: Include1, 6, 2, 9; downrow: (cp), 7,8,10
+	
 	allButtons[1].label:SetAnchor(RIGHT, allButtons[6], LEFT, -3, 0, ANCHOR_CONSTRAINS_X )
 	allButtons[6].label:SetAnchor(RIGHT, allButtons[2], LEFT, -3, 0, ANCHOR_CONSTRAINS_X )
 	allButtons[2].label:SetAnchor(RIGHT, allButtons[9], LEFT, -3, 0, ANCHOR_CONSTRAINS_X )
 	allButtons[9].label:SetAnchor(RIGHT, CSPSWindowManageBarsDiscsSpecial, RIGHT, -3, 0, ANCHOR_CONSTRAINS_X )
 	allButtons[7].label:SetAnchor(RIGHT, allButtons[8], LEFT, -3, 0, ANCHOR_CONSTRAINS_X )
-	allButtons[8].label:SetAnchor(RIGHT, CSPSWindowManageBarsDiscsSpecial, RIGHT, -3, 0, ANCHOR_CONSTRAINS_X )
+	allButtons[8].label:SetAnchor(RIGHT, allButtons[10], LEFT, -3, 0, ANCHOR_CONSTRAINS_X )
+	allButtons[10].label:SetAnchor(RIGHT, CSPSWindowManageBarsDiscsSpecial, RIGHT, -3, 0, ANCHOR_CONSTRAINS_X )
 	
 	if not CSPS.doGear then CSPSWindowManageBarsDiscsSpecialInclude7:SetHidden(true) end
 		
@@ -1014,7 +1018,7 @@ function CSPS.barManagerShowSpecialDisc(show)
 	
 	if profileIndex then
 		comboBox:SetSelectedItem(profileIndex > 0 and CSPS.profiles[profileIndex].name or GS(CSPS_Txt_StandardProfile))
-		for i=1, 9 do
+		for i=1, 10 do
 			local chkButton = CSPSWindowManageBarsDiscsSpecial:GetNamedChild("Include"..i)
 			chkButton:SetHidden(false)
 			chkButton.setStateFunc(not CSPS.spHotkeysC[currentGroup] or not CSPS.spHotkeysC[currentGroup][5] or not CSPS.spHotkeysC[currentGroup][5][i])
@@ -1022,7 +1026,7 @@ function CSPS.barManagerShowSpecialDisc(show)
 		CSPSWindowManageBarsDiscsSpecialIncludeCPLabel:SetHidden(false)
 	else
 		comboBox:SetSelectedItem("-")
-		for i=1, 9 do
+		for i=1, 10 do
 			CSPSWindowManageBarsDiscsSpecial:GetNamedChild("Include"..i):SetHidden(true)
 		end
 		CSPSWindowManageBarsDiscsSpecialIncludeCPLabel:SetHidden(true)

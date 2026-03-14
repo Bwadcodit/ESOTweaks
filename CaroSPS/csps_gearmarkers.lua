@@ -37,7 +37,14 @@ function CSPS.buildGearMarkerTable()
 	gearMarkersPoison = {}
 	
 	local function addProfileMarkers(myProfile)
-		if not myProfile.gearComp and not myProfile.gearCompUnique then return end
+		local gearComp = myProfile.gearComp
+		local gearCompUnique = myProfile.gearCompUnique
+		if myProfile.comp2 then
+			gearComp, gearCompUnique = SplitString("#", myProfile.comp2)
+			gearComp = gearComp ~= "-" and gearComp
+			gearCompUnique = gearCompUnique ~= "-" and gearCompUnique
+		end
+		if not gearComp and not gearCompUnique then return end
 		local profileName = myProfile.name or GS(CSPS_Txt_StandardProfile)
 		local myGear = CSPS.extractGearString(myProfile.gearComp, myProfile.gearCompUnique)
 		if myGear then 
@@ -68,8 +75,11 @@ function CSPS.buildGearMarkerTable()
 							gearMarkersData[equipSlotDirectlyToEquipType[gearSlot]][myType] = gearSlotData
 						end
 						gearSlotData[gearData.setId] = gearSlotData[gearData.setId] or {}
+						gearData.quality = gearData.quality or 1
 						gearSlotData[gearData.setId][gearData.quality] = gearSlotData[gearData.setId][gearData.quality] or {}
+						gearData.enchant = gearData.enchant or 1
 						gearSlotData[gearData.setId][gearData.quality][gearData.enchant] = gearSlotData[gearData.setId][gearData.quality][gearData.enchant] or {}
+						gearData.trait = gearData.trait or 1
 						gearSlotData[gearData.setId][gearData.quality][gearData.enchant][gearData.trait] = gearSlotData[gearData.setId][gearData.quality][gearData.enchant][gearData.trait] or {}
 						table.insert(gearSlotData[gearData.setId][gearData.quality][gearData.enchant][gearData.trait], profileName)
 					end

@@ -28,6 +28,7 @@ CSPS.cpNameKeys = {
 		["steedsblessing"] = 66,
 		["sustainingshadows"] = 65,
 		["professionalupkeep"] = 1,
+		["disciplineartisan"] = 279,
 	},
 	[2] = {
 		["precision"] = 11,

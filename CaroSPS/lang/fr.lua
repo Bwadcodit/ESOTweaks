@@ -213,7 +213,7 @@ local L = {}
 	L.CSPS_MSG_Unslotted = "Les compétences suivantes ne peuvent pas être attribuées :"
 	L.CSPS_MSG_NoCPProfiles = "\n\n|cff7723WARNING!|r\nCe n'est pas la meilleure façon de sauvegarder les profils des champions! Si vous souhaitez enregistrer un profil pour les points de champion uniquement, utilisez les trois boutons dans le coin supérieur droit pour ouvrir la section de profil de champion. Vous y trouverez des boutons séparés pour créer et enregistrer des profils . (|t28:28:esoui/art/champion/champion_points_magicka_icon-hud-32.dds|t, |t28:28:esoui/art/champion/champion_points_health_icon-hud-32.dds|t, |t28:28:esoui/art/champion/champion_points_stamina_icon-hud-32.dds|t)"
 	L.CSPS_MSG_CPPaths = "Les chemin les moins chers à débloquer '<<C:1>>':\n\n<<2>>"
-	L.CSPS_MSG_CPPathOpt = "|c<<1>>Option <<2>> (<<3>>)|r:" -- 1 Couleur 2 numéro 3 points
+	L.CSPS_MSG_CPPathOpt = "|c<<1>>Option <<2>> (<<3>>)|r" -- 1 Couleur 2 numéro 3 points
 	
 	--	Errorcodes
 	L.CSPS_ErrorNumber1 = "La compétence a déjà été apprise."

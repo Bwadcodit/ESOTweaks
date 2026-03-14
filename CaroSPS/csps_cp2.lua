@@ -216,6 +216,7 @@ function cp.createList()
 					end
 					if IsChampionSkillClusterRoot(skillId) then
 						skData = {cluster = {skData}, id = skillId, discipline = discipline, sum = 0, name = zo_strformat("<<C:1>>", GetChampionClusterName(skillId))}
+						cp.clusterParents[skillId] = skData
 						for _, clusterCpId in pairs({GetChampionClusterSkillIds(skillId)}) do
 							table.insert(skData.cluster, cpTable[clusterCpId])
 							cpsDone[clusterCpId] = true
@@ -266,22 +267,27 @@ function cp.CreateTable()
 end
 
 
-local function updateUnlock(discipline)
-	if not discipline then for i=1, 3 do updateUnlock(i) end return end
-	local oldPoints = {}
+local function updateUnlock(discipline, oldPoints, ignoreBar)
+	oldPoints = oldPoints or {}
+	if not discipline then 
+		for i=1, 3 do 
+			updateUnlock(i, oldPoints) 
+		end 
+		return oldPoints 
+	end
 	for skillId, skillData in pairs(cpTable) do
 		if skillData.discipline == discipline then
 			skillData.active = false
 			if not IsChampionSkillRootNode(skillId) then
 				skillData.unlocked = false
-				oldPoints[skillId] = skillData.value
+				oldPoints[skillId] = oldPoints[skillId] or (skillData.value > 0 and skillData.value) or nil
 				skillData.value = 0
 			end
 		end
 	end
 	for _, clusterData in pairs(cp.clusterParents) do
 		if clusterData.discipline == discipline then
-			clusterData.active = false
+			clusterData.unlocked = false
 		end
 	end
 	
@@ -291,10 +297,11 @@ local function updateUnlock(discipline)
 			local skillData = cpTable[skillId]
 			if not skillData.unlocked then
 				skillData.unlocked = true
-				skillData.value = oldPoints[skillId]
+				skillData.value = oldPoints[skillId] or 0
+				oldPoints[skillId] = nil
 				skillData.active = WouldChampionSkillNodeBeUnlocked(skillId, skillData.value)
+				if cp.clusterParents[skillId] then cp.clusterParents[skillId].unlocked = true end
 				if skillData.active then
-					if cp.clusterParents[skillId] then cp.clusterParents[skillId].active = true end
 					unlockLinked(skillData.linked)
 				end
 			end
@@ -310,6 +317,7 @@ local function updateUnlock(discipline)
 			unlockLinked(skillData.linked)
 		end
 	end
+	return oldPoints
 end
 
 cp.updateUnlock = updateUnlock
@@ -361,11 +369,10 @@ local function applyChampionSkillToHotbarProfile(discipline, hbIndex, skillData,
 	if iconCtr and WINDOW_MANAGER:GetMouseOverControl() == iconCtr.circle then
 		CSPS.showCpTT(iconCtr.circle,  skillData, nil, true, true)
 	end
-	CSPS.showElement("apply", true)
 	CSPS.showElement("save", true)
 end
 
-local function showHotbarSkillMenu(discipline, hbIndex, currentSkillId, showInactive, funcIsSlotted, funcIsActive, funcValue, funcApply)
+local function showHotbarSkillMenu(discipline, hbIndex, currentSkillId, showInactive, funcIsSlotted, funcIsActive, funcValue, funcApply, funcRemove)
 	
 	local skillsInProfile, skillsNotInProfile, skillsAlreadyInHb = {}, {}, {}
 	local skillByName = {}
@@ -422,6 +429,12 @@ local function showHotbarSkillMenu(discipline, hbIndex, currentSkillId, showInac
 		end
 	end
 	
+	if currentSkillId and currentSkillId ~= 0 then
+		if not menuIsEmpty then AddCustomMenuItem("-", function() end) end
+		AddCustomMenuItem(GS(SI_ABILITY_ACTION_CLEAR_SLOT), function() funcRemove(discipline, hbIndex) end)
+		menuIsEmpty = false
+	end
+	
 	if not menuIsEmpty then ShowMenu() end
 end
 
@@ -438,8 +451,6 @@ function CSPS.CpHbSkillRemove(discipline, hbIndex)
 		cp.updateSidebarIcons(discipline)		
 		cp.updateSlottedMarks()
 		CSPS.unsavedChanges = true
-		CSPS.showElement("apply", true)
-		CSPS.showElement("save", true)
 		ZO_Tooltips_HideTextTooltip()
 		changedCP = true
 		CSPS.refreshTree()
@@ -588,6 +599,9 @@ function cp.setupZoHooks()
 				end,
 				function(discipline, hbIndex, theSkillData) --apply
 					control.owner:AssignChampionSkillToSlot(CHAMPION_DATA_MANAGER:GetChampionSkillData(theSkillData.id))
+				end,
+				function(discipline, hbIndex) -- remove
+					control.owner:ClearSlot()
 				end)
 			return true
 		end 
@@ -710,11 +724,8 @@ function CSPS.initCPSideBar()
 			oneSlot.circle:SetHandler("OnMouseUp", 
 				function(_, button, upInside) WINDOW_MANAGER:SetMouseCursor(0)
 					if not upInside then return end
-					if button==2 then 
-						CSPS.CpHbSkillRemove(discipline, j) 
-					elseif button==1 then
-						showHotbarSkillMenu(discipline, j, cpBar[discipline][j] and cpBar[discipline][j].id, false, cp.isInHb, function(skillData) return skillData.active end, nil, applyChampionSkillToHotbarProfile)
-					end 
+					showHotbarSkillMenu(discipline, j, cpBar[discipline][j] and cpBar[discipline][j].id, false, cp.isInHb, function(skillData) return skillData.active end, nil, applyChampionSkillToHotbarProfile, CSPS.CpHbSkillRemove)
+					
 				end)
 			oneSlot.circle:SetHandler("OnDragStart", function(_, button) if button == 1 then WINDOW_MANAGER:SetMouseCursor(15)  CSPS.onCpHbIconDrag(discipline, j) end end)
 		end
@@ -820,25 +831,23 @@ function CSPS.cpBtnPlusMinus(skillData, addMe, ctrl, alt, shift)
 	
 	if WouldChampionSkillNodeBeUnlocked(skillData.id, oldValue) ~= WouldChampionSkillNodeBeUnlocked(skillData.id, myValue) then 
 		updateUnlock(skillData.discipline) 
+		
 	end
 	
 	cp.updateSum(skillData.discipline)
-	
-	if cp.clusterParents[skillData.id] then
-		updateClusterSum(cp.clusterParents[skillData.id])
-	end
-	
+	cp.updateClusterSum(nil, skillData.discipline)
+		
 	cp.recheckHotbar(skillData.discipline)
 	cp.updateSlottedMarks()
 	
 	CSPS.unsavedChanges = true
 	changedCP = true
-	CSPS.showElement("apply", true)
 	CSPS.showElement("save", true)
 	 CSPS.refreshTree()
 end
 
 function cp.resetTable(excludeDisciplines)
+	excludeDisciplines = excludeDisciplines or {}
 	if type(excludeDisciplines) ~= "table" then
 		excludeDisciplines = {excludeDisciplines ~= 1, excludeDisciplines ~= 2, excludeDisciplines ~= 3}
 	end
@@ -901,7 +910,12 @@ function cp.singleBarExtract(cpBarComp)
 	local barTable = {}
 	local auxHb1 = {SplitString(",", cpBarComp)}
 	for j, v in pairs(auxHb1) do
-		if v ~= "-" then barTable[j] = cpTable[tonumber(v)] else barTable[j] = nil end		
+		if v ~= "-" then 
+			local cpEntry = cpTable[tonumber(v)] 
+			barTable[j] = CanChampionSkillTypeBeSlotted(GetChampionSkillType(cpEntry.id)) and cpEntry or nil
+		else 
+			barTable[j] = nil 
+		end		
 	end	
 	
 	return barTable
@@ -910,7 +924,7 @@ end
 function cp.hotBarExtract(cpHbComp, fillTable, excludeDisciplines)
 	local cpHbTable = fillTable or {{},{},{}}
 	cpHbComp = cpHbComp or ""
-	if cpHbComp ~= "" then
+	if cpHbComp ~= "" and cpHbComp ~= "-" then
 		local auxHb = {SplitString(";", cpHbComp)}
 		for i=1, 3 do
 			if not excludeDisciplines or not excludeDisciplines[i] then
@@ -929,13 +943,14 @@ function cp.compress(myTable)
 		if skillData.value > 0 then table.insert(cpComp, string.format("%s-%s", skillId, skillData.value)) end
 	end
 	cpComp = table.concat(cpComp, ";")
+	cpComp = cpComp ~= "" and cpComp or "-"
 	return cpComp
 end
 
 function cp.extract(cpComp, excludeDisciplines)
 	cp.resetTable(excludeDisciplines)
 	excludeDisciplines = type(excludeDisciplines) == "table" and excludeDisciplines or {}
-	if cpComp ~= "" then
+	if cpComp ~= "" and cpComp ~= "-" then
 		local myTable = {SplitString(";", cpComp)}
 		for i, v in pairs(myTable) do
 			local skillId, myValue = SplitString("-", v)
@@ -967,20 +982,22 @@ local function cpRespecNeeded()
 	return respecNeeded, enoughPoints, pointsNeeded, changesNeeded
 end
 
-local function anyHbChanges()
-	for i = 1,3 do
-		local barTable = cpBar[i] or {}
-		for j=1,4 do
-			local mySlot = (i-1) * 4 + j
-			local currentSkill = GetSlotBoundId(mySlot, HOTBAR_CATEGORY_CHAMPION)
-			local addonSkill = barTable[j] and barTable[j].id or 0
-			if addonSkill ~= currentSkill then return true end
+local function anyHbChanges(hotbarsOnly)
+	for discipline = 1,3 do
+		if not hotbarsOnly or #hotbarsOnly == 0 or hotbarsOnly[discipline] then
+			local barTable = cpBar[discipline] or {}
+			for slotIndex=1,4 do
+				local mySlot = (discipline-1) * 4 + slotIndex
+				local currentSkill = GetSlotBoundId(mySlot, HOTBAR_CATEGORY_CHAMPION)
+				local addonSkill = barTable[slotIndex] and barTable[slotIndex].id or 0
+				if addonSkill ~= currentSkill then return true	end
+			end
 		end
 	end
 	return false
 end
 
-function cp.applyGo(skipDiag)
+function cp.applyGo(skipDiag, noHotbars)
 	-- Do I have enough points, do I need to respec, do I need points at all?
 	local respecNeeded, enoughPoints, pointsNeeded, changesNeeded = cpRespecNeeded()
 	if hf.anyEntryFalse(enoughPoints) then 
@@ -1005,15 +1022,16 @@ function cp.applyGo(skipDiag)
 
 	if not skipDiag or myCost > 0 then
 		ZO_Dialogs_ShowDialog(CSPS.name.."_OkCancelDiag", 
-			{returnFunc = function() cp.applyConfirm(respecNeeded) end},  
+			{returnFunc = function() cp.applyConfirm(respecNeeded, nil, noHotbars) end},  
 			{mainTextParams = {myDisciplines}, titleParams = {GS(CSPS_MSG_CpPurchTitle)}})
 	else
-		cp.applyConfirm(respecNeeded) 
+		cp.applyConfirm(respecNeeded, nil, noHotbars) 
 	end
 end
 
-function cp.applyConfirm(respecNeeded, hotbarsOnly)
+function cp.applyConfirm(respecNeeded, hotbarsOnly, noHotbars)
 	-- Did a general check for respeccing before the dialog - hotbarsOnly as an array containing booleans for each hotbar
+	if hotbarsOnly and not anyHbChanges(hotbarsOnly) then return end
 	PrepareChampionPurchaseRequest(respecNeeded)
 	local changeValues = hotbarsOnly == nil
 	if changeValues then
@@ -1025,30 +1043,31 @@ function cp.applyConfirm(respecNeeded, hotbarsOnly)
 	end
 	hotbarsOnly = hotbarsOnly or {}	
 	local unslottedSkills = {}
-	
-	for discipline, singleBar in pairs(cpBar) do
-		if (CSPS.applyCPc[discipline] and #hotbarsOnly == 0) or hotbarsOnly[discipline] == true then
-			local skToSlot = {}
-			for slotIndex=1, 4 do
-				local hbSkill = singleBar[slotIndex]
-				if hbSkill then skToSlot[hbSkill.id] = true end
-			end
-			for slotIndex=1, 4 do
-				local hbSkill = singleBar[slotIndex]
-				if hbSkill then
-					if (not changeValues and not WouldChampionSkillNodeBeUnlocked(hbSkill.id, GetNumPointsSpentOnChampionSkill(hbSkill.id))) or (changeValues and not WouldChampionSkillNodeBeUnlocked(hbSkill.id, hbSkill.value)) then 
-						table.insert(unslottedSkills, hbSkill)
-						hbSkill = nil
-					end
-				else
-					local previousSkillId = GetSlotBoundId((discipline-1) * 4 + slotIndex, HOTBAR_CATEGORY_CHAMPION)
-					if previousSkillId ~= 0 and not skToSlot[previousSkillId] and 
-						((not changeValues and WouldChampionSkillNodeBeUnlocked(previousSkillId, GetNumPointsSpentOnChampionSkill(previousSkillId))) or
-						(changeValues and cpTable[previousSkillId].active)) then 
-							hbSkill = cpTable[previousSkillId]
-					end
-				end	
-				AddHotbarSlotToChampionPurchaseRequest((discipline-1) * 4 + slotIndex, hbSkill and hbSkill.id or nil)
+	if not noHotbars then
+		for discipline, singleBar in pairs(cpBar) do
+			if (CSPS.applyCPc[discipline] and #hotbarsOnly == 0) or hotbarsOnly[discipline] == true then
+				local skToSlot = {}
+				for slotIndex=1, 4 do
+					local hbSkill = singleBar[slotIndex]
+					if hbSkill then skToSlot[hbSkill.id] = true end
+				end
+				for slotIndex=1, 4 do
+					local hbSkill = singleBar[slotIndex]
+					if hbSkill then
+						if (not changeValues and not WouldChampionSkillNodeBeUnlocked(hbSkill.id, GetNumPointsSpentOnChampionSkill(hbSkill.id))) or (changeValues and not WouldChampionSkillNodeBeUnlocked(hbSkill.id, hbSkill.value)) then 
+							table.insert(unslottedSkills, hbSkill)
+							hbSkill = nil
+						end
+					else
+						local previousSkillId = GetSlotBoundId((discipline-1) * 4 + slotIndex, HOTBAR_CATEGORY_CHAMPION)
+						if previousSkillId ~= 0 and not skToSlot[previousSkillId] and 
+							((not changeValues and WouldChampionSkillNodeBeUnlocked(previousSkillId, GetNumPointsSpentOnChampionSkill(previousSkillId))) or
+							(changeValues and cpTable[previousSkillId].active)) then 
+								hbSkill = cpTable[previousSkillId]
+						end
+					end	
+					AddHotbarSlotToChampionPurchaseRequest((discipline-1) * 4 + slotIndex, hbSkill and hbSkill.id or nil)
+				end
 			end
 		end
 	end
@@ -1064,14 +1083,16 @@ function cp.applyConfirm(respecNeeded, hotbarsOnly)
 	
 	waitingForCpPurchase = true
 	
-	SendChampionPurchaseRequest()
-	local confirmationSound
-    if respecNeeded then
-        confirmationSound = SOUNDS.CHAMPION_RESPEC_ACCEPT
-    else
-        confirmationSound = SOUNDS.CHAMPION_POINTS_COMMITTED
-    end
-    PlaySound(confirmationSound)
+	--if not noHotbars then --for troubleshooting the sendrequest might be left out at this point
+		SendChampionPurchaseRequest()
+		local confirmationSound
+		if respecNeeded then
+			confirmationSound = SOUNDS.CHAMPION_RESPEC_ACCEPT
+		else
+			confirmationSound = SOUNDS.CHAMPION_POINTS_COMMITTED
+		end
+		PlaySound(confirmationSound)
+	--end
 	changedCP = false
 	zo_callLater(function()  CSPS.refreshTree() end, 1000)
 	if #unslottedSkills > 0 then
@@ -1086,30 +1107,31 @@ local function cpFastestWays(myCpId)
 	local passedCPs = {}
 	local fastestWay = 42000
 	local myPaths = {}
-	local function checkPathPoint(myPoint, myPath)
-		if not DoesChampionSkillHaveJumpPoints(myPoint) then return end
-		local _, unlockPoints = GetChampionSkillJumpPoints(myPoint)
+	local function checkPathPoint(pointCPID, myPath)
+		if not DoesChampionSkillHaveJumpPoints(pointCPID) then return end
+		local _, unlockPoints = GetChampionSkillJumpPoints(pointCPID)
+		if cpTable[pointCPID].value >= unlockPoints then unlockPoints = 0 end
 		myPath.points = myPath.points + unlockPoints
-		myPath.checked[myPoint] = true
-		table.insert(myPath.steps, myPoint)
-		if IsChampionSkillRootNode(myPoint) or cpTable[myPoint][1] then
+		myPath.checked[pointCPID] = true
+		table.insert(myPath.steps, pointCPID)
+		if IsChampionSkillRootNode(pointCPID) then -- stop at active
 			fastestWay = math.min(fastestWay, myPath.points)
 			table.insert(myPaths, myPath)
 		else
-			for i, v in pairs({GetChampionSkillLinkIds(myPoint)}) do
-				if myPath.checked[v] == nil then
+			for _, linkedId in pairs({GetChampionSkillLinkIds(pointCPID)}) do
+				if myPath.checked[linkedId] == nil then
 					local newPath = {
 						points = myPath.points,
 						checked = {},
 						steps = {},
 					}
-					for j, w in pairs(myPath.checked) do
-						newPath.checked[j] = w
+					for checkedCP, checkedBoolean in pairs(myPath.checked) do
+						newPath.checked[checkedCP] = checkedBoolean
 					end
-					for j, w in ipairs(myPath.steps) do
-						newPath.steps[j] = w
+					for stepIndex, stepCP in ipairs(myPath.steps) do
+						newPath.steps[stepIndex] = stepCP
 					end
-					checkPathPoint(v, newPath)
+					checkPathPoint(linkedId, newPath)
 				end
 			end
 		end
@@ -1120,18 +1142,13 @@ local function cpFastestWays(myCpId)
 		steps = {},
 	}
 	checkPathPoint(myCpId, myPath)
-	local sortedPaths = {}
-	for i, v in pairs(myPaths) do
-		if #sortedPaths == 0 then
-			sortedPaths[1] = v
-		else
-			for j, w in ipairs(sortedPaths) do
-				if w.points >= v.points then table.insert(sortedPaths, j, v) break end
-			end
-		end
-	end
-	return sortedPaths
+	
+	table.sort(myPaths, function(a,b) return a.points < b.points end)
+	
+	return myPaths
 end
+
+cp.cpFastestWays = cpFastestWays
 
 local function showFastestCPWays(myCpId)
 	local sortedPaths = cpFastestWays(myCpId)
@@ -1139,16 +1156,53 @@ local function showFastestCPWays(myCpId)
 	for i=1, 4 do
 		if sortedPaths[i] == nil then break end
 		local v = sortedPaths[i]
-		table.insert(allPaths, zo_strformat(GS(CSPS_MSG_CPPathOpt), cpColors[cpTable[myCpId].discipline]:ToHex(), i, v.points))
+		table.insert(allPaths, zo_strformat(GS(CSPS_MSG_CPPathOpt), cpColors[cpTable[myCpId].discipline]:ToHex(), i, v.points)..":")
 		local myPathNames = {}
-		for j=1, #v.steps do
-			table.insert(myPathNames, zo_strformat("<<C:1>>", GetChampionSkillName(v.steps[#v.steps + 1 - j])))
+		for j=#v.steps, 1, -1 do
+			table.insert(myPathNames, zo_strformat("<<C:1>>", GetChampionSkillName(v.steps[j])))
 		end
 		table.insert(allPaths, table.concat(myPathNames, " → "))
 	end
 	return table.concat(allPaths, "\n")
 end
 
+function cp.showUnlockMenu(myCpId)
+	
+	local sortedPaths = cpFastestWays(myCpId)
+	if #sortedPaths == 0 then return end
+	ClearMenu()
+	local myColor = cpColors[cpTable[myCpId].discipline]
+	for i, v in pairs(sortedPaths) do
+		if i > 5 then break end
+		AddCustomMenuItem(zo_strformat(GS(CSPS_MSG_CPPathOpt), myColor:ToHex(), i, v.points), function()
+			for _, stepCP in pairs(v.steps) do
+				local _, unlockPoints = GetChampionSkillJumpPoints(stepCP)
+				cpTable[stepCP].value = math.max(cpTable[stepCP].value or 0, unlockPoints)
+			end
+			cp.updateUnlock()
+			
+			cp.updateSum()
+			cp.recheckHotbar()
+
+			cp.updateSlottedMarks()
+			cp.updateClusterSum()
+			CSPS.refreshTree()
+		end)
+		local myPathNames = {}
+		for j=#v.steps, 1, -1 do
+			local skillName = zo_strformat("<<C:1>>", GetChampionSkillName(v.steps[j]))
+			local _, unlockPoints = GetChampionSkillJumpPoints(v.steps[j])
+			skillName = cpTable[v.steps[j]].value < unlockPoints and ZO_SELECTED_TEXT:Colorize(skillName) or skillName
+			table.insert(myPathNames, skillName)
+		end
+		myPathNames = table.concat(myPathNames, " → ")
+		AddCustomMenuTooltip(function(menuItem, inside)
+			if not inside then ZO_Tooltips_HideTextTooltip() return end
+			ZO_Tooltips_ShowTextTooltip(menuItem, LEFT, myPathNames)
+		end)
+	end
+	ShowMenu()
+end
 
 function CSPS.cpClicked(control, skillData, mouseButton)
 	if CSPS.inCpRemapMode and mouseButton == 1 then 

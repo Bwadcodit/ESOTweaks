@@ -78,6 +78,7 @@
 							<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$(parent)Save" offsetX="3"/>
 							<Textures normal="esoui\art\mail\mail_tabicon_inbox_up.dds" pressed="esoui\art\mail\mail_tabicon_inbox_down.dds" mouseOver="esoui\art\mail\mail_tabicon_inbox_over.dds" />
 							<OnClicked>CSPS.loadBuild()</OnClicked>
+							<OnMouseUp>if upInside and button == 2 then CSPS.showProfileVersionHistory() end</OnMouseUp>
 							<OnMouseEnter>ZO_Tooltips_ShowTextTooltip(self, RIGHT, GetString(CSPS_Tooltiptext_Load))</OnMouseEnter>
 							<OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>
 						</Button>
@@ -232,11 +233,14 @@
 					<Anchor point="TOPLEFT" relativePoint="TOPLEFT" relativeTo="$(grandparent)" offsetX="0" offsetY="0" />
 					<Anchor point="BOTTOMRIGHT" relativePoint="RIGHT" relativeTo="$(grandparent)" offsetX="0" offsetY="0" />
 				</Control>
-				<Backdrop name="$(grandparent)SubProfiles" mouseEnabled="true" tier="1" centerColor="080808" edgeColor="424242" hidden="true">
-					<Edge edgeSize="1" />
+				<Control name="$(grandparent)SubProfiles" mouseEnabled="true" tier="1" hidden="true">
 					<Anchor point="TOPLEFT" relativePoint="BOTTOMLEFT" relativeTo="$(grandparent)Build" offsetX="0" offsetY="5" />
 					<Anchor point="BOTTOMRIGHT" relativePoint="BOTTOMRIGHT" relativeTo="$(grandparent)Build" offsetX="0" offsetY="5" />
 					<Controls>
+						<Backdrop name="$(parent)BG" centerColor="080808" edgeColor="424242">
+							<AnchorFill />
+							<Edge edgeSize="1" />
+						</Backdrop>
 						<Label name="$(parent)Title" horizontalAlignment="1" font="ZoFontGame" text="SubProfiles">
 							<Anchor point="TOPLEFT" relativePoint="TOPLEFT" relativeTo="$(parent)" />
 							<Anchor point="TOPRIGHT" relativePoint="TOPRIGHT" relativeTo="$(parent)" />
@@ -340,7 +344,7 @@
 							<Anchor point="BOTTOMRIGHT" relativeTo="$(parent)" relativePoint="BOTTOMRIGHT" offsetX="-5" offsetY="-5"/>
                         </Control>
 					</Controls>	
-				</Backdrop>
+				</Control>
 				
 				<Backdrop name="$(grandparent)CPImport" mouseEnabled="true" tier="1" centerColor="080808" edgeColor="424242" hidden="true">
 					<Edge edgeSize="1" />
@@ -492,8 +496,9 @@
 					<OnMouseEnter>CSPS.showMundusTooltip(self)</OnMouseEnter>
 					<OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>
                     <Controls>
-                        <Label name="$(parent)Label" font="ZoFontGame">
+                        <Label name="$(parent)Label" font="ZoFontGame" wrapMode="1" >
                             <Dimensions y="24" />
+							<DimensionConstraints minX="0" maxX="82"/> <!-- 112 without role icon -->
 							<Anchor point="RIGHT" relativeTo="$(parent)"  relativePoint="RIGHT" offsetX="0" offsetY="0"/>		
                             <OnMouseUp>if upInside then CSPS.showMundusMenu() end </OnMouseUp>
 							<OnMouseEnter>CSPS.showMundusTooltip(self:GetParent())</OnMouseEnter>
@@ -510,10 +515,20 @@
                     </Controls>
                 </Control>
 				
+				<Texture name="$(grandparent)RoleIcon" layer="1" textureFile="esoui/art/lfg/gamepad/lfg_menuicon_currentgroup.dds" mouseEnabled="true" >
+					<Dimensions y="27" x="27" />
+					<Anchor point="RIGHT" relativePoint="LEFT" relativeTo="$(grandparent)Mundus" offsetX="-4"  />
+					<OnMouseUp>
+						if upInside == true then CSPS.changeRole() end 
+					</OnMouseUp> 
+					<OnMouseEnter></OnMouseEnter>
+					<OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>
+				
+				</Texture>
 				
 				<Button name="$(grandparent)BtnApplyAll" hidden="true">
 					<Dimensions y="32" x="32" />
-					<Anchor point="RIGHT" relativePoint="LEFT" relativeTo="$(grandparent)Mundus" offsetX="-15"/>
+					<Anchor point="RIGHT" relativePoint="LEFT" relativeTo="$(grandparent)RoleIcon" offsetX="-15"/>
 						<Textures normal="ESOUI/art/buttons/accept_up.dds" pressed="ESOUI/art/buttons/accept_down.dds" mouseOver="ESOUI/art/buttons/accept_over.dds" />
 					<OnMouseUp>if upInside then CSPS.btnApplyAll(button) end</OnMouseUp>
 					<OnMouseEnter>CSPS.showApplyAllTooltip(self)</OnMouseEnter>
@@ -598,7 +613,7 @@
 							<Anchor point="CENTER" relativePoint="CENTER" relativeTo="$(parent)" />
 							<Textures normal="ESOUI/art/buttons/accept_up.dds" pressed="ESOUI/art/buttons/accept_down.dds" mouseOver="ESOUI/art/buttons/accept_over.dds" />
 							<OnClicked>CSPS.hbApply()</OnClicked>
-							<OnMouseEnter>ZO_Tooltips_ShowTextTooltip(self, RIGHT, GetString(CSPS_Tooltiptext_Apply))</OnMouseEnter>
+							<OnMouseEnter>ZO_Tooltips_ShowTextTooltip(self, RIGHT, GetString(SI_APPLY))</OnMouseEnter>
 							<OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>
 						</Button>
 					</Controls>
@@ -660,29 +675,32 @@
 					
 				</Backdrop>
 				
-				<Backdrop hidden="true" name="$(grandparent)CPSideBar" mouseEnabled="true" centerColor="080808" edgeColor="424242" >
-							<Anchor point="RIGHT" relativePoint="LEFT" relativeTo="$(grandparent)" />
-							<Dimensions x="38" y="622" />
+				<Control hidden="true" name="$(grandparent)CPSideBar" mouseEnabled="true">
+					<Anchor point="RIGHT" relativePoint="LEFT" relativeTo="$(grandparent)" />
+					<Dimensions x="38" y="622" />
+					<Controls>
+						<Backdrop  name="$(parent)BG" centerColor="080808" edgeColor="424242" >
+							<AnchorFill />
 							<Edge edgeSize="1" />
-							<Controls>
-								<Button name="$(parent)ToggleLabels">
-									<Anchor point="TOPRIGHT" relativeTo="$(parent)" relativePoint="TOPRIGHT" offsetX="-5" offsetY="10" />
-									<Dimensions x="28" y="28" />
-									<Textures normal="esoui/art/buttons/large_leftarrow_up.dds" pressed="esoui/art/buttons/large_leftarrow_down.dds" mouseOver="esoui/art/buttons/large_leftarrow_over.dds" />
-									<OnClicked>CSPS.showElement("cpsidebarlabels")</OnClicked>
-									<OnMouseEnter>ZO_Tooltips_ShowTextTooltip(self, RIGHT, GetString(SI_DIALOG_CANCEL))</OnMouseEnter>
-									<OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>
-								</Button>
-								<Button name="$(parent)ApplyBars">
-									<Anchor point="BOTTOMRIGHT" relativeTo="$(parent)" relativePoint="BOTTOMRIGHT" offsetX="-5" offsetY="-10" />
-									<Dimensions x="28" y="28" />
-									<Textures normal="esoui/art/buttons/accept_up.dds" pressed="esoui/art/buttons/accept_down.dds" mouseOver="esoui/art/buttons/accept_over.dds" />
-									<OnClicked>CSPS.cp.applyConfirm(false, {true, true, true})</OnClicked>
-									<OnMouseEnter>ZO_Tooltips_ShowTextTooltip(self, RIGHT, GetString(SI_APPLY))</OnMouseEnter>
-									<OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>
-								</Button>
-							</Controls>
 						</Backdrop>
+						<Button name="$(parent)ToggleLabels">
+							<Anchor point="TOPRIGHT" relativeTo="$(parent)" relativePoint="TOPRIGHT" offsetX="-5" offsetY="10" />
+							<Dimensions x="28" y="28" />
+							<Textures normal="esoui/art/buttons/large_leftarrow_up.dds" pressed="esoui/art/buttons/large_leftarrow_down.dds" mouseOver="esoui/art/buttons/large_leftarrow_over.dds" />
+							<OnClicked>CSPS.showElement("cpsidebarlabels")</OnClicked>
+							<OnMouseEnter>ZO_Tooltips_ShowTextTooltip(self, RIGHT, GetString(SI_DIALOG_CANCEL))</OnMouseEnter>
+							<OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>
+						</Button>
+						<Button name="$(parent)ApplyBars">
+							<Anchor point="BOTTOMRIGHT" relativeTo="$(parent)" relativePoint="BOTTOMRIGHT" offsetX="-5" offsetY="-10" />
+							<Dimensions x="28" y="28" />
+							<Textures normal="esoui/art/buttons/accept_up.dds" pressed="esoui/art/buttons/accept_down.dds" mouseOver="esoui/art/buttons/accept_over.dds" />
+							<OnClicked>CSPS.cp.applyConfirm(false, {true, true, true})</OnClicked>
+							<OnMouseEnter>ZO_Tooltips_ShowTextTooltip(self, RIGHT, GetString(SI_APPLY))</OnMouseEnter>
+							<OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>
+						</Button>
+					</Controls>
+				</Control>
 				</Controls>
 				</Control>
 				
@@ -883,29 +901,32 @@
 										</Control>		
 										
 										<Control name="$(parent)Placeholder1">
-											<Anchor point="LEFT" relativeTo="$(parent)" relativePoint="LEFT" />
-											<Anchor point="RIGHT" relativeTo="$(parent)" relativePoint="CENTER" />
+											<Anchor point="TOPLEFT" relativeTo="$(parent)" relativePoint="TOPLEFT" />
+											<Anchor point="BOTTOMRIGHT" relativeTo="$(parent)" relativePoint="BOTTOM" />
 										</Control>
 										
 										<Control name="$(parent)Placeholder2">
-											<Anchor point="LEFT" relativeTo="$(parent)" relativePoint="CENTER" />
-											<Anchor point="RIGHT" relativeTo="$(parent)" relativePoint="RIGHT" />
+											<Anchor point="TOPLEFT" relativeTo="$(parent)" relativePoint="TOP" />
+											<Anchor point="BOTTOMRIGHT" relativeTo="$(parent)" relativePoint="BOTTOMRIGHT" />
 										</Control>	
 										
 										<Button name="$(parent)Include1" inherits="ZO_CheckButton">
 											<Anchor point="LEFT" relativeTo="$(parent)" relativePoint="LEFT" offsetX="4" />
+											
 										</Button>
 										
 										<Button name="$(parent)Include6" inherits="ZO_CheckButton">
-											<Anchor point="LEFT" relativeTo="$(parent)Placeholder1" relativePoint="CENTER"  />
+											<Anchor point="LEFT" relativeTo="$(parent)Placeholder1" relativePoint="CENTER"  />										
 										</Button>
 										
 										<Button name="$(parent)Include2" inherits="ZO_CheckButton">
 											<Anchor point="LEFT" relativeTo="$(parent)Placeholder2" relativePoint="LEFT"  />
+											
 										</Button>
 										
 										<Button name="$(parent)Include9" inherits="ZO_CheckButton">
 											<Anchor point="LEFT" relativeTo="$(parent)Placeholder2" relativePoint="CENTER" />
+											
 										</Button>
 										
 										<Texture name="$(parent)Include4" layer="1" textureFile="esoui/art/buttons/checkbox_unchecked.dds" color="5CBDE7" mouseEnabled="true" >
@@ -940,17 +961,20 @@
 										
 										<Label name="$(parent)IncludeCPLabel" font="ZoFontGame" text="CSPS_TxtCp" mouseEnabled="true">
 											<Anchor point="LEFT" relativeTo="$(parent)Include3" relativePoint="RIGHT" offsetX="4" offsetY="0" />
+											<Anchor point="RIGHT" relativeTo="$(parent)Placeholder1" relativePoint="CENTER" offsetX="-2" constrains="X" />											
 											<OnMouseUp>if upInside then CSPS.openTreeToSection(4, 0) end</OnMouseUp>
 										</Label>
 																				
 										<Button name="$(parent)Include7" inherits="ZO_CheckButton">
-											<Anchor point="CENTER" relativeTo="$(parent)Include4" relativePoint="CENTER" constrains="Y"  />
-											<Anchor point="LEFT" relativeTo="CSPSWindowManageBarsDisc3" relativePoint="LEFT" constrains="X" offsetX="4" />
+											<Anchor point="BOTTOMLEFT" relativeTo="$(parent)Placeholder1" relativePoint="BOTTOM" offsetY="-8"   />		
 										</Button>
 										
 										<Button name="$(parent)Include8" inherits="ZO_CheckButton">
-											<Anchor point="CENTER" relativeTo="$(parent)Include4" relativePoint="CENTER" constrains="Y"   />
-											<Anchor point="LEFT" relativeTo="CSPSWindowManageBarsDisc1" relativePoint="LEFT" constrains="X" offsetX="4" />
+											<Anchor point="BOTTOMLEFT" relativeTo="$(parent)Placeholder2" relativePoint="BOTTOMLEFT" offsetY="-8"   />	
+										</Button>
+										
+										<Button name="$(parent)Include10" inherits="ZO_CheckButton">
+											<Anchor point="BOTTOMLEFT" relativeTo="$(parent)Placeholder2" relativePoint="BOTTOM" offsetY="-8"  />		
 										</Button>
 																				
 									</Controls>
@@ -1202,31 +1226,39 @@
 							</Controls>
 						</Control>
 						<Control name="$(parent)AddInfo">
-							<Controls>
-								<Label name="$(grandparent)AllianceLabel"  font="ZoFontHeader" color="INTERFACE_COLOR_TYPE_TEXT_COLORS:INTERFACE_TEXT_COLOR_NORMAL"  text="SI_STAT_GAMEPAD_ALLIANCE_LABEL">
-									<Anchor point="TOPLEFT" relativeTo="$(grandparent)Text" relativePoint="BOTTOMLEFT" offsetX="0" offsetY="5" />
-								</Label>		
-								<Label name="$(grandparent)AllianceValue" font="ZoFontGame" text="-">
-									<Anchor point="TOPLEFT" relativeTo="$(grandparent)AllianceLabel" relativePoint="TOPRIGHT" offsetX="5"  />
-								</Label>		
-								<Label name="$(grandparent)RaceLabel"  font="ZoFontHeader" color="INTERFACE_COLOR_TYPE_TEXT_COLORS:INTERFACE_TEXT_COLOR_NORMAL"  text="SI_STAT_GAMEPAD_RACE_LABEL">
-									<Anchor point="TOPLEFT" relativeTo="$(grandparent)Text" relativePoint="BOTTOM" offsetY="5"  />
-								</Label>
-								<Label name="$(grandparent)RaceValue" font="ZoFontGame" text="-">
-									<Anchor point="TOPLEFT" relativeTo="$(grandparent)RaceLabel" relativePoint="TOPRIGHT" offsetX="5"  />
-								</Label>						
+							<Controls>				
 								<Label name="$(grandparent)ClassLabel"  font="ZoFontHeader" color="INTERFACE_COLOR_TYPE_TEXT_COLORS:INTERFACE_TEXT_COLOR_NORMAL"  text="SI_STAT_GAMEPAD_CLASS_LABEL">
-									<Anchor point="TOPLEFT" relativeTo="$(grandparent)AllianceLabel" relativePoint="BOTTOMLEFT" offsetY="5"  />
+									<Anchor point="TOPLEFT" relativeTo="$(grandparent)Text" relativePoint="BOTTOMLEFT" offsetY="5"  />
 								</Label>
 								<Label name="$(grandparent)ClassValue" font="ZoFontGame" text="-">
 									<Anchor point="TOPLEFT" relativeTo="$(grandparent)ClassLabel" relativePoint="TOPRIGHT" offsetX="5"  />
-								</Label>	
-								<Label name="$(grandparent)MundusLabel"  font="ZoFontHeader" color="INTERFACE_COLOR_TYPE_TEXT_COLORS:INTERFACE_TEXT_COLOR_NORMAL"  text="SI_CONFIRM_MUNDUS_STONE_TITLE">
-									<Anchor point="TOPLEFT" relativeTo="$(grandparent)RaceLabel" relativePoint="BOTTOMLEFT" offsetY="5"  />
 								</Label>		
-								<Label name="$(grandparent)MundusValue" font="ZoFontGame" text="-">
-									<Anchor point="TOPLEFT" relativeTo="$(grandparent)MundusLabel" relativePoint="TOPRIGHT" offsetX="5"  />
+								<Label name="$(grandparent)RaceLabel"  font="ZoFontHeader" color="INTERFACE_COLOR_TYPE_TEXT_COLORS:INTERFACE_TEXT_COLOR_NORMAL"  text="SI_STAT_GAMEPAD_RACE_LABEL">
+									<Anchor point="TOPLEFT" relativeTo="$(grandparent)Text" relativePoint="BOTTOM" offsetY="5" />
+								</Label>
+								<Label name="$(grandparent)RaceValue" font="ZoFontGame" text="-">
+									<Anchor point="TOPLEFT" relativeTo="$(grandparent)RaceLabel" relativePoint="TOPRIGHT" offsetX="5"  />
+								</Label>	
+								<Button name="$(grandparent)SelectPartsChkReset">   
+									<Dimensions y="17" x="17" /> 
+									<Anchor point="TOPLEFT" relativeTo="$(grandparent)ClassLabel" relativePoint="BOTTOMLEFT" offsetY="8" />
+									<Textures normal="esoui/art/buttons/checkbox_checked.dds" pressed="esoui/art/buttons/checkbox_checked.dds" mouseOver="esoui/art/buttons/checkbox_checked.dds" />
+									<OnClicked>CSPS.toggleCPImpExpParts("reset")</OnClicked>
+									<OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>
+								</Button>	
+								<Label name="$(grandparent)LblReset" font="ZoFontGame"  color="INTERFACE_COLOR_TYPE_TEXT_COLORS:INTERFACE_TEXT_COLOR_NORMAL"  text="SI_PROMPT_TITLE_SKILLS_RESET_PROMPT" wrapMode="1" mouseEnabled="true">
+									<Dimensions y="24" />
+									<Anchor point="LEFT" relativeTo="$(grandparent)SelectPartsChkReset" relativePoint="RIGHT" offsetX="3"  />
+									<OnMouseUp>if upInside then CSPS.toggleCPImpExpParts("reset") end</OnMouseUp>
+									<OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>
 								</Label>							
+								<Button name="$(grandparent)OpenLink" hidden="true" inherits="ZO_DefaultButton" text="SI_URL_DIALOG_OPEN">
+									<Dimensions y="25" x="150" /> 
+									<Anchor point="BOTTOMRIGHT" relativePoint="BOTTOMRIGHT" relativeTo="$(grandparent)" offsetX="-5" offsetY="-5" />
+									<OnClicked>CSPS.openLink()</OnClicked>
+									<OnMouseEnter>CSPS.showLinkTT(self)</OnMouseEnter>
+									<OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>
+								</Button>							
 							</Controls>
 						</Control>
 						<Control name="$(parent)SelectParts">
@@ -1437,5 +1469,25 @@
 				</Backdrop>
 			</Controls>
 		</TopLevelControl>
+		<TopLevelControl name="CSPS_RespecCooldownTimerDiag" inherits="ZO_CustomDialogBase">
+            <OnInitialized>
+                CSPS.initRespecCooldownDiag(self)
+            </OnInitialized>
+            <Controls>
+                <Control name="$(parent)ContentContainer" inherits="ZO_DialogContentAnchors">
+                    <Controls>
+                        <StatusBar name="$(parent)Progress" inherits="ZO_ArrowStatusBarWithBG">
+                            <Anchor point="TOP" offsetY="15"/>
+                            <Controls>
+                                <Label name="$(parent)Label" font="ZoFontWinH4" horizontalAlignment="CENTER" color="INTERFACE_COLOR_TYPE_TEXT_COLORS:INTERFACE_TEXT_COLOR_NORMAL" text="SI_RESPEC_CAST_TIME_DIALOG_DESCRIPTION">
+                                    <Anchor point="BOTTOM" relativePoint="TOP" offsetY="-4"/>
+                                </Label>
+                            </Controls>
+                        </StatusBar>
+                    </Controls>
+                </Control>
+                <Control name="$(parent)Cancel" inherits="ZO_CustomDialogButton"/>
+            </Controls>
+        </TopLevelControl>
 	</Controls>
 </GuiXml>

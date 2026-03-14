@@ -164,3 +164,7 @@ function CSPS.setCurrentMundus()
 	currentMundusId = getCurrentMundus()
 	CSPS.setMundus(currentMundusId)
 end
+
+function CSPS.getMundus()
+	return currentMundusId or 0
+end

@@ -14,6 +14,10 @@ local cpBar = cp.bar
 local cpTable = cp.table
 local cpOvernode = false
 local cpDisciplineNodes = false
+local classSkillNode = false
+local otherClassSkills = {}
+
+local skillLineIdsToExclude = CSPS.skillLineIdsToExclude
 
 local TREE_SECTION_SKILLTYPES = 1
 local TREE_SECTION_SKILLLINES = 2
@@ -26,7 +30,7 @@ local TREE_SECTION_OUTFIT = 9
 
 local sectionNodes = {}
 
-local errorColors = { -- ec = {correct = 1, wrongMorph = 2, rankHigher = 3, skillLocked = 4, rankLocked = 5, morphLocked = 6}, >>> + 1
+local errorColors = { -- ec = {correct = 1, wrongMorph = 2, rankHigher = 3, skillLocked = 4, rankLocked = 5, morphLocked = 6, lineNotActive = 7}, >>> + 1
 	colTbl.white,	
 	colTbl.green,  
 	colTbl.red,
@@ -34,6 +38,7 @@ local errorColors = { -- ec = {correct = 1, wrongMorph = 2, rankHigher = 3, skil
 	colTbl.red,    
 	colTbl.red,    
 	colTbl.red,   
+	colTbl.orange, 
 }
 
 
@@ -50,6 +55,25 @@ local cpSlT = {
 
 local werewolfNode = false
 local werewolfParentNode = false
+
+local numClassSkills = GetNumClasses()*3
+
+local function setButtonTextures(control, textureName)
+	control:SetNormalTexture(string.format("%s_up.dds", textureName))
+	control:SetMouseOverTexture(string.format("%s_over.dds", textureName))
+	control:SetPressedTexture(string.format("%s_down.dds", textureName))
+end
+
+local function refreshOtherClassSkills() 
+	otherClassSkills = {0,0,0}
+	local lineInBuild = {}
+	for i, v in pairs(CSPS.currentClassSkillLines) do
+		lineInBuild[v] = true
+	end
+	for i=1, numClassSkills do
+		if not lineInBuild[i] then table.insert(otherClassSkills, i) end
+	end
+end
 
 CSPS.sectionNodes = sectionNodes
 --/script for i, v in pairs(CSPS.sectionNodes) do d(v and v.data and i..v.data.name) end
@@ -71,7 +95,10 @@ local function toggleNode(node, buttonControl, callOnLastEntry)
 			node.data.fillContent[#node.data.fillContent][2].callbackFunc = callOnLastEntry 
 		end
 		for _, v in pairs(node.data.fillContent) do
-			myTree:AddNode(v[1], v[2], node) --v[1] = template, v[2] = content
+			local myNode = myTree:AddNode(v[1], v[2], node) --v[1] = template, v[2] = content
+			if myNode.data.variant == TREE_SECTION_SKILLTYPES and myNode.data.skillType == 1 then 
+				classSkillNode = myNode
+			end			
 		end
 		node.data.fillContent = nil
 	end
@@ -153,6 +180,7 @@ local function showSkTT(control, i,j,k, morph, rank, errorCode, skillData, posit
 		[ec.skillLocked] = function() 	local rankNeeded = skillData.zo_data:GetLineRankNeededToPurchase() return colTbl.red:Colorize(zo_strformat(GS(SI_ABILITY_UNLOCKED_AT), skillData.lineData.name, rankNeeded)) end,
 		[ec.rankLocked] = function() local rankNeeded = skillData.zo_data:GetProgressionData(rank):GetLineRankNeededToUnlock() return colTbl.red:Colorize(zo_strformat(GS(SI_ABILITY_UNLOCKED_AT), skillData.lineData.name, rankNeeded)) end,
 		[ec.morphLocked] = function() return colTbl.red:Colorize(GS(SI_ABILITYPROGRESSIONRESULT7)) end,
+		[ec.lineNotActive] = function() return colTbl.orange:Colorize(GS(SI_HOTBARRESULT7)) end,
 	}
 	myTooltip = errorAlerts[errorCode] and string.format("%s\n\n%s", myTooltip, errorAlerts[errorCode]()) or myTooltip
 	
@@ -189,7 +217,7 @@ local function showCustomSkillStyleTT(control, activeCollectible)
 		InformationTooltip:AddLine(GetCollectibleDescription(activeCollectible), "ZoFontGame", r, g, b, CENTER, MODIFY_TEXT_TYPE_NONE, TEXT_ALIGN_CENTER, true)
 		InformationTooltip:AddLine("", "ZoFontGame", r, g, b, CENTER, MODIFY_TEXT_TYPE_NONE, TEXT_ALIGN_CENTER, true)
 		if not IsCollectibleUnlocked(activeCollectible) then 
-			table.insert(myTooltip, GetCollectibleHint(activeCollectible))
+			InformationTooltip:AddLine(GetCollectibleHint(activeCollectible), "ZoFontGame", r, g, b, CENTER, MODIFY_TEXT_TYPE_NONE, TEXT_ALIGN_CENTER, true)
 		end
 	end
 	InformationTooltip:AddLine(string.format("|t26:26:esoui/art/miscellaneous/icon_lmb.dds|t: %s", GS(SI_GAMEPAD_SELECT_OPTION)), "ZoFontGame", r, g, b, CENTER, MODIFY_TEXT_TYPE_NONE, TEXT_ALIGN_CENTER, useWide)
@@ -201,6 +229,14 @@ end
 local function NodeSetup(node, control, data, open, userRequested, enabled)
 
 	local i, j, k, mySkill = unpack(data)
+	
+	if i == 1 then		
+		j = CSPS.currentClassSkillLines[j] or otherClassSkills[j]
+		if j ~= mySkill.line then
+			mySkill = CSPS.skillTable[1][j][k]
+			data[4] = mySkill
+		end
+	end
 
 	local myCtrIcon = control:GetNamedChild("Icon")
 	local myCtrText = control:GetNamedChild("Text")
@@ -236,15 +272,18 @@ local function NodeSetup(node, control, data, open, userRequested, enabled)
 						
 							local scriptId = GetScriptIdAtSlotIndexForCraftedAbility(mySkill.craftedId, scribingSlot, scriptIndex)						
 							local abName = zo_strformat("<<C:1>>", GetCraftedAbilityScriptDisplayName(scriptId))
+							local canUse = true
 							
 							if not IsCraftedAbilityScriptUnlocked(scriptId) then
 								abName = colTbl.red:Colorize(abName)
 							elseif not IsCraftedAbilityScriptCompatibleWithSelections(scriptId, mySkill.craftedId, mySkill.scripts[1],mySkill.scripts[2],mySkill.scripts[3]) then
 								abName = colTbl.orange:Colorize(abName)
+								canUse = false
 							end
 							
 							AddCustomMenuItem(zo_strformat("|t20:20:<<2>>|t <<1>>", abName, GetCraftedAbilityScriptIcon(scriptId)), 
 								function() 
+									if not canUse then return end
 									mySkill.scripts[scribingSlot] = scriptId 
 									CSPS.refreshTree(true) 
 								end)
@@ -252,7 +291,20 @@ local function NodeSetup(node, control, data, open, userRequested, enabled)
 							local menuItemControl = ZO_Menu.items[#ZO_Menu.items].item 
 							menuItemControl.onEnter = function() 
 								local myTooltip = GetCraftedAbilityScriptDescription(mySkill.craftedId, scriptId)
-								if not IsCraftedAbilityScriptUnlocked(scriptId) then myTooltip = string.format("%s \n\n %s", myTooltip, GetCraftedAbilityScriptAcquireHint(scriptId)) end
+								if not IsCraftedAbilityScriptUnlocked(scriptId) then 
+									myTooltip = string.format("%s \n\n %s", myTooltip, GetCraftedAbilityScriptAcquireHint(scriptId)) 
+								elseif not IsCraftedAbilityScriptCompatibleWithSelections(scriptId, mySkill.craftedId, unpack(mySkill.scripts)) then	
+									local incompatibleScripts = {}
+									for i=1,3 do
+										local auxScripts = {0,0,0}
+										auxScripts[i] = mySkill.scripts[i]
+										if not IsCraftedAbilityScriptCompatibleWithSelections(scriptId, mySkill.craftedId, unpack(auxScripts)) then 
+											table.insert(incompatibleScripts, zo_strformat("<<C:1>>", GetCraftedAbilityScriptDisplayName(auxScripts[i])))
+										end
+									end
+									
+									myTooltip = string.format("%s \n\n %s (%s)", myTooltip, GS(SI_SCRIBINGTOOLTIPDISPLAYFLAGS4), table.concat(incompatibleScripts, ", "))
+								end
 								ZO_Tooltips_ShowTextTooltip(menuItemControl, RIGHT, myTooltip)
 							end
 							menuItemControl.onExit = function() ZO_Tooltips_HideTextTooltip() end
@@ -302,24 +354,24 @@ local function NodeSetup(node, control, data, open, userRequested, enabled)
 							elseif activeCollectible == collectibleId then
 								styleName = colTbl.green:Colorize(styleName)
 							end
-							
-							AddCustomMenuItem(zo_strformat("|t20:20:<<2>>|t <<1>>", styleName, GetCollectibleIcon(collectibleId)), 
-								function() 
-									mySkill.styleCollectible = collectibleId
-									CSPS.refreshTree(true)
-								end)
-		
-							local menuItemControl = ZO_Menu.items[#ZO_Menu.items].item 
-							menuItemControl.onEnter = function() 
-								local myTooltip = GetCollectibleDescription(collectibleId)
-								local myHint = GetCollectibleHint(collectibleId)
-								if not IsCollectibleUnlocked(collectibleId) and myHint and myHint ~= "" then
-									myTooltip = string.format("%s\n\n%s", myTooltip, myHint)
+							if collectibleId ~= 0 then
+								AddCustomMenuItem(zo_strformat("|t20:20:<<2>>|t <<1>>", styleName, GetCollectibleIcon(collectibleId)), 
+									function() 
+										mySkill.styleCollectible = collectibleId
+										CSPS.refreshTree(true)
+									end)
+			
+								local menuItemControl = ZO_Menu.items[#ZO_Menu.items].item 
+								menuItemControl.onEnter = function() 
+									local myTooltip = GetCollectibleDescription(collectibleId)
+									local myHint = GetCollectibleHint(collectibleId)
+									if not IsCollectibleUnlocked(collectibleId) and myHint and myHint ~= "" then
+										myTooltip = zo_strformat("<<1>>\n\n<<C:2>>", myTooltip, myHint)
+									end
+									ZO_Tooltips_ShowTextTooltip(menuItemControl, RIGHT, myTooltip)
 								end
-								ZO_Tooltips_ShowTextTooltip(menuItemControl, RIGHT, myTooltip)
+								menuItemControl.onExit = function() ZO_Tooltips_HideTextTooltip() end
 							end
-							menuItemControl.onExit = function() ZO_Tooltips_HideTextTooltip() end
-							
 	
 						end
 						ShowMenu()
@@ -382,12 +434,12 @@ local function NodeSetup(node, control, data, open, userRequested, enabled)
 	myCtrText:SetColor(myColor:UnpackRGBA())
 	myCtrIcon:SetDesaturation(mySkill.purchased and 0 or 1)
 	
-	myCtrMorph:SetHidden(not mySkill.purchased or mySkill.craftedId)
+	myCtrMorph:SetHidden(not mySkill.purchased or (mySkill.craftedId ~= nil))
 	
 	myCtrPoints:SetHidden(mySkill.points <= 0)
 	
-	myCtrBtnMinus:SetHidden(not mySkill.purchased or (mySkill.autoGrant and (mySkill.passive and mySkill.rank == 1 or not mySkill.passive and mySkill.morph == 0)) or mySkill.craftedId)
-	myCtrBtnPlus:SetHidden(mySkill.maxRaMo or mySkill.craftedId)
+	myCtrBtnMinus:SetHidden(not mySkill.purchased or (mySkill.autoGrant and (mySkill.passive and mySkill.rank == 1 or not mySkill.passive and mySkill.morph == 0)) or (mySkill.craftedId ~= nil))
+	myCtrBtnPlus:SetHidden(mySkill.maxRaMo or (mySkill.craftedId ~= nil))
 	
 	myCtrBtnPlus:SetHandler("OnClicked", function(_,_,ctrl,alt,shift) CSPS.plusClickSkill(mySkill, ctrl,alt,shift) end)
 	myCtrBtnPlus:SetHandler("OnMouseEnter", function() showSimpleTT(myCtrBtnPlus, CSPS_Tooltiptext_PlusSk) end)
@@ -423,16 +475,23 @@ local function NodeSetupAttr(node, control, data, open, userRequested, enabled)
 	myCtrBtnMinus:SetHandler("OnMouseEnter", function() showSimpleTT(control:GetNamedChild("BtnMinus"), CSPS_Tooltiptext_MinusAttr, true) end)
 
 	myCtrText:SetColor(data.entrColor:UnpackRGBA())
-	myCtrValue:SetColor(data.entrColor:UnpackRGBA())
+	local currentPoints = GetAttributeSpentPoints(data.i)
+	if currentPoints == CSPS.attrPoints[data.i] then
+		myCtrValue:SetColor(colTbl.green:UnpackRGBA())
+	elseif currentPoints > CSPS.attrPoints[data.i] then
+		myCtrValue:SetColor(colTbl.orange:UnpackRGBA())
+	elseif currentPoints < CSPS.attrPoints[data.i] then
+		myCtrValue:SetColor(colTbl.white:UnpackRGBA())
+	end
 	
 	if data.callbackFunc then data.callbackFunc() data.callbackFunc = nil end
 end
 
 local function getErrorSumColor(data)
-	if data.errorSums[ec.rankLocked] > 0 or data.errorSums[ec.skillLocked] > 0 or data.errorSums[ec.morphLocked] > 0 or data.errorSums[ec.wrongMorph] > 0 then 
+	if data.errorSums[ec.rankLocked] > 0 or data.errorSums[ec.skillLocked] > 0 or data.errorSums[ec.morphLocked] > 0  then 
 		return colTbl.red 
 	end
-	if	data.errorSums[ec.rankHigher] > 0 then return colTbl.orange end 
+	if data.errorSums[ec.rankHigher] > 0 or data.errorSums[ec.wrongMorph] > 0 then return colTbl.orange end 
 	return colTbl.white
 end
 
@@ -448,9 +507,38 @@ function CSPS.NodeSectionSetup(node, control, data, open, userRequested, enabled
 	
 	if data.variant == TREE_SECTION_SKILLTYPES or data.variant == TREE_SECTION_SKILLLINES then -- Skill type/line
 		local myData = data.variant == TREE_SECTION_SKILLTYPES and data.typeData or data.lineData
-		myText = string.format("%s (%s)", myText, myData.points)
+			
+		if data.variant == TREE_SECTION_SKILLLINES and data.skillType == 1 then
+			data.notInBuild = data.skillLineIndex > 3
+			local skillLineIndex = CSPS.currentClassSkillLines[data.skillLineIndex] or otherClassSkills[data.skillLineIndex]
+			if skillLineIndex ~= myData.line then
+				myData = CSPS.skillTable[1][skillLineIndex]
+				data.lineData = myData
+				data.name = myData.name
+				myText = data.name
+			end
+			if not data.notInBuild then
+			
+				local myCtrBtnApply = GetControl(control, "BtnApply")
+				setButtonTextures(myCtrBtnApply, "esoui/art/progression/train")
+				myCtrBtnApply:SetHidden(false)
+				myCtrBtnApply:SetWidth(21)
+				myCtrBtnApply:SetHandler("OnMouseEnter", function() 
+					ZO_Tooltips_ShowTextTooltip(myCtrBtnApply, TOP, GS(SI_SKILLS_SUBCLASSING_ENTRY_NAME)) 
+				end)
+				myCtrBtnApply:SetHandler("OnClicked", function() CSPS.changeSkillLine(1, data.skillLineIndex) end)
+			end	
+		end
 
-		myCtrText:SetColor(getErrorSumColor(myData):UnpackRGBA())
+		myText = string.format("%s (%s)", myText, myData.points)
+		
+		if data.notInBuild then
+			myCtrText:SetColor(colTbl.gray:UnpackRGBA())
+		elseif data.variant == TREE_SECTION_SKILLLINES and data.type == 1 and not data.lineData.zo_data:IsActive() then
+			myCtrText:SetColor(colTbl.orange:UnpackRGBA())
+		else
+			myCtrText:SetColor(getErrorSumColor(myData):UnpackRGBA())
+		end
 		
 		if myData.isWerewolf then 
 			btnToggle.isWerewolf = true 
@@ -464,11 +552,11 @@ function CSPS.NodeSectionSetup(node, control, data, open, userRequested, enabled
 		
 		if node:IsOpen() and not data.fillContent then 
 			myCtrBtnMinus:SetHidden(myData.points <= 0)
-			myCtrBtnMinus:SetHandler("OnClicked", function(_,_,_,_,shift) CSPS.minusClickSkillLine(data.skillType, data.skillLineIndex, shift) end)
+			myCtrBtnMinus:SetHandler("OnClicked", function(_,_,_,_,shift) CSPS.minusClickSkillLine(data.skillType, myData.line, shift) end)
 			myCtrBtnMinus:SetHandler("OnMouseEnter", function() showSimpleTT(myCtrBtnMinus, data.variant == TREE_SECTION_SKILLTYPES and CSPS_Tooltiptext_MinusSkType or CSPS_Tooltiptext_MinusSkLine) end)
 			myCtrBtnPlus:SetHidden(false)
 			myCtrBtnPlus:SetWidth(21)
-			myCtrBtnPlus:SetHandler("OnClicked", function(_,_,_,_,shift) CSPS.plusClickSkillLine(data.skillType, data.skillLineIndex, shift) end)
+			myCtrBtnPlus:SetHandler("OnClicked", function(_,_,_,_,shift) CSPS.plusClickSkillLine(data.skillType, myData.line, shift) end)
 			myCtrBtnPlus:SetHandler("OnMouseEnter", function() showSimpleTT(myCtrBtnPlus, CSPS_Tooltiptext_PlusSkLine) end)
 			if myData.isWerewolf then refreshWerewolfMode(true) end
 		else
@@ -494,7 +582,7 @@ function CSPS.NodeSectionSetup(node, control, data, open, userRequested, enabled
 		CSPS.setupOutfitSection(control, node, data)
 	elseif data.variant == TREE_SECTION_CHAMPIONPOINTS then -- Champion Points section
 		sectionNodes[TREE_SECTION_CHAMPIONPOINTS] = sectionNodes[TREE_SECTION_CHAMPIONPOINTS] or {node}
-		if (CSPS.applyCP and CSPS.unlockedCP)  or (not CSPS.showApply) then 
+		if CSPS.applyCP and CSPS.unlockedCP then 
 			myCtrText:SetColor(colTbl.white:UnpackRGBA())
 		else
 			myCtrText:SetColor(colTbl.gray:UnpackRGBA())
@@ -592,7 +680,7 @@ local function NodeSetupCP2Discipline(node, control, data, open, userRequested, 
 	
 	sectionNodes[TREE_SECTION_CHAMPIONPOINTS][data.discipline + 1] = sectionNodes[TREE_SECTION_CHAMPIONPOINTS][data.discipline + 1] or node
 	
-	if (CSPS.applyCPc[data.discipline] and CSPS.unlockedCP) or (not CSPS.showApply) then 
+	if CSPS.applyCPc[data.discipline] and CSPS.unlockedCP then 
 		control:GetNamedChild("Name"):SetColor(data.entrColor:UnpackRGBA())
 	else
 		control:GetNamedChild("Name"):SetColor(colTbl.gray:UnpackRGBA())
@@ -613,7 +701,7 @@ local function NodeSetupCP2Cluster(node, control, data, open, userRequested, ena
 	local r,g,b = data.entrColor:UnpackRGB()
 	control:GetNamedChild("Marker"):SetCenterColor(r, g, b, 0.25)
 	control:GetNamedChild("Marker"):SetEdgeColor(r, g, b, 0)
-	control:GetNamedChild("Name"):SetColor((clusterData.active and colTbl.white or colTbl.gray):UnpackRGBA())
+	control:GetNamedChild("Name"):SetColor((clusterData.unlocked and colTbl.white or colTbl.gray):UnpackRGBA())
 	
 	if data.callbackFunc then data.callbackFunc() data.callbackFunc = nil end
 end
@@ -719,11 +807,15 @@ local function NodeSetupCpEntry(node, control, data, open, userRequested, enable
 		control.ctrIcon:SetColor(inCol, inCol, inCol)		
 		control.ctrName:SetColor(colTbl.gray:UnpackRGBA())
 		control.ctrValue:SetColor(colTbl.gray:UnpackRGBA())
-		control.ctrBtnMinus:SetHidden(true)
+		control.ctrBtnMinus:SetHidden(false)
+		setButtonTextures(control.ctrBtnMinus, "esoui/art/progression/progression_crafting_locked")
+		control.ctrBtnMinus:SetHandler("OnMouseEnter", function() showSimpleTT(control.ctrBtnMinus, SI_SKILLS_UNLOCK_CONFIRM, true) end)
+		control.ctrBtnMinus:SetHandler("OnClicked", function() cp.showUnlockMenu(skillData.id) end)
 		control.ctrBtnPlus:SetHidden(true)
 		control.ctrCircle:SetHidden(true)		
 	else
 		control.ctrIcon:SetDesaturation(0)
+		setButtonTextures(control.ctrBtnMinus, "ESOUI/art/buttons/minus")
 		if cp.isInHb(skillData.id) == true then
 			control.ctrIcon:SetDesaturation(0)
 			control.ctrIcon:SetColor(1,1,1)
@@ -748,6 +840,8 @@ local function NodeSetupCpEntry(node, control, data, open, userRequested, enable
 		
 		control.ctrBtnPlus:SetHidden(skillData.value >= skillData.maxValue)
 		control.ctrBtnMinus:SetHidden(skillData.value <= 0)
+		control.ctrBtnPlus:SetHandler("OnClicked", function(_,_,ctrl,alt,shift) CSPS.cpBtnPlusMinus(skillData, 1, ctrl, alt, shift) end)
+		control.ctrBtnMinus:SetHandler("OnClicked", function(_,_,ctrl,alt,shift) CSPS.cpBtnPlusMinus(skillData, -1,ctrl,alt,shift) end)
 	end
 	control.ctrName:SetHandler("OnMouseUp", function(self, mouseButton, upInside, ctrl, _, shift) 
 		if upInside then 
@@ -758,8 +852,6 @@ local function NodeSetupCpEntry(node, control, data, open, userRequested, enable
 			end
 		end 
 	end)
-	control.ctrBtnPlus:SetHandler("OnClicked", function(_,_,ctrl,alt,shift) CSPS.cpBtnPlusMinus(skillData, 1, ctrl, alt, shift) end)
-	control.ctrBtnMinus:SetHandler("OnClicked", function(_,_,ctrl,alt,shift) CSPS.cpBtnPlusMinus(skillData, -1,ctrl,alt,shift) end)
 	
 	if data.callbackFunc then data.callbackFunc() data.callbackFunc = nil end
 end
@@ -780,10 +872,10 @@ function CSPS.prepareTheTree()
 end
 
 function CSPS.refreshTree(unsavedChanges)
+	refreshOtherClassSkills()
 	if myTree then myTree:RefreshVisible() end
 	if unsavedChanges then	
 		CSPS.unsavedChanges = true
-		CSPS.showElement("apply", true)
 		CSPS.showElement("save", true)
 	end
 end
@@ -824,45 +916,75 @@ function CSPS.createCPTree()
 	end
 end
 
-function CSPS.createTable()
 
-	-- Generate tree for skills
-
-	local typeContent = {}
-	for skillType, typeData in ipairs(CSPS.skillTable) do
-		local lineContent = {}
-		for skillLineIndex, lineData in ipairs(typeData) do
-			if not (skillType == 6 and skillLineIndex == CSPS.kaiserFranz) then
-				local fillContent = {}
-				for skillIndex, skillData in ipairs(lineData) do
-					table.insert(fillContent, {skillData.craftedId and "CSPSLECRAFT" or "CSPSLE", {skillType, skillLineIndex, skillIndex, skillData}})
-				end
-				
-				table.insert(lineContent, {"CSPSLH", {name = lineData.name, variant = TREE_SECTION_SKILLLINES, skillType=skillType, skillLineIndex=skillLineIndex, fillContent=fillContent, lineData=lineData}})
-
+local function createLineContent(skillType, typeData)
+	local lineContent = {}
+	for skillLineIndex, lineData in ipairs(typeData) do
+		if not skillLineIdsToExclude[lineData.zo_data.id] and (skillType ~= 1 or skillLineIndex < 4 or CSPS.savedVariables.settings.showAllClassSkills) then
+			local fillContent = {}
+			for skillIndex, skillData in ipairs(lineData) do
+				table.insert(fillContent, {skillData.craftedId and "CSPSLECRAFT" or "CSPSLE", {skillType, skillLineIndex, skillIndex, skillData}})
 			end
+			
+			table.insert(lineContent, {"CSPSLH", {name = lineData.name, variant = TREE_SECTION_SKILLLINES, skillType=skillType, skillLineIndex=skillLineIndex, fillContent=fillContent, lineData=lineData}})
+
 		end
-		table.insert(typeContent, {"CSPSLH", {name = GS("SI_SKILLTYPE", skillType), variant = TREE_SECTION_SKILLTYPES, skillType=skillType, fillContent=lineContent, typeData = typeData}})
 	end
-	local overnode = myTree:AddNode("CSPSLH", {name = GS(SI_CHARACTER_MENU_SKILLS), variant=TREE_SECTION_SKILLS, fillContent=typeContent})
+	return lineContent
+end
+
+function CSPS.reCreateClassSkillTree()
+	if classSkillNode then
+		if classSkillNode:IsOpen() and not classSkillNode.data.fillContent then
+			classSkillNode:SetOpen(false) 
+			ZO_ToggleButton_Toggle(classSkillNode.control:GetNamedChild("Toggle"))
+		end
+			
+		classSkillNode.children = nil
+		classSkillNode.data.fillContent = createLineContent(1, CSPS.skillTable[1])
+	elseif sectionNodes[TREE_SECTION_SKILLS] then
+		sectionNodes[TREE_SECTION_SKILLS].data.fillContent[1][2].fillContent = createLineContent(1, CSPS.skillTable[1])
+	else
+		myTree.rootNode.children[1].data.fillContent[1][2].fillContent = createLineContent(1, CSPS.skillTable[1])
+	end
+end
+
+function CSPS.createTable()
+	local moduleExclude = CSPS.savedVariables.settings.moduleExclude
 	
-	-- Generate tree for attribute points
-	local fillContent = {
-		{"CSPSLATTR", {name = GS(SI_ATTRIBUTES1), i=1, entrColor=cpColors[3]}}, --health
-		{"CSPSLATTR", {name = GS(SI_ATTRIBUTES2), i=2, entrColor=cpColors[2]}}, --magicka
-		{"CSPSLATTR", {name = GS(SI_ATTRIBUTES3), i=3, entrColor=cpColors[1]}}  --stamina
-	}
-	local overnode = myTree:AddNode("CSPSLH", {name = GS(SI_STATS_ATTRIBUTES), variant=TREE_SECTION_ATTRIBUTES, fillContent=fillContent})
+	
+	if not moduleExclude.skills then 
+		-- Generate tree for skills
+		refreshOtherClassSkills()
+		
+		local typeContent = {}
+		for skillType, typeData in ipairs(CSPS.skillTable) do
+			
+			table.insert(typeContent, {"CSPSLH", {name = GS("SI_SKILLTYPE", skillType), variant = TREE_SECTION_SKILLTYPES, skillType=skillType, fillContent=createLineContent(skillType, typeData), typeData = typeData}})
+		end
+		local overnode = myTree:AddNode("CSPSLH", {name = GS(SI_CHARACTER_MENU_SKILLS), variant=TREE_SECTION_SKILLS, fillContent=typeContent})
+	end
+	
+	if not moduleExclude.attr then 
+		-- Generate tree for attribute points
+		local fillContent = {
+			{"CSPSLATTR", {name = GS(SI_ATTRIBUTES1), i=1, entrColor=cpColors[3]}}, --health
+			{"CSPSLATTR", {name = GS(SI_ATTRIBUTES2), i=2, entrColor=cpColors[2]}}, --magicka
+			{"CSPSLATTR", {name = GS(SI_ATTRIBUTES3), i=3, entrColor=cpColors[1]}}  --stamina
+		}
+		local overnode = myTree:AddNode("CSPSLH", {name = GS(SI_STATS_ATTRIBUTES), variant=TREE_SECTION_ATTRIBUTES, fillContent=fillContent})
+	end
 	
 		-- Generate tree for CP
-	if CSPS.unlockedCP then
+	if CSPS.unlockedCP and not moduleExclude.cp then
 		CSPS.createCPTree()
 	end
 	
-	if CSPS.doGear then CSPS.setupGearTree() end
-	CSPS.setupQsTree()
+	if CSPS.doGear and not moduleExclude.gear then CSPS.setupGearTree() end
 	
-	if CSPS.savedVariables.settings.showOutfits then
+	if not moduleExclude.qs then CSPS.setupQsTree() end
+	
+	if not moduleExclude.outfit then
 		CSPS.setupOutfitTree() 
 	end
 		

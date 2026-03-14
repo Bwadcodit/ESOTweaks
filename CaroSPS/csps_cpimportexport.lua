@@ -107,7 +107,6 @@ function CSPS.importListCP()
 	
 	CSPS.toggleImportExport(false)
 	changedCP = true
-	CSPS.showElement("apply", true)
 	CSPS.showElement("save", true)
 end
 
@@ -156,7 +155,6 @@ local function applyCPMapping()
 		cp.updateSlottedMarks()		
 		CSPS.toggleCP(cpDisciToMap, true)
 		 CSPS.refreshTree()
-		CSPS.showElement("apply", true)
 		CSPS.showElement("save", true)
 		changedCP = true
 		CSPS.showElement("cpImport", true)
@@ -628,7 +626,6 @@ function CSPS.importTextCP(myDiscipline, convertMe, sumUp, createDynamicProfile,
 		CSPS.toggleCP(myDiscipline, true)
 		CSPS.refreshTree()
 		CSPS.toggleImportExport(false)
-		CSPS.showElement("apply", false)
 		CSPS.showElement("save", false)
 		CSPS.showElement("cpImport", true)
 		cpDisciToMap = myDiscipline

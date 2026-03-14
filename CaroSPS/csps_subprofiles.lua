@@ -11,10 +11,11 @@ local qsCooldown = false
 
 local roles = {"DD", GS(CSPS_CPP_Tank), "", GS(SI_LFGROLE4), "DD(Mag)", "DD(Stam)", GS(SI_GEMIFIABLEFILTERTYPE0)}
 
-local PROFILE_TYPE_ACCOUNT, PROFILE_TYPE_CHAR, PROFILE_TYPE_IMPORT, PROFILE_TYPE_PRESET, PROFILE_TYPE_HOTBARS = 1, 2, 3, 4, 5
+local PROFILE_TYPE_BUILD = 0
+local PROFILE_TYPE_CP_ACCOUNT, PROFILE_TYPE_CP_CHAR, PROFILE_TYPE_CP_IMPORT, PROFILE_TYPE_CP_PRESET, PROFILE_TYPE_CP_HOTBARS = 1, 2, 3, 4, 5
 local PROFILE_TYPE_QS_ACCOUNT, PROFILE_TYPE_QS_CHAR, PROFILE_TYPE_SK_ACCOUNT, PROFILE_TYPE_SK_CHAR = 6, 7, 8, 9
 local PROFILE_TYPE_GEAR_ACCOUNT, PROFILE_TYPE_GEAR_CHAR = 10, 11
-local PROFILE_TYPE_HOTBARS_ACCOUNT = 12 -- only a placeholder...
+local PROFILE_TYPE_CP_HOTBARS_ACCOUNT = 12 -- only a placeholder...
 local PROFILE_TYPE_OUTFIT_ACCOUNT, PROFILE_TYPE_OUTFIT_CHAR = 13, 14
 local PROFILE_TYPE_MAX = 14
 
@@ -22,7 +23,7 @@ local PROFILE_CATEGORY_CP, PROFILE_CATEGORY_QS, PROFILE_CATEGORY_SK, PROFILE_CAT
 local PROFILE_DISCIPLINE_CP_GREEN, PROFILE_DISCIPLINE_CP_BLUE, PROFILE_DISCIPLINE_CP_RED, PROFILE_DISCIPLINE_QUICKSLOTS, PROFILE_DISCIPLINE_SKILLS, PROFILE_DISCIPLINE_GEAR, PROFILE_DISCIPLINE_OUTFIT = 1,2,3,4,5,6,7
 
 local firstTypeOfCategory = { -- is used to tranfer 1/2 to other categories
-	[PROFILE_CATEGORY_CP] = PROFILE_TYPE_ACCOUNT,
+	[PROFILE_CATEGORY_CP] = PROFILE_TYPE_CP_ACCOUNT,
 	[PROFILE_CATEGORY_QS] = PROFILE_TYPE_QS_ACCOUNT,
 	[PROFILE_CATEGORY_SK] = PROFILE_TYPE_SK_ACCOUNT,
 	[PROFILE_CATEGORY_GEAR] = PROFILE_TYPE_GEAR_ACCOUNT,
@@ -30,18 +31,26 @@ local firstTypeOfCategory = { -- is used to tranfer 1/2 to other categories
 }
 
 local nonCustomTypes = {
-	[PROFILE_TYPE_IMPORT] = true,
-	[PROFILE_TYPE_PRESET] = true,
+	[PROFILE_TYPE_CP_IMPORT] = true,
+	[PROFILE_TYPE_CP_PRESET] = true,
 }
 
 local typesWithKeybinds = {
-	[PROFILE_TYPE_HOTBARS] = true,
-	[PROFILE_TYPE_HOTBARS_ACCOUNT] = true,	
+	[PROFILE_TYPE_CP_HOTBARS] = true,
+	[PROFILE_TYPE_CP_HOTBARS_ACCOUNT] = true,	
 	[PROFILE_TYPE_QS_ACCOUNT] = true,
 	[PROFILE_TYPE_QS_CHAR] = true,
 }
 
-local cpHotBarProfileType = {[PROFILE_TYPE_HOTBARS] = true, [PROFILE_TYPE_HOTBARS_ACCOUNT] = true}
+local cpHotBarProfileTypes = {[PROFILE_TYPE_CP_HOTBARS] = true, [PROFILE_TYPE_CP_HOTBARS_ACCOUNT] = true}
+
+local accountWideProfileTypes = 
+	{[PROFILE_TYPE_CP_ACCOUNT] = true, 
+	[PROFILE_TYPE_GEAR_ACCOUNT] = true,
+	[PROFILE_TYPE_CP_HOTBARS_ACCOUNT] = true,
+	[PROFILE_TYPE_OUTFIT_ACCOUNT] = true,
+	[PROFILE_TYPE_QS_ACCOUNT] = true,
+	[PROFILE_TYPE_SK_ACCOUNT] = true}
 
 local profileCatByDiscipline = {
 	[PROFILE_DISCIPLINE_CP_BLUE] = PROFILE_CATEGORY_CP,
@@ -54,11 +63,11 @@ local profileCatByDiscipline = {
 }
 
 local profileCatByType = {
-	[PROFILE_TYPE_ACCOUNT] = PROFILE_CATEGORY_CP,	[PROFILE_TYPE_CHAR] = PROFILE_CATEGORY_CP,	[PROFILE_TYPE_IMPORT] = PROFILE_CATEGORY_CP,	[PROFILE_TYPE_PRESET] = PROFILE_CATEGORY_CP,	[PROFILE_TYPE_HOTBARS] = PROFILE_CATEGORY_CP,
+	[PROFILE_TYPE_CP_ACCOUNT] = PROFILE_CATEGORY_CP,	[PROFILE_TYPE_CP_CHAR] = PROFILE_CATEGORY_CP,	[PROFILE_TYPE_CP_IMPORT] = PROFILE_CATEGORY_CP,	[PROFILE_TYPE_CP_PRESET] = PROFILE_CATEGORY_CP,	[PROFILE_TYPE_CP_HOTBARS] = PROFILE_CATEGORY_CP,
 	[PROFILE_TYPE_QS_ACCOUNT] = PROFILE_CATEGORY_QS,	[PROFILE_TYPE_QS_CHAR] = PROFILE_CATEGORY_QS,	[PROFILE_TYPE_SK_ACCOUNT] = PROFILE_CATEGORY_SK,	[PROFILE_TYPE_SK_CHAR] = PROFILE_CATEGORY_SK,
 	[PROFILE_TYPE_GEAR_ACCOUNT] = PROFILE_CATEGORY_GEAR,
 	[PROFILE_TYPE_GEAR_CHAR] = PROFILE_CATEGORY_GEAR,
-	[PROFILE_TYPE_HOTBARS_ACCOUNT] = PROFILE_CATEGORY_CP, 
+	[PROFILE_TYPE_CP_HOTBARS_ACCOUNT] = PROFILE_CATEGORY_CP, 
 	[PROFILE_TYPE_OUTFIT_ACCOUNT] = PROFILE_CATEGORY_OUTFIT,
 	[PROFILE_TYPE_OUTFIT_CHAR] = PROFILE_CATEGORY_OUTFIT,
 }
@@ -80,7 +89,7 @@ local profileDisciplineTitles = {
 local profileCatsThatCanBeConnected = {[PROFILE_CATEGORY_CP] = true, [PROFILE_CATEGORY_QS] = true,}
 		
 local zoneAbbrByType = {
-	trial = {[636] = "HRC", [638] = "AA", [639] = "SO", [1263] = "RG", [1344] = "DSR", [725] = "MoL", [975] = "HoF", [1000] = "AS", [1051] = "CR", [1121] = "SS", [1196] = "KA", [1427] = "SE", [1478] = "LC"},
+	trial = {[636] = "HRC", [638] = "AA", [639] = "SO", [1263] = "RG", [1344] = "DSR", [725] = "MoL", [975] = "HoF", [1000] = "AS", [1051] = "CR", [1121] = "SS", [1196] = "KA", [1427] = "SE", [1478] = "LC", [1548] = "OC", },
 	solo = {[1227] = "VH", [677] = "MA",},
 	arena = {[1082] = "BRP", [635] = "DSA", [1436]="EA",}
 }
@@ -91,7 +100,7 @@ local classAbbr = {"DK", "Sorc", "NB", "Warden", "Necro", "Temp", [117] = "Arc"}
 
 local roleFilter = ""
 
-local function getProfileTypeLists(createIfEmpty, presetsToo, accountCpHb)
+local function getProfileTypeLists(createIfEmpty, presetsToo)
 	local sV = CSPS.savedVariables
 	local cC = CSPS.currentCharData
 	if createIfEmpty then
@@ -119,22 +128,24 @@ local function getProfileTypeLists(createIfEmpty, presetsToo, accountCpHb)
 		sV.cpHbProfiles,						--12 
 		sV.outfitProfiles, cC.outfitProfiles, -- 13, 14
 	}
-	if accountCpHb then table.insert(profileTypeLists, sV.cpHbProfiles) end --12: account wide cp hotbars
 	return profileTypeLists
 end
 
-local function getProfileListByType(myType, accountCpHb)
-	local profileTypeLists = getProfileTypeLists(true, true, accountCpHb)
-	if myType == PROFILE_TYPE_HOTBARS and accountCpHb then myType = PROFILE_TYPE_HOTBARS_ACCOUNT end
+local function getProfileListByType(myType)
+	local profileTypeLists = getProfileTypeLists(true, true)
 	return profileTypeLists[myType]
 end
 
-local function getProfileByTypeAndId(myType, myId, cat, accountCpHb)
+CSPS.getProfileListByType = getProfileListByType
+
+local function getProfileByTypeAndId(myType, myId, cat)
 	if cat and cat ~= profileCatByType[myType] then return false end
-	local profileList = getProfileListByType(myType, accountCpHb)
+	local profileList = getProfileListByType(myType)
 	if not profileList then return false end
 	return profileList[myId]
 end
+
+CSPS.getProfileByTypeAndId = getProfileByTypeAndId
 
 function CSPS.getTrialArenaList()
 	local trialArenaByName = {}
@@ -160,8 +171,9 @@ CSPS.getCpHbId =getCpHbId
 local function getBindingProfileByDisciplineAndId(discipline, myId)
 	local myId, accountWide = getCpHbId(myId)
 	if not myId then return false end
-	local myType = discipline == PROFILE_DISCIPLINE_QUICKSLOTS and (accountWide and PROFILE_TYPE_QS_ACCOUNT or PROFILE_TYPE_QS_CHAR) or accountWide and PROFILE_TYPE_HOTBARS_ACCOUNT or PROFILE_TYPE_HOTBARS
-	local myProfile = getProfileByTypeAndId(myType, myId, nil, accountWide)
+	local myType = discipline == PROFILE_DISCIPLINE_QUICKSLOTS and (accountWide and PROFILE_TYPE_QS_ACCOUNT or PROFILE_TYPE_QS_CHAR) 
+		or accountWide and PROFILE_TYPE_CP_HOTBARS_ACCOUNT or PROFILE_TYPE_CP_HOTBARS
+	local myProfile = getProfileByTypeAndId(myType, myId, nil)
 	return myProfile, accountWide
 end
 
@@ -188,8 +200,8 @@ end
 
 function CSPS.getProfileNameAbbr(myName)
 	myName = myName or ""
-	local myRole = GetSelectedLFGRole()
-	if myRole == 3 then return myName end
+	local myRole = CSPS.role or GetSelectedLFGRole()
+	if not myRole or myRole == 3 then return myName end
 	local myMagStam = CSPS.isMagOrStam()
 	if myMagStam > 0 and myRole == 1 then
 		local magStamAbbr = {"Mag", "Stam"}
@@ -202,7 +214,7 @@ end
 
 function CSPS.getConnectedProfileName(myConnection)
 	local myType, myId = SplitString("-", myConnection)
-	local typeLists = getProfileTypeLists(false, true, false)
+	local typeLists = getProfileTypeLists(false, true)
 	
 	local myName = typeLists[tonumber(myType)] 
 	myName = myName and myName[tonumber(myId)] or false
@@ -247,13 +259,13 @@ local function loadQuickSlots(myType, myId, _, andApply)
 	end
 end
 
-local function subProfileKeyLoadAndApply(myDiscipline, myId, accountWide)
+local function subProfileKeyLoadAndApply(myDiscipline, myId, accountWide) -- only for quickslots and cp hotbars 
 	if myDiscipline == PROFILE_DISCIPLINE_QUICKSLOTS then
 		loadQuickSlots(accountWide and PROFILE_TYPE_QS_ACCOUNT or PROFILE_TYPE_QS_CHAR, myId, nil, true)
 		return
 	end
 	local hotbarsOnly = {false, false, false}
-	local myProfile = getProfileByTypeAndId(PROFILE_TYPE_HOTBARS, myId, nil, accountWide)
+	local myProfile = getProfileByTypeAndId(accountWide and PROFILE_TYPE_CP_HOTBARS_ACCOUNT or PROFILE_TYPE_CP_HOTBARS, myId, nil)
 	local hbComp = myProfile["hbComp"]
 	local myDiscipline = myProfile["discipline"]
 	hotbarsOnly[myDiscipline] = true
@@ -261,7 +273,6 @@ local function subProfileKeyLoadAndApply(myDiscipline, myId, accountWide)
 	cp.updateSidebarIcons(myDiscipline)		
 	cp.updateSlottedMarks()
 	CSPS.unsavedChanges = true
-	CSPS.showElement("apply", true)
 	CSPS.showElement("save", true)
 	cp.applyConfirm(false, hotbarsOnly)
 	cp.recheckHotbar()
@@ -273,7 +284,8 @@ end
 local function assignHkGroup(myGroup)
 	local myId = CSPSWindowCpHbHkNumberList.idToAssign
 	local myDiscipline = CSPSWindowCpHbHkNumberList.disciToAssign
-	local myId = CSPSWindowCpHbHkNumberList.profileIsAccountWide and myId.."-a" or myId
+	myId = string.match(myId, "%d+")
+	myId = CSPSWindowCpHbHkNumberList.profileIsAccountWide and myId.."-a" or myId
 	local spHotkeys = CSPSWindowCpHbHkNumberList.bindingIsAccountWide and CSPS.spHotkeysA or CSPS.spHotkeysC
 	if spHotkeys[myGroup][myDiscipline] == myId then 
 		spHotkeys[myGroup][myDiscipline] = nil
@@ -474,7 +486,7 @@ local function hbPshowTTApply(myId, myDiscipline, profileIsAccountWide, control)
 end
 
 local function ShowCustomCPProfileTT(control, data)
-	if data.type ~= PROFILE_TYPE_ACCOUNT and data.type ~= PROFILE_TYPE_CHAR then return end
+	if data.type ~= PROFILE_TYPE_CP_ACCOUNT and data.type ~= PROFILE_TYPE_CP_CHAR then return end
 	InitializeTooltip(InformationTooltip, control, LEFT)	
 	local r, g, b = ZO_SELECTED_TEXT:UnpackRGB()
 	InformationTooltip:AddLine(data.name, "ZoFontWinH2", r, g, b)
@@ -511,9 +523,12 @@ end
 function CSPS.showSkillProfileTT(control, myType, myId)
 	local myProfile = getProfileByTypeAndId(myType, myId)
 	if not myProfile or not myProfile.actionBar and (not myProfile.hbComp or not myProfile.hbComp.prog or not myProfile.hbComp.pass) then return end
-	local activeSkills, passiveSkills, changedRace, crafted = false, false, false, false
+	local activeSkills, passiveSkills, changedRace, crafted, styles, subclasses = false, false, false, false, false, false
 	
-	if myProfile.hbComp then activeSkills, passiveSkills, changedRace, crafted = CSPS.skTableExtract(myProfile.hbComp.prog, myProfile.hbComp.pass, true, true, myProfile.hbComp.crafted) end
+	if myProfile.hbComp then 
+		activeSkills, passiveSkills, changedRace, crafted, styles, subclasses = CSPS.skTableExtract(myProfile.hbComp.prog, myProfile.hbComp.pass, true, true, myProfile.hbComp.crafted, myProfile.hbComp.styles, myProfile.hbComp.subclasses, false, myProfile.hbComp.scribeStyleSubclass) 
+		if not myProfile.hbComp.subclasses then subclasses = false end
+	end
 	
 	InitializeTooltip(InformationTooltip, control, LEFT)	
 	local r, g, b = ZO_SELECTED_TEXT:UnpackRGB()
@@ -525,6 +540,14 @@ function CSPS.showSkillProfileTT(control, myType, myId)
 	
 	if myProfile.hbComp then
 		ZO_Tooltip_AddDivider(InformationTooltip)
+		if subclasses and myProfile.hbComp.subclasses then
+			for i, v in pairs(subclasses) do
+				local skillLineId = GetSkillLineId(1,v)
+				InformationTooltip:AddLine(zo_strformat("|t23:23:<<1>>|t <<C:2>>", GetCollectibleIcon(GetSkillLineMasteryCollectibleId(skillLineId)), GetSkillLineNameById(skillLineId)), "ZoFontGame", r, g, b, CENTER, nil, TEXT_ALIGN_CENTER, SET_TO_FULL_SIZE)
+			end
+			
+			InformationTooltip:AddLine("", "ZoFontGame", r, g, b, CENTER, nil, TEXT_ALIGN_CENTER, SET_TO_FULL_SIZE)
+		end
 		if #activeSkills + #passiveSkills < 30 then
 			--local activeTooltip = {}
 			InformationTooltip:AddLine(GS(SI_SKILLS_ACTIVE_ABILITIES), "ZoFontWinH4", r, g, b, CENTER, nil, TEXT_ALIGN_CENTER, SET_TO_FULL_SIZE)
@@ -628,22 +651,22 @@ local function showPresetProfileTT(control, data)
 	InformationTooltip:AddLine(zo_strformat(GS(CSPS_Tooltip_CPPUpdate), control.data.updated[1], control.data.updated[2], control.data.updated[3]), "ZoFontGame")
 	if control.data.website then InformationTooltip:AddLine(zo_strformat(GS(CSPS_Tooltip_CPPWebsite), control.data.website), "ZoFontGame") end
 	addConnectionToTooltip(4, control.data.myId, control.data.discipline)
+	InformationTooltip:AddLine(string.format("|t26:26:esoui/art/miscellaneous/icon_rmb.dds|t: %s", GS(SI_GAMEPAD_HELP_DETAILS)))
 end
 
-local function getSubProfileName(myId, myType, accountCpHb)
-	local myProfile = getProfileByTypeAndId(myType, myId, nil, accountCpHb)
+local function getSubProfileName(myId, myType)
+	local myProfile = getProfileByTypeAndId(myType, myId, nil)
 	local myName = myProfile and myProfile.name or false
 	return myName
 end
 
-local function subProfileDelete(myId, myType, myDiscipline, accountCpHb)
-	local profileTypeLists = getProfileTypeLists(false, false, accountCpHb)
-	myType = accountCpHb and myType == PROFILE_TYPE_HOTBARS and PROFILE_TYPE_HOTBARS_ACCOUNT or myType
-	accountCpHb = myType == PROFILE_TYPE_QS_ACCOUNT or accountCpHb
+local function subProfileDelete(myId, myType, myDiscipline)
+	local profileTypeLists = getProfileTypeLists(false, false)	
+	local accountWide = accountWideProfileTypes[myType]
 	
 	if typesWithKeybinds[myType] then	-- delete hotkey bindings for deleted cp bar profile
 		
-		local idToLookFor = accountCpHb and myId.."-a" or myId
+		local idToLookFor = accountWide and myId.."-a" or myId
 		
 		for i, v in ipairs(CSPS.spHotkeysC) do
 			if v[myDiscipline] == idToLookFor then v[myDiscipline] = nil end
@@ -659,11 +682,11 @@ local function subProfileDelete(myId, myType, myDiscipline, accountCpHb)
 	CSPS.subProfileList:RefreshData()
 end
 
-local function subProfileMinus(myId, myType, myDiscipline, accountCpHb)
-	local myName = getSubProfileName(myId, myType, accountCpHb)
+local function subProfileMinus(myId, myType, myDiscipline)
+	local myName = getSubProfileName(myId, myType)
 	if not myName then return end
 	ZO_Dialogs_ShowDialog(CSPS.name.."_OkCancelDiag", 
-		{returnFunc = function()  subProfileDelete(myId, myType, myDiscipline, accountCpHb)  end},  
+		{returnFunc = function()  subProfileDelete(myId, myType, myDiscipline)  end},  
 		{mainTextParams = {zo_strformat(GS(CSPS_MSG_DeleteProfile), myName, "", "")}, titleParams = {GS(CSPS_MyWindowTitle)}})
 end
 
@@ -688,9 +711,9 @@ function subProfileCLASS:SetupItemRow( control, data )
 	tooltipFunction = tooltipFunction[data.discipline] 
 	
 	tooltipFunction = tooltipFunction 
-		or (data.type == PROFILE_TYPE_ACCOUNT or data.type == PROFILE_TYPE_CHAR) and function() ShowCustomCPProfileTT(control, data) end
-		or data.type == PROFILE_TYPE_PRESET and function() showPresetProfileTT(control, data) end
-		or ctrName:WasTruncated() and data.type ~=PROFILE_TYPE_PRESET and function() ZO_Tooltips_ShowTextTooltip(ctrName, RIGHT, data.name) end
+		or (data.type == PROFILE_TYPE_CP_ACCOUNT or data.type == PROFILE_TYPE_CP_CHAR) and function() ShowCustomCPProfileTT(control, data) end
+		or data.type == PROFILE_TYPE_CP_PRESET and function() showPresetProfileTT(control, data) end
+		or ctrName:WasTruncated() and data.type ~=PROFILE_TYPE_CP_PRESET and function() ZO_Tooltips_ShowTextTooltip(ctrName, RIGHT, data.name) end
 		or function() end
 	
 	ctrName:SetHandler("OnMouseEnter", function() tooltipFunction() CSPS.SubProfileListRowMouseEnter(control) end)
@@ -699,9 +722,9 @@ function subProfileCLASS:SetupItemRow( control, data )
 	ctrPoints:SetText(data.points)
 	
 	local typesToShowConnectionsFor = {
-		[PROFILE_TYPE_ACCOUNT] = true, 
-		[PROFILE_TYPE_CHAR]= true, 
-		[PROFILE_TYPE_PRESET]= true, 
+		[PROFILE_TYPE_CP_ACCOUNT] = true, 
+		[PROFILE_TYPE_CP_CHAR]= true, 
+		[PROFILE_TYPE_CP_PRESET]= true, 
 		[PROFILE_TYPE_QS_ACCOUNT] = true, 
 		[PROFILE_TYPE_QS_CHAR] = true
 	}
@@ -718,21 +741,21 @@ function subProfileCLASS:SetupItemRow( control, data )
 	
 	
 	if not nonCustomTypes[data.type] then 
-		control:GetNamedChild("Rename"):SetHandler("OnClicked", function() CSPS.subProfileRename(data.myId, data.type, data.accountWide) end)
-		control:GetNamedChild("Save"):SetHandler("OnClicked", function() CSPS.subProfileSave(data.myId, data.type, data.accountWide) end)
-		control:GetNamedChild("Minus"):SetHandler("OnClicked", function() subProfileMinus(data.myId, data.type, data.discipline, data.accountWide) end)
+		control:GetNamedChild("Rename"):SetHandler("OnClicked", function() CSPS.subProfileRename(data.myId, data.type) end)
+		control:GetNamedChild("Save"):SetHandler("OnClicked", function() CSPS.subProfileSave(data.myId, data.type) end)
+		control:GetNamedChild("Minus"):SetHandler("OnClicked", function() subProfileMinus(data.myId, data.type, data.discipline) end)
 		if data.isNew then 
 			ctrName.normalColor = ZO_GAME_REPRESENTATIVE_TEXT
 			ctrPoints.normalColor = ZO_GAME_REPRESENTATIVE_TEXT
 		end
 	end
 	ctrName:ClearAnchors()
-	ctrName:SetAnchor(RIGHT, data.type == PROFILE_TYPE_PRESET and ctrRole or control:GetNamedChild("Rename"), LEFT, -5, 0, ANCHOR_CONSTRAINS_X)
+	ctrName:SetAnchor(RIGHT, data.type == PROFILE_TYPE_CP_PRESET and ctrRole or control:GetNamedChild("Rename"), LEFT, -5, 0, ANCHOR_CONSTRAINS_X)
 	ctrName:SetAnchor(LEFT, ctrPoints, RIGHT, 5, 0)
-	ctrRole:SetHidden(data.type  ~= PROFILE_TYPE_PRESET )
-	ctrSource:SetHidden(data.type ~= PROFILE_TYPE_PRESET )
+	ctrRole:SetHidden(data.type  ~= PROFILE_TYPE_CP_PRESET )
+	ctrSource:SetHidden(data.type ~= PROFILE_TYPE_CP_PRESET )
 	
-	if data.type == PROFILE_TYPE_PRESET  then
+	if data.type == PROFILE_TYPE_CP_PRESET  then
 		ctrRole:SetText(data.role)
 		ctrSource:SetText(data.source)
 		ctrRole.normalColor = ZO_DEFAULT_TEXT
@@ -744,14 +767,14 @@ function subProfileCLASS:SetupItemRow( control, data )
 	control:GetNamedChild("Hotkey"):SetHidden(not showKeybinds)
 	control:GetNamedChild("Apply"):SetHidden(not showKeybinds)
 	
-	if data.type == PROFILE_TYPE_HOTBARS then
+	if cpHotBarProfileTypes[data.type] then
 		GetControl(control, "Connection"):SetHidden(false)
-		local myTexture = data.accountWide and "esoui/art/inventory/inventory_currencytab_accountwide_down.dds" or "esoui/art/inventory/inventory_currencytab_oncharacter_down.dds"
+		local myTexture = accountWideProfileTypes[data.type] and "esoui/art/inventory/inventory_currencytab_accountwide_down.dds" or "esoui/art/inventory/inventory_currencytab_oncharacter_down.dds"
 		GetControl(control, "Connection"):SetTexture(myTexture)
 	end
 	
 	if showKeybinds then
-		local profileIsAccountWide = data.type == PROFILE_TYPE_QS_ACCOUNT or data.accountWide
+		local profileIsAccountWide = accountWideProfileTypes[data.type]
 		control:GetNamedChild("Apply"):SetHandler("OnClicked", function() subProfileKeyLoadAndApply(data.discipline, data.myId, profileIsAccountWide) end) 
 		control:GetNamedChild("Apply"):SetHandler("OnMouseEnter", function() hbPshowTTApply(data.myId, data.discipline, profileIsAccountWide, control:GetNamedChild("Apply")) end)
 		
@@ -828,19 +851,15 @@ end
 
 function subProfileCLASS:BuildMasterList()
 	self.masterList = { }
-	local profileTypeLists = getProfileTypeLists(false, true, true)
+	local profileTypeLists = getProfileTypeLists(false, true)
 	for myType, myList in pairs(profileTypeLists) do
 		for myId, myData in pairs(myList) do
 			local myDiscipline = profileDisciplineByCategory[profileCatByType[myType]] or myData.discipline
 			local insertData = {type = myType, name = myData.name, discipline = myDiscipline, myId = myId, points = myData.points, isNew = myData.isNew}
-			if myType == PROFILE_TYPE_HOTBARS_ACCOUNT then
-				insertData.type = PROFILE_TYPE_HOTBARS
-				insertData.accountWide = true
-			end
 			if myDiscipline == PROFILE_DISCIPLINE_QUICKSLOTS then
 				insertData.cat = myData.cat
 			end
-			if myType == PROFILE_TYPE_PRESET then
+			if myType == PROFILE_TYPE_CP_PRESET then
 				insertData.role = roles[myData.role or 7]
 				insertData.source = myData.source
 				insertData.addInfo = myData.addInfo
@@ -856,11 +875,11 @@ end
 function subProfileCLASS:FilterScrollList()
 	local scrollData = ZO_ScrollList_GetDataList(self.list)
 	ZO_ClearNumericallyIndexedTable(scrollData)
-
+	local showCPHotbarAccount = CSPS.subProfileType == PROFILE_TYPE_CP_HOTBARS -- one list for both types
 	for _, data in ipairs(self.masterList) do
 		local templateType = 2 -- My type here refers to the UI element not the data type: 1 being a list entry for presets, 2 also contains the profile buttons
 		if nonCustomTypes[data.type] then templateType = 1 end 
-		if (CSPS.subProfileDiscipline == nil or CSPS.subProfileDiscipline == data.discipline) and (CSPS.subProfileType == nil or CSPS.subProfileType == data.type) then
+		if (CSPS.subProfileDiscipline == nil or CSPS.subProfileDiscipline == data.discipline) and (CSPS.subProfileType == nil or CSPS.subProfileType == data.type or (showCPHotbarAccount and data.type == PROFILE_TYPE_CP_HOTBARS_ACCOUNT)) then
 			if not data.old or CSPS.savedVariables.settings.showOutdatedPresets then
 				if data.type ~= 4 or roleFilter == "" or roleFilter == roles[7] or roleFilter == data.role or data.role == roles[7] or (data.role == 1 and (roleFilter == roles[5] or roleFilter == roles[6])) then
 					table.insert(scrollData, ZO_ScrollList_CreateDataEntry(templateType, data))
@@ -911,8 +930,8 @@ function CSPS.showSubProfileDiscipline(newDiscipline, silentChange)
 end
 
 local function addSubProfile(myProfile, myType)
-	local profileTypeLists = getProfileTypeLists(true, false, myType == PROFILE_TYPE_HOTBARS_ACCOUNT)
-		
+	local profileTypeLists = getProfileTypeLists(true, false)
+	local myPos = profileTypeLists[myType] and #profileTypeLists[myType] + 1
 	if profileTypeLists[myType] then
 		table.insert(profileTypeLists[myType], myProfile)
 	end
@@ -931,9 +950,11 @@ local function addSubProfile(myProfile, myType)
 			v.isNew = nil
 		end
 	end
+	
+	return myProfile, profileTypeLists[myType], myPos
 end
 
-function CSPS.subProfilePlus(myType, qsBarIndex)
+function CSPS.subProfilePlus(myType, qsBarIndex, addonName)
 	
 	local myProfile = {}
 	local myTable = {}
@@ -945,10 +966,12 @@ function CSPS.subProfilePlus(myType, qsBarIndex)
 	
 	local _, zoneAbbr = CSPS.getTrialArenaList()
 	
-	myName = not cpHotBarProfileType[myType] and zoneAbbr[myZone] or myName -- add zone to name
-	myName = not cpHotBarProfileType[myType] and CSPS.getProfileNameAbbr(myName) -- add role to name
+	myName = not cpHotBarProfileTypes[myType] and zoneAbbr[myZone] or myName -- add zone to name
+	myName = not cpHotBarProfileTypes[myType] and CSPS.getProfileNameAbbr(myName) -- add role to name
 	
-	if profileCatByType[myType] == PROFILE_CATEGORY_CP and not cpHotBarProfileType[myType] then
+	myName = addonName and string.format("%s (%s)", os.date("%x", os.time())) or myName
+	
+	if profileCatByType[myType] == PROFILE_CATEGORY_CP and not cpHotBarProfileTypes[myType] then
 		for i, skillData in pairs (cp.table) do
 			if skillData.discipline == CSPS.subProfileDiscipline then 
 				myTable[i] = skillData
@@ -997,73 +1020,99 @@ function CSPS.subProfilePlus(myType, qsBarIndex)
 		
 		return
 	elseif profileCatByType[myType] == PROFILE_CATEGORY_SK then
-		local function addSkProfile(doSkills, doHb)
+		local function addSkProfile(doSkills, doHb, doSubclasses)
 			myPoints = doSkills and CSPS.skillTable.points or 0
 			myBar = doSkills and CSPS.compressLists() or nil
+			if myBar and doSubclasses then myBar.subclasses = true end
 			local actionBar = doHb and CSPS.hbCompress(CSPS.hbTables) or nil
-			myProfile = {name = myName, discipline = CSPS.subProfileDiscipline,  hbComp = myBar, actionBar = actionBar, points = myPoints, isNew = true} -- myBar can be quickslots etc
-			addSubProfile(myProfile,  myType)
+			myProfile = {name = myName, discipline = CSPS.subProfileDiscipline,  hbComp = myBar, actionBar = actionBar, points = myPoints, isNew = true}
+			return addSubProfile(myProfile,  myType)
 		end
-		
+		if addonName then 
+			return addSkProfile(true, false, true) -- doSkills, doHb, doSubclasses
+		end
 		ClearMenu()
-		AddCustomMenuItem(string.format("%s / %s", GS(SI_CHARACTER_MENU_SKILLS), GS(SI_INTERFACE_OPTIONS_ACTION_BAR)), function() addSkProfile(true, true) end)
+		AddCustomMenuItem(string.format("%s / %s", GS(SI_CHARACTER_MENU_SKILLS), GS(SI_INTERFACE_OPTIONS_ACTION_BAR)), function() addSkProfile(true, true, true) end)
+		AddCustomMenuItem(string.format("%s / %s (%s)", GS(SI_CHARACTER_MENU_SKILLS), GS(SI_INTERFACE_OPTIONS_ACTION_BAR), GS(CSPS_IgnoreSubClasses)), function() addSkProfile(true, true, false) end)
+		
 		AddCustomMenuItem("-", function() end)
-		AddCustomMenuItem(GS(SI_CHARACTER_MENU_SKILLS), function() addSkProfile(true, false) end)
+		AddCustomMenuItem(GS(SI_CHARACTER_MENU_SKILLS), function() addSkProfile(true, false, true) end)
+		AddCustomMenuItem(string.format("%s (%s)", GS(SI_CHARACTER_MENU_SKILLS), GS(CSPS_IgnoreSubClasses)), function() addSkProfile(true, false, false) end)
 		AddCustomMenuItem(GS(SI_INTERFACE_OPTIONS_ACTION_BAR), function() addSkProfile(false, true) end)
+		
 		ShowMenu()
 		return
 	end
 			
-	if myType == PROFILE_TYPE_HOTBARS then 
+	if myType == PROFILE_TYPE_CP_HOTBARS then 
 		myProfile = {name = GS(CSPS_Txt_NewProfile2), discipline = CSPS.subProfileDiscipline, hbComp = myBar, isNew = true}
 		ClearMenu()
-		AddCustomMenuItem(GS(SI_CURRENCYLOCATION0), function() addSubProfile(myProfile, PROFILE_TYPE_HOTBARS) end) -- character
-		AddCustomMenuItem(GS(SI_CURRENCYLOCATION3), function() myProfile.accountWide = true addSubProfile(myProfile, PROFILE_TYPE_HOTBARS_ACCOUNT) end)  -- account
+		AddCustomMenuItem(GS(SI_CURRENCYLOCATION0), function() addSubProfile(myProfile, PROFILE_TYPE_CP_HOTBARS) end) -- character
+		AddCustomMenuItem(GS(SI_CURRENCYLOCATION3), function() addSubProfile(myProfile, PROFILE_TYPE_CP_HOTBARS_ACCOUNT) end)  -- account
 		ShowMenu()
 		return		
-	elseif myType > PROFILE_TYPE_HOTBARS then -- not cp
+	elseif myType > PROFILE_TYPE_CP_HOTBARS then -- not cp, it will never be PROFILE_TYPE_CP_HOTBARS_ACCOUNT (which would be higher)
 		myProfile = {name = myName, discipline = CSPS.subProfileDiscipline,  hbComp = myBar, points = myPoints, isNew = true} -- myBar can be quickslots etc
-	else
-		myProfile = {name = myName, discipline = CSPS.subProfileDiscipline, points = myPoints, cpComp = myTable, hbComp = myBar, isNew = true}
+	else --cp
+	
+		ClearMenu()
+		
+		AddCustomMenuItem(GS(CSPS_Static), function() 
+			myProfile = {name = myName, discipline = CSPS.subProfileDiscipline, points = myPoints, cpComp = myTable, hbComp = myBar, isNew = true}
+			addSubProfile(myProfile,  myType)
+		end)
+		AddCustomMenuItem(GS(CSPS_Dynamic), function() 
+			myProfile = {name = myName, discipline = CSPS.subProfileDiscipline, points = "(dynamic)", cpComp = myTable, hbComp = myBar, isNew = true}
+			addSubProfile(myProfile,  myType)
+		end)
+		local menuItemControl = ZO_Menu.items[#ZO_Menu.items].item 
+		menuItemControl.onEnter = function() ZO_Tooltips_ShowTextTooltip(menuItemControl, RIGHT, GS(CSPS_Tooltip_DynamicProfile)) end
+		menuItemControl.onExit = function() ZO_Tooltips_HideTextTooltip() end
+		
+		ShowMenu()
+		return
 	end
 	
 	addSubProfile(myProfile,  myType)
 	
 end
 
-local function subProfileRenameGo(newName, myId, myType, accountCpHb)
+local function subProfileRenameGo(newName, myId, myType)
 	if newName == "" then return end
-	local myProfile = getProfileByTypeAndId(myType, myId, nil, accountCpHb)
+	local myProfile = getProfileByTypeAndId(myType, myId)
 	if myProfile then
 		myProfile.name = newName
 		CSPS.subProfileList:RefreshData()
 	end
 end
 
-function CSPS.subProfileRename(myId, myType, accountCpHb)
-	local myName = getSubProfileName(myId, myType, accountCpHb)
+function CSPS.subProfileRename(myId, myType)
+	local myName = getSubProfileName(myId, myType)
 	if not myName then return end
 	
 	ZO_Dialogs_ShowDialog(CSPS.name.."_TextInputDiag", 
-		{confirmFunc = function(txt) if not txt or txt == "" then return end subProfileRenameGo(txt, myId, myType, accountCpHb) end},
+		{confirmFunc = function(txt) if not txt or txt == "" then return end subProfileRenameGo(txt, myId, myType) end},
 		{mainTextParams = {zo_strformat(GS(CSPS_MSG_RenameProfile), myName, "")}, initialEditText = myName})
 end
 
 
 
-function CSPS.subProfileSave(myId, myType, accountCpHb)
-	local myName = getSubProfileName(myId, myType, accountCpHb)
+function CSPS.subProfileSave(myId, myType)
+	local myName = getSubProfileName(myId, myType)
 	if not myName then return end
-	
+	local profileToSave = getProfileByTypeAndId(myType, myId, nil)
+	if profileToSave.points == "(dynamic)" then  CSPS.subProfileSaveGo(myId, myType) return  end
 	ZO_Dialogs_ShowDialog(CSPS.name.."_OkCancelDiag", 
-		{returnFunc = function() CSPS.subProfileSaveGo(myId, myType, accountCpHb)  end},  
+		{returnFunc = function() CSPS.subProfileSaveGo(myId, myType)  end},  
 		{mainTextParams = {zo_strformat(GS(CSPS_MSG_ConfirmSave), myName, "")}, titleParams = {GS(CSPS_MyWindowTitle)}})
 end
 
 local function skillProfileSaveGo(myId, myType, profileToSave)
 
 	profileToSave.points = profileToSave.hbComp and CSPS.skillTable.points or 0
+	local usesSubClasses = profileToSave.hbComp and profileToSave.hbComp.subclasses or false
 	profileToSave.hbComp = profileToSave.hbComp and CSPS.compressLists()
+	profileToSave.hbComp.subclasses = usesSubClasses
 	profileToSave.actionBar = profileToSave.actionbar and CSPS.hbCompress(CSPS.hbTables)
 	profileToSave.lastSaved = os.time()
 
@@ -1071,13 +1120,11 @@ local function skillProfileSaveGo(myId, myType, profileToSave)
 end
 
 local function gearProfileSaveGo(myId, myType, profileToSave)
-	local gear, gearUnique = CSPS.buildGearString()
+	local gear, gearUnique, numberOfItems = CSPS.buildGearString()
 	if not gear and not gearUnique then return end
 	profileToSave.gear = gear
-	profileToSave.points = 0
-	for i, v in pairs(gear) do
-		if v then profileToSave.points = profileToSave.points + 1 end
-	end
+	profileToSave.points = numberOfItems
+
 	profileToSave.gearUnique = gearUnique
 	profileToSave.lastSaved = os.time()
 
@@ -1101,21 +1148,35 @@ local function outfitSaveGo(myId, myType, profileToSave)
 	CSPS.subProfileList:RefreshData()
 end
 
-function CSPS.subProfileSaveGo(myId, myType, accountCpHb)
-	local profileToSave = getProfileByTypeAndId(myType, myId, nil, accountCpHb)
-	if profileCatByType[myType] == PROFILE_CATEGORY_QS then quickslotSaveGo(myId, myType, profileToSave) return end
-	if profileCatByType[myType] == PROFILE_CATEGORY_SK then skillProfileSaveGo(myId, myType, profileToSave) return end
-	if profileCatByType[myType] == PROFILE_CATEGORY_GEAR then gearProfileSaveGo(myId, myType, profileToSave) return end
-	if profileCatByType[myType] == PROFILE_CATEGORY_OUTFIT then outfitSaveGo(myId, myType, profileToSave) return end
+local function cpSaveGo(myId, myType, profileToSave)
 	local myTable = {}
 	local myPoints = 0
-	if not cpHotBarProfileType[myType] then
+	if profileToSave.points == "(dynamic)" then 
+		myPoints = "(dynamic)"
+		local oldValues = {}
+		local sortedList = {SplitString(";", profileToSave.cpComp)}
+		for _, entry in ipairs(sortedList) do
+			local cpId, cpValue = SplitString("-", entry)
+			oldValues[tonumber(cpId)] = tonumber(cpValue)
+		end
+		for skillId, skillData in pairs (cp.table) do
+			if skillData.discipline == CSPS.subProfileDiscipline then 
+				if (not oldValues[skillId] or skillData.value > oldValues[skillId]) and skillData.value > 0 then
+					table.insert(sortedList,  string.format("%s-%s", skillId, skillData.value))
+				end
+			end
+		end
+		
+		myTable = table.concat(sortedList, ";")
+		
+	elseif not cpHotBarProfileTypes[myType] then
 		for i, skillData in pairs (cp.table) do
 			if skillData.discipline == CSPS.subProfileDiscipline then 
 				myTable[i] = skillData 
 				myPoints = myPoints + skillData.value
 			end
 		end
+		
 		myTable = cp.compress(myTable)
 	end
 	local myBar = cp.singleBarCompress(cp.bar[CSPS.subProfileDiscipline])
@@ -1126,6 +1187,18 @@ function CSPS.subProfileSaveGo(myId, myType, accountCpHb)
 		profileToSave.cpComp = myTable
 	end
 	CSPS.subProfileList:RefreshData()
+end
+
+function CSPS.subProfileSaveGo(myId, myType)
+	local profileToSave = getProfileByTypeAndId(myType, myId, nil)
+	local savingFunctions = {
+		[PROFILE_CATEGORY_CP] = cpSaveGo,
+		[PROFILE_CATEGORY_QS] = quickslotSaveGo,
+		[PROFILE_CATEGORY_SK] = skillProfileSaveGo,
+		[PROFILE_CATEGORY_GEAR] = gearProfileSaveGo,
+		[PROFILE_CATEGORY_OUTFIT] = outfitSaveGo,
+	}
+	savingFunctions[profileCatByType[myType]](myId, myType, profileToSave)	
 end
 
 local originalRowColorFunction = subProfileCLASS.GetRowColors
@@ -1140,9 +1213,9 @@ end
 
 function CSPS.setSubProfileType(myType, forceRefresh)
 	if myType == CSPS.subProfileType and not forceRefresh then return end
-	if myType == PROFILE_TYPE_HOTBARS_ACCOUNT then myType = PROFILE_TYPE_HOTBARS end
+	if myType == PROFILE_TYPE_CP_HOTBARS_ACCOUNT then myType = PROFILE_TYPE_CP_HOTBARS end
 	if myType ~= nil then 
-		if myType == PROFILE_TYPE_IMPORT then
+		if myType == PROFILE_TYPE_CP_IMPORT then
 			if CSPS.savedVariables.settings.formatImpExp ~= string.format("txtCP2_%d", CSPS.subProfileDiscipline) then
 				CSPSWindowImportExportSrcList.comboBox:SetSelectedItem(GetString("CSPS_ImpEx_TxtCP2_", CSPS.subProfileDiscipline))
 				CSPS.toggleImpExpSource(string.format("txtCP2_%d", CSPS.subProfileDiscipline))
@@ -1171,13 +1244,13 @@ function CSPS.setSubProfileType(myType, forceRefresh)
 	CSPSWindowSubProfilesHeaderPoints:SetWidth(showKeybinds and 59 or 84)
 	CSPSWindowSubProfilesHeaderHotkey:SetWidth(showKeybinds and 25 or 0)
 	
-	CSPSWindowSubProfilesHeaderName:SetWidth( myType == PROFILE_TYPE_PRESET and 200 or 342)
-	CSPSWindowSubProfilesHeaderRole:SetHidden(myType ~= PROFILE_TYPE_PRESET)
-	CSPSWindowSubProfilesHeaderSource:SetHidden(myType ~= PROFILE_TYPE_PRESET)
-	CSPSWindowSubProfilesRoleFilter:SetHidden(myType ~= PROFILE_TYPE_PRESET)
-	CSPSWindowSubProfilesLblStrictOrder:SetHidden(myType ~= PROFILE_TYPE_PRESET)
-	CSPSWindowSubProfilesChkStrictOrder:SetHidden(myType ~= PROFILE_TYPE_PRESET)
-	if myType == PROFILE_TYPE_PRESET and not CSPSWindowSubProfilesRoleFilter.comboBox then setupRoleFilterCombo() end
+	CSPSWindowSubProfilesHeaderName:SetWidth( myType == PROFILE_TYPE_CP_PRESET and 200 or 342)
+	CSPSWindowSubProfilesHeaderRole:SetHidden(myType ~= PROFILE_TYPE_CP_PRESET)
+	CSPSWindowSubProfilesHeaderSource:SetHidden(myType ~= PROFILE_TYPE_CP_PRESET)
+	CSPSWindowSubProfilesRoleFilter:SetHidden(myType ~= PROFILE_TYPE_CP_PRESET)
+	CSPSWindowSubProfilesLblStrictOrder:SetHidden(myType ~= PROFILE_TYPE_CP_PRESET)
+	CSPSWindowSubProfilesChkStrictOrder:SetHidden(myType ~= PROFILE_TYPE_CP_PRESET)
+	if myType == PROFILE_TYPE_CP_PRESET and not CSPSWindowSubProfilesRoleFilter.comboBox then setupRoleFilterCombo() end
 
 	local cppTypes = {"CustomAcc", "CustomChar", "ImportFromText", "Presets", "BarsOnly"}
 	for i, v in pairs(cppTypes) do
@@ -1285,7 +1358,6 @@ local function loadDynamicCP(myList, mySlotted, myBase, discipline)
 	cp.updateSlottedMarks()
 	CSPS.unsavedChanges = true
 	changedCP = true
-	CSPS.showElement("apply", true)
 	CSPS.showElement("save", true)
 	CSPS.toggleCP(discipline, true)
 	cp.updateSum(discipline)
@@ -1294,11 +1366,11 @@ local function loadDynamicCP(myList, mySlotted, myBase, discipline)
 	CSPS.showElement("cpProfiles", false)
 end
 
-local function loadCPProfile(myType, myId, discipline, accountCpHb)
-	local myProfile = getProfileByTypeAndId(myType, myId, nil, accountCpHb)
+local function loadCPProfile(myType, myId, discipline)
+	local myProfile = getProfileByTypeAndId(myType, myId, nil)
 	local cp2Comp = myProfile.cpComp or "" 
 	local hbComp = myProfile.hbComp or "" 
-	if not cpHotBarProfileType[myType] then
+	if not cpHotBarProfileTypes[myType] then
 		if myProfile.points == "(dynamic)" then
 			local myAuxList = {SplitString(";", cp2Comp)}
 			local myList = {}
@@ -1323,7 +1395,6 @@ local function loadCPProfile(myType, myId, discipline, accountCpHb)
 	CSPS.toggleCP(discipline, true)
 	CSPS.unsavedChanges = true
 	changedCP = true
-	CSPS.showElement("apply", true)
 	CSPS.showElement("save", true)
 	 CSPS.refreshTree()
 	CSPS.showElement("cpProfiles", false)
@@ -1389,7 +1460,7 @@ end
 
 CSPS.loadCPPreset = loadCPPreset
 
-local function showPresetProfileContent(control, myType, myId, discipline)
+local function showPresetProfileContent(control, myType, myId, discipline, shift, ctrl)
 	if not myId or not myType or not discipline then return end
 	local myList = {}
 	local myName = ""
@@ -1403,11 +1474,31 @@ local function showPresetProfileContent(control, myType, myId, discipline)
 	ZO_Tooltip_AddDivider(InformationTooltip)
 	
 	local myTooltip = {}
+	local unformattedList = {}
+	local values = {}
+	local maxedOut = {}
 	for i, v in pairs(myList) do
+		values[v[1]] = v[2]
 		table.insert(myTooltip, zo_strformat("|c<<1>><<C:2>>|r|cffffff(<<3>>)|r", cpColors[discipline]:ToHex(), GetChampionSkillName(v[1]), v[2]))
+		table.insert(unformattedList, zo_strformat("<<C:1>>: <<2>>/<<3>> (ID <<4>>)", GetChampionSkillName(v[1]), v[2], GetChampionSkillMaxPoints(v[1]), v[1]))
+		if GetChampionSkillMaxPoints(v[1]) == v[2] then maxedOut[v[1]] = true end
 	end
-	myTooltip = table.concat(myTooltip, ", ")
-	InformationTooltip:AddLine(myTooltip)
+	InformationTooltip:AddLine(table.concat(myTooltip, ", "))
+	if shift or ctrl then
+		if shift and ctrl then
+			for i, skillData in pairs (cp.table) do
+				if skillData.discipline == discipline then
+					if not values[i] then
+						table.insert(unformattedList, zo_strformat("0/<<2>>: <<C:1>> (ID <<3>>)", GetChampionSkillName(i), GetChampionSkillMaxPoints(i), i))
+					elseif not maxedOut[i] then
+						table.insert(unformattedList, zo_strformat("Below <<2>>: <<C:1>> (ID <<3>>)", GetChampionSkillName(i), GetChampionSkillMaxPoints(i), i))
+					end
+				end
+			end
+		end
+		CSPS.toggleImportExport(true)
+		CSPSWindowImportExportTextEdit:SetText( table.concat(unformattedList, "\n"))
+	end
 end
 
 function CSPS.showQuickSlotProfileTT(control, myType, myId)
@@ -1458,8 +1549,9 @@ local function loadSkillProfile(myType, myId, _)
 	if not myProfile or not myProfile.actionBar and (not myProfile.hbComp or not myProfile.hbComp.prog or not myProfile.hbComp.pass) then return end
 	
 	if myProfile.hbComp then
-		local morphs, upgrades, _, crafted, styles = CSPS.skTableExtract(myProfile.hbComp.prog, myProfile.hbComp.pass, false, false, myProfile.hbComp.crafted, myProfile.hbComp.styles)
-		CSPS.populateSkills(morphs, upgrades, true, crafted, styles) -- true = don't reset the lists beforehand
+		local morphs, upgrades, _, crafted, styles, subclasses = CSPS.skTableExtract(myProfile.hbComp.prog, myProfile.hbComp.pass, false, false, myProfile.hbComp.crafted, myProfile.hbComp.styles, myProfile.hbComp.subclasses, false, myProfile.hbComp.scribeStyleSubclass)
+		if not myProfile.hbComp.subclasses then subclasses = nil end
+		CSPS.populateSkills(morphs, upgrades, true, crafted, styles, subclasses) -- 3rd: true = don't reset the lists beforehand
 	end
 	
 	if myProfile.actionBar then
@@ -1487,6 +1579,21 @@ local function loadOutfitProfile(myType, myId, _)
 	CSPS.refreshTree()	
 end
 
+local loadingFunctions = {
+	[PROFILE_CATEGORY_CP] = function(myType, myId, myDiscipline) 
+		if nonCustomTypes[myType] then 
+			loadCPPreset(myType, myId, myDiscipline) 
+		else 
+			loadCPProfile(myType, myId, myDiscipline) 
+		end 
+	end,
+	[PROFILE_CATEGORY_QS] = loadQuickSlots,
+	[PROFILE_CATEGORY_SK] = loadSkillProfile,
+	[PROFILE_CATEGORY_GEAR] = loadGearProfile,
+	[PROFILE_CATEGORY_OUTFIT] = loadOutfitProfile,
+}
+
+
 function CSPS.SubProfileListRowMouseUp( control, button, upInside, ctrl, alt, shift)	
 	if not upInside then return end
 	local myType = control.data.type
@@ -1498,26 +1605,18 @@ function CSPS.SubProfileListRowMouseUp( control, button, upInside, ctrl, alt, sh
 	
 	if button == 1 then
 		if myShiftKey and profileCatsThatCanBeConnected[profileCatByDiscipline[myDiscipline]] then
-			if cpHotBarProfileType[myType] then return end
+			if cpHotBarProfileTypes[myType] then return end
 			connectToProfile(myType, myId, myDiscipline)
 			return
 		end	
-		
-		local loadingFunctions = {
-			[PROFILE_CATEGORY_CP] = nonCustomTypes[myType] and loadCPPreset or loadCPProfile,
-			[PROFILE_CATEGORY_QS] = loadQuickSlots,
-			[PROFILE_CATEGORY_SK] = loadSkillProfile,
-			[PROFILE_CATEGORY_GEAR] = loadGearProfile,
-			[PROFILE_CATEGORY_OUTFIT] = loadOutfitProfile,
-		}
-		
-		loadingFunctions[profileCatByType[myType]](myType, myId, myDiscipline, control.data.accountWide)
-			
-	elseif myType == PROFILE_TYPE_PRESET then
-		showPresetProfileContent(control, myType, myId, myDiscipline)
+				
+		loadingFunctions[profileCatByType[myType]](myType, myId, myDiscipline)		
+	elseif myType == PROFILE_TYPE_CP_PRESET then
+		showPresetProfileContent(control, myType, myId, myDiscipline, shift, ctrl)
 	end
 
 end
+
 
 -- switch CP when entering a zone
 
@@ -1527,3 +1626,106 @@ function CSPS.onPlayerActivated()
 	CSPS.lastZoneID = zoneId
 	CSPS.locationBinding(zoneId)
 end
+
+-- Here come the functions open for wizards and other addons. others can be used but these ones should be more user friendly
+
+local wwFunctions = {}
+
+function wwFunctions.addSubProfile(myType, myDiscipline, addonName)
+	if myType == PROFILE_TYPE_BUILD then
+		CSPS.populateTable(false)
+		cp.readCurrent()
+		return CSPS.profilePlus()
+	end
+	if myDiscipline then CSPS.showSubProfileDiscipline(myDiscipline, true) end -- for CP the discipline has to be set inside the addon
+	-- refresh (todo: only refresh category? not how CSPS works atm)
+	CSPS.populateTable(false)
+	cp.readCurrent()
+	return CSPS.subProfilePlus(myType, nil, addonName)
+end
+
+function wwFunctions.getProfileTypes()
+	return {
+		COMPLETE_BUILD = PROFILE_TYPE_BUILD,
+		CP_ACCOUNT = PROFILE_TYPE_CP_ACCOUNT,
+		CP_CHARACTER = PROFILE_TYPE_CP_CHAR,
+		CP_PRESET = PROFILE_TYPE_CP_PRESET,
+		SKILLS_ACCOUNT = PROFILE_TYPE_SK_ACCOUNT,
+		SKILLS_CHAR = PROFILE_TYPE_SK_CHAR,
+	}	
+end
+
+function wwFunctions.getProfileDisciplines()
+	return {
+		cp_green = PROFILE_DISCIPLINE_CP_GREEN, 
+		cp_blue = PROFILE_DISCIPLINE_CP_BLUE, 
+		cp_red = PROFILE_DISCIPLINE_CP_RED, 
+		-- PROFILE_DISCIPLINE_QUICKSLOTS, 
+		skills = PROFILE_DISCIPLINE_SKILLS, 
+		-- PROFILE_DISCIPLINE_GEAR, 
+		-- PROFILE_DISCIPLINE_OUTFIT 
+	}
+end
+
+function wwFunctions.getSubProfileList(myType)
+	if myType == PROFILE_TYPE_BUILD then return CSPS.profiles end
+	return CSPS.getProfileListByType(myType)
+end
+
+function wwFunctions.loadAndApplySubProfiles(listOfProfilesToApply) 
+	-- listOfProfilesToApply contains entrys {myType, myDiscipline, myId}
+	-- only give the discipline for cp profiles
+	
+	-- refresh the category
+	local applyCP = false
+	local oldApplyCP = CSPS.applyCPc -- don't need the toggle-function because it will be reversed afterwards
+	CSPS.applyCPc = {false, false, false}
+	local applySk = false
+	local applyAttributes = false
+	
+	for _, profileData in pairs(listOfProfilesToApply) do
+		local myType, myDiscipline, myId = unpack(profileData) 
+		if myType == PROFILE_TYPE_BUILD then
+			if not CSPS.profiles[myId] then return end
+			CSPS.selectProfile(myId)
+			CSPS.loadBuild()
+			applySk = true
+			CSPS.applyCPc = {true, true, true}
+			applyAttributes = true
+			applyCP = true
+		else	
+			local myCat = profileCatByType[myType]
+			if myCat == PROFILE_CATEGORY_CP then
+				if myDiscipline then CSPS.showSubProfileDiscipline(myDiscipline, true) end -- for CP the discipline has to be set inside the addon
+				applyCP = true
+				CSPS.applyCP [myDiscipline] = true	
+			end
+			loadingFunctions[myCat](myType, myId, myDiscipline)
+		end
+	end
+	
+	local function afterSk(skSuccess)
+		local function afterAttr()		
+			if applyCP then
+				cp.applyGo(true, true)
+				CSPS.applyCPc = oldApplyCP
+			end
+		end		
+		if applyAttributes then
+			zo_callLater(function() CSPS.applyAttr(true, afterAttr) end, 420)
+		else
+			afterAttr()
+		end
+	end
+	if applySk then
+		CSPS.applySkills(true, function() afterSk(true) end, function() afterSk(false) end,  true) -- skipDiag, callOnSuccess, callOnFail, ignoreStyles
+	else
+		afterSk(false)
+	end
+	
+	
+	
+end
+
+
+CSPS.wwFunctions = wwFunctions

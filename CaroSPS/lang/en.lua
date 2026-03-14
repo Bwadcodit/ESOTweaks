@@ -195,7 +195,6 @@ local L = {}
 	L.CSPS_MSG_ConfirmApplyTitle = "CSPS - Skill points"
 	L.CSPS_MSG_ConfirmAttrTitle = "CSPS - Attribute points"
 	L.CSPS_MSG_ConfirmAttr = "Needed attribute points: <<1>>\nAvailable attribute points: <<2>>\nApply these attribute points?"
-	L.CSPS_MSG_ConfirmAttr1 = "Can't apply attribute points; not enough points available. Please reset your old attribute points first."
 	L.CSPS_MSG_ConfirmAttr2 = "Can't apply attribute points; at least one attribute is already set higher then the intended value. Please reset your old attribute points first."	
 	L.CSPS_MSG_RenameProfile = "Choose a new name for profile '<<1>>':<<2>>"
 	L.CSPS_MSG_DeleteProfile = "Really delete profile '<<1>>'?<<2>><<3>>"
@@ -212,8 +211,6 @@ local L = {}
 	L.CSPS_MSG_Unslotted = "The following slottable skills couldn't be slotted:"
 	L.CSPS_MSG_NoCPProfiles = "\n\n|cff7723WARNING!|r\nThis is not the best way to save champion profiles! If you want to save a profile for champion points only, use the three buttons in the top right corner to open the champion profile section. There you will find separate buttons for creating and saving profiles. (|t28:28:esoui/art/champion/champion_points_magicka_icon-hud-32.dds|t, |t28:28:esoui/art/champion/champion_points_health_icon-hud-32.dds|t, |t28:28:esoui/art/champion/champion_points_stamina_icon-hud-32.dds|t)"
 	L.CSPS_MSG_CPPaths = "The cheapest paths to unlock '<<C:1>>':\n\n<<2>>"
-	L.CSPS_MSG_CPPathOpt = "|c<<1>>Option <<2>> (<<3>>)|r:" -- 1 color 2 number 3 points
-	
 	--	Errorcodes
 	L.CSPS_ErrorNumber1 = "The skill has already been learned."
 	L.CSPS_ErrorNumber2 = "The skill is already on another morph. Please reset your skills/morphs before trying to apply new ones."
@@ -221,19 +218,12 @@ local L = {}
 	L.CSPS_LoadingError = "Please check skill: <<C:1>>"
 	
 	-- Options
-	L.CSPS_KeepLastBuild = "Keep last build on closing"
-	L.CSPS_KeepLastBuildTT = "If activated, the addon will always save the current build to an invisible profile when you close the window. This profile will then be loaded the next time you start the game and open the addon so you can continue where you left off. If not activated the addon will always start with the actual currently applied build."
-	L.CSPS_DeleteLastBuilds = "Should the temporary profiles be deleted on all characters?"
 	L.CSPS_ShowHb = "Show hotbar"
-	L.CSPS_AutoOpen = "Open automatically with..."
-	L.CSPS_CPAutoOpen = "CP window"
 	L.CSPS_CPCustomBar = "Separate CP bar"
 	L.CSPS_CPCustomIcons = "Custom CP icons"
 	L.CSPS_CPCustomBarLayout = "Layout"
-	L.CSPS_ArmoryAutoOpen = "Armory"
 	L.CSPS_Tooltip_ArmoryAutoOpen = "Check this box, if the addon should be shown every time you use the armory."
-	L.CSPS_SkillWindowAutoOpen = "Skills menu"
-	L.CSPS_StatsWindowAutoOpen = "Character menu"
+
 	L.CSPS_BtnApplyAll = "Apply everything"
 	L.CSPS_ShowBtnApplyAll = "Display 'apply everything' button"
 	L.CSPS_ShowDateInProfileName = "Show last modified in profile name"
@@ -259,8 +249,7 @@ local L = {}
 	L.CSPS_LAM_SortCP_1 = "Standard"
 	L.CSPS_LAM_SortCP_2 = "Alphabetical"
 	L.CSPS_LAM_SortCP_3 = "Alphabetical, passive skills separately"
-	L.CSPS_LAM_ShowNumSetItems = "Show number of active set items behind item names. Number will be shown as (front bar/back bar) if weapons are part of the set."
-	
+
 	-- Presets
 	L.CSPS_MSG_SwitchCP = "Invest points into |c<<1>>'<<2>>'|r instead of one of the other slottables whenever you might profit from it."
 	L.CSPS_MSG_SituationalCP = "Consider replacing the slottables by one of the following skills depending on the situation:"
@@ -268,7 +257,7 @@ local L = {}
 	L.CSPS_AOE = "AOE damage"
 	L.CSPS_CRIT = "Critical damage"
 	L.CSPS_OffBalance = "Off balance"
-	
+
 	-- Import/Export
 	L.CSPS_ImpEx_BtnImpLink = "Import link"
 	L.CSPS_ImpEx_BtnImpText = "Import text"
@@ -317,6 +306,37 @@ local L = {}
 	L.CSPS_CPImp_Note = "Click on a skill in the list below to manually map it. Please note that the mapping will only be applied once all skills are either mapped or discarded."
 	L.CSPS_CPImp_NoMatch = "Couldn't find any matching data."
 	
+	-- New or changed after 5.0.0
+		L.CSPS_Tooltip_DynamicProfile = "A dynamic profile should start as a blank. Each time you save it, you don't overwrite the existing, but append the points you changed to it. When loading a dynamic profile CSPS will consider the order of saving and stop once your point limit is reached. This way you can plan your champion points while still leveling up."
+	-- deleted L.CSPS_TxtCpOld and L.CSPS_TxtCpNew
+		L.CSPS_IgnoreSubClasses = "ignore subclasses"
+	L.CSPS_LAM_ShowAllClassSkills = "Show and edit all class skills"
+	L.CSPS_LAM_ShowAllClassSkillsTT = "This option will let you edit and save class skills even if they are not in your build."
+	L.CSPS_MSG_SubclassingQuestGoal = "The quest '<<1>>' has not been completed yet. To complete it you need at least one skill line that still needs training (<<2>>)."
+	L.CSPS_KeepLastBuild = "Keep last build on closing"
+	L.CSPS_KeepLastBuildTT = "If activated, the addon will always save the current build to an invisible profile when you close the window. This profile will then be loaded the next time you start the game and open the addon so you can continue where you left off. If not activated the addon will always start with the actual currently applied build."
+	L.CSPS_DeleteLastBuilds = "Should the temporary profiles be deleted on all characters?"
+
+	L.CSPS_AutoOpen = "Open automatically with..."
+	L.CSPS_CPAutoOpen = "CP window"
+	L.CSPS_ArmoryAutoOpen = "Armory"
+	L.CSPS_SkillWindowAutoOpen = "Skills menu"
+	L.CSPS_StatsWindowAutoOpen = "Character menu"
+	L.CSPS_LAM_ShowNumSetItems = "Show number of active set items behind item names. Number will be shown as (front bar/back bar) if weapons are part of the set."
+	L.CSPS_LAM_VersionHistory = "Profile history size"
+	L.CSPS_LAM_VersionHistoryTT = "How many versions of a build should be saved as backups? Warning: increases saved variables size"
+	L.CSPS_LAM_BGAlpha = "Background transparency"
+	L.CSPS_LAM_WinAlpha = "Window transparency"
+	L.CSPS_LAM_Modules = "Active modules"
+	L.CSPS_LAM_Module = "Module"
+	
+	L.CSPS_Dynamic = "Dynamic"
+	L.CSPS_Static = "Normal/static"
+	
+	-- presets	
+	L.CSPS_SingleTarget = "Single target"
+	
+	-- Russian came with v. 5.4.3
 	--New with 5.5.0
 	L.CSPS_ScribingGoToStation = "%s\nPlease go to a scribing station to scribe your crafted abilities (scribing will cost %s ink)."
 	L.CSPS_CannotBeScribed = "<<1[abilities/1 ability/$d abilities]>> can't be scribed."
@@ -326,6 +346,26 @@ local L = {}
 	L.CSPS_ScribingDiag = "%s abilities will be scribed (this will cost %s ink)."
 	L.CSPS_ScribeNotEnough = "You cannot scribe your selected abilities (not enough ink)."
 	L.CSPS_CustomStyles = "Custom styles to apply: %s\nLocked custom styles: %s\n\n%s"
+	L.CSPS_IgnoreEmptyOutfitSlots = "Ignore empty outfit slots"
+
+	
+	-- Spanish came with 5.6.1
+	
+	--New or changed with 6.0.0
+	L.CSPS_RespecCooldown = "Respec is on cooldown.\nCSPS will automatically try again in %ss."
+	L.CSPS_SubclassesIncompatible = "Incompatible subclasses. Switched <<C:1>> for <<C:2>>."
+	L.CSPS_QuickSlotPosition1 = "Top"
+	L.CSPS_QuickSlotPosition2 = "Top right"
+	L.CSPS_QuickSlotPosition3 = "Right"
+	L.CSPS_QuickSlotPosition4 = "Bottom right"
+	L.CSPS_QuickSlotPosition5 = "Bottom"
+	L.CSPS_QuickSlotPosition6 = "Bottom left"
+	L.CSPS_QuickSlotPosition7 = "Left"
+	L.CSPS_QuickSlotPosition8 = "Top left"
+	L.CSPS_MSG_CPPathOpt = "|c<<1>>Option <<2>> (<<3>>)|r" -- 1 color 2 number 3 points in 6.0.0 only the ":" was deleted
+	-- deleted L.CSPS_MSG_ConfirmAttr1
+	L.CSPS_LAM_DeveloperOptions = "Developer options"
+	L.CSPS_LAM_DeveloperOptions = "Activates hidden menu entries to show internal data etc."
 	
 for stringId, stringValue in pairs(L) do
 	ZO_CreateStringId(stringId, stringValue)

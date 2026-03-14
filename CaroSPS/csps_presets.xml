@@ -44,12 +44,21 @@
 					<Anchor point="CENTER" relativePoint="CENTER" relativeTo="$(parent)Icon" constrains="Y" />
 					<Anchor point="RIGHT" relativePoint="LEFT" relativeTo="CSPSWindowScrollListScrollBar" constrains="X" offsetX="-4"/>
 					<Textures normal="ESOUI/art/buttons/minus_up.dds" pressed="ESOUI/art/buttons/minus_down.dds" mouseOver="ESOUI/art/buttons/minus_over.dds" />
+					<OnMouseEnter>ZO_Tooltips_ShowTextTooltip(self, RIGHT, GetString(SI_DIALOG_REMOVE))</OnMouseEnter>
+					<OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>	
+				</Button>
+				<Button name="$(parent)BtnUnequip">
+					<Dimensions y="28" x="28" />
+					<Anchor point="CENTER" relativePoint="CENTER" relativeTo="$(parent)Icon" constrains="Y" />
+					<Anchor point="RIGHT" relativePoint="LEFT" relativeTo="$(parent)BtnMinus" constrains="X" offsetX="-4"/>
+					<Textures normal="ESOUI/art/buttons/edit_cancel_up.dds" pressed="ESOUI/art/buttons/edit_cancel_down.dds" mouseOver="ESOUI/art/buttons/edit_cancel_over.dds" />
+					<OnMouseEnter>ZO_Tooltips_ShowTextTooltip(self, RIGHT, GetString(SI_ITEM_ACTION_UNEQUIP))</OnMouseEnter>
 					<OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>	
 				</Button>
 				<Label name="$(parent)Text" font="ZoFontGame" mouseEnabled="true" linkEnabled="true">
 					<Dimensions y="32" />
 					<Anchor point="LEFT" relativePoint="RIGHT" relativeTo="$(parent)Icon" offsetX="11"/>
-					<Anchor point="RIGHT" relativePoint="LEFT" relativeTo="$(parent)BtnMinus" offsetX="-2" constrains="X"/>
+					<Anchor point="RIGHT" relativePoint="LEFT" relativeTo="$(parent)BtnUnequip" offsetX="-2" constrains="X"/>
 					<OnMouseUp>self:GetParent():GetHandler("OnMouseUp")(self, button, upInside, ctrl, alt, shift)</OnMouseUp>
 					<OnMouseEnter>if self:GetParent().tooltipFunction then self:GetParent():tooltipFunction() end</OnMouseEnter>
 					<OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>	
@@ -115,79 +124,107 @@
 				<Texture name="$(parent)BG" inherits="ZO_ThinListBgStrip" color="A6D852" />
 				<Label name="$(parent)Name" font="ZoFontGame">
 					<Anchor point="LEFT" relativePoint="LEFT" relativeTo="$(parent)" offsetX="5"/>
-					<Dimensions x="404" y="28" />
+					<Anchor point="RIGHT" relativePoint="RIGHT" relativeTo="$(parent)" offsetX="-5"/>
+					<Dimensions y="28" />
 				</Label>
 			</Controls>
 		</Control>
 		
-		
-		<Control name="CSPSComboLabelPair" virtual="true">
+		<Control name="CSPSLabelIconDropdownButton" mouseEnabled="true" virtual="true">
 			<OnInitialized>
 				self.label = GetControl(self, "Label")
-				self.box = GetControl(self, "Box")
+				self.icon = GetControl(self, "Icon")
+				self.button = GetControl(self, "Button")
 			</OnInitialized>
-			<Dimensions y="28" />
+			<Dimensions y="24" />
 			<Controls>
-				<Label name="$(parent)Label" font="ZoFontGame" text="">
-					<Dimensions  y="28" />
+				<Texture name="$(parent)Icon">
+					<Dimensions x="24" y="24" />
 					<Anchor point="TOPLEFT" relativeTo="$(parent)" relativePoint="TOPLEFT" />
+				</Texture>	
+				<Button name="$(parent)Button">
+					<Dimensions y="20" x="20" />
+					<Anchor point="RIGHT" relativeTo="$(parent)" relativePoint="RIGHT" />
+					<Textures normal="esoui/art/buttons/dropbox_arrow_normal.dds" pressed="esoui/art/buttons/dropbox_arrow_mousedown.dds" mouseOver="esoui/art/buttons/dropbox_arrow_mouseover.dds" />
+					<OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>	
+					<OnClicked>self:GetParent():GetHandler("OnMouseUp")(self, button, true, ctrl, alt, shift)</OnClicked>
+				</Button>
+				<Label name="$(parent)Label" font="ZoFontGame"  wrapMode="1">
+					<Dimensions  y="24" />
+					<Anchor point="LEFT" relativeTo="$(parent)Icon" relativePoint="RIGHT" offsetX="5" />
+					<Anchor point="RIGHT" relativeTo="$(parent)Button" relativePoint="LEFT" offsetX="-5" />
 				</Label>
-				<Control name="$(parent)Box" inherits="ZO_ComboBox">
-					<Dimensions  y="25" />
-					<Anchor point="LEFT" relativeTo="$(parent)Label" relativePoint="RIGHT"  offsetX="5" />
-					<Anchor point="TOPRIGHT" relativeTo="$(parent)" relativePoint="TOPRIGHT" constrains="X" />
-				</Control>
 			</Controls>
-		</Control>
-		
+		</Control>		
 		
 		<Control name="CSPSGearWindow" virtual="true" mouseEnabled="true" tier="1">
 			<OnInitialized>
 				CSPS.InitGearWindow(self)
 			</OnInitialized>
-			<Dimensions x="420" y="198" /> <!-- 8 + 28 + 8 + 28 + 8 + 28 + 8 + 28 + 8 = -->
+			<Dimensions y="139" /> <!-- HEIGHT 8 + 24 TITLE + 5 + 30 TEXT FIELD + 8 + 24 + 8 + 24 + 8 = 139 this will be set in gear.lua!-->
 			<Controls>
-				<Backdrop name="$(parent)BG" centerColor="080808" edgeColor="424242"> 
-					<Edge edgeSize="1" />
+				<Backdrop name="$(parent)BG" inherits="ZO_DefaultBackdrop"> <!--centerColor="080808" edgeColor="424242"> -->
+					<!--<Edge edgeSize="1" />-->
 					<AnchorFill />
 				</Backdrop>
+				<Label name="$(parent)Title" font="ZoFontGame" text="Sets" tier="1" level="0">
+					<Dimensions  y="24" />
+					<Anchor point="TOPLEFT" relativeTo="$(parent)" relativePoint="TOPLEFT"  offsetX="8" offsetY="8" />
+				</Label>
+				<Button name="$(parent)BtnListSelect">
+					<Dimensions y="24" x="24" />
+					<Anchor point="LEFT" relativeTo="$(parent)Title" relativePoint="RIGHT"  offsetX="5" />
+					
+					<Textures normal="esoui/art/tradinghouse/tradinghouse_listings_tabicon_up.dds" pressed="esoui/art/tradinghouse/tradinghouse_listings_tabicon_down.dds" mouseOver="esoui/art/tradinghouse/tradinghouse_listings_tabicon_over.dds" />
+					<OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>	
+				</Button>
+				
+				<Button name="$(parent)Cancel" tier="1" level="0">
+					<Dimensions x="24" y="24" />
+					<Anchor point="TOPRIGHT" relativeTo="$(parent)" relativePoint="TOPRIGHT" offsetX="-8" offsetY="8" />
+					<Textures normal="ESOUI/art/buttons/decline_up.dds" pressed="ESOUI/art/buttons/decline_down.dds" mouseOver="ESOUI/art/buttons/decline_over.dds" />
+					<OnClicked>
+						EVENT_MANAGER:UnregisterForEvent(CSPS.name.."GearWinHider", EVENT_GLOBAL_MOUSE_DOWN)
+						self:GetParent():SetHidden(true)
+					</OnClicked>
+					<OnMouseEnter>ZO_Tooltips_ShowTextTooltip(self, RIGHT, GetString(SI_DIALOG_CANCEL))</OnMouseEnter>
+					<OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>	
+				</Button>
+				
+				<Button name="$(parent)Remove" tier="1" level="0">
+					<Dimensions x="24" y="24" />
+					<Anchor point="RIGHT" relativeTo="$(parent)Cancel" relativePoint="LEFT" offsetX="-5" />
+					<Textures normal="ESOUI/art/buttons/minus_up.dds" pressed="ESOUI/art/buttons/minus_down.dds" mouseOver="ESOUI/art/buttons/minus_over.dds" />
+					<OnMouseEnter>ZO_Tooltips_ShowTextTooltip(self, RIGHT, GetString(SI_DIALOG_REMOVE))</OnMouseEnter>
+					<OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>	
+				</Button>
+				
+				<Button name="$(parent)Ok" tier="1" level="0">
+					<Dimensions x="24" y="24" />
+					<Anchor point="RIGHT" relativeTo="$(parent)Remove" relativePoint="LEFT" offsetX="-5" />
+					<Textures normal="ESOUI/art/buttons/accept_up.dds" pressed="ESOUI/art/buttons/accept_down.dds" mouseOver="ESOUI/art/buttons/accept_over.dds" />
+					<OnMouseEnter>ZO_Tooltips_ShowTextTooltip(self, RIGHT, GetString(SI_DIALOG_ACCEPT))</OnMouseEnter>
+					<OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>	
+				</Button>
+				
 				<Control name="$(parent)PoisonFields">
-					<AnchorFill />
+					<Anchor point="TOPLEFT" relativeTo="$(parent)Title" relativePoint="BOTTOMLEFT"  offsetX="0" offsetY="5" />
+					<Anchor point="BOTTOMRIGHT" relativeTo="$(parent)" relativePoint="BOTTOMRIGHT"  />
 					<Controls>
-						<Control name="$(grandparent)GeneralPoisons" inherits="CSPSComboLabelPair" tier="1" level="0">
-							<Dimensions y="28" />
-							<Anchor point="TOPLEFT" relativeTo="$(grandparent)" relativePoint="TOPLEFT"  offsetX="8" offsetY="8" />
-							<Anchor point="TOPRIGHT" relativeTo="$(grandparent)" relativePoint="TOP"  offsetX="-4" offsetY="8" />
-						</Control>
-						<Control name="$(grandparent)PoisonsSpecific" inherits="CSPSComboLabelPair" tier="1" level="0">
-							<Dimensions y="28" />
-							<Anchor point="TOPLEFT" relativeTo="$(grandparent)" relativePoint="TOP"  offsetX="4" offsetY="8" />
-							<Anchor point="TOPRIGHT" relativeTo="$(grandparent)" relativePoint="TOPRIGHT"  offsetX="-8" offsetY="8" />
-						</Control>
 						<Control name="$(parent)List" inherits="ZO_ScrollList">
-							<Anchor point="TOPLEFT" relativeTo="$(grandparent)GeneralPoisons" relativePoint="BOTTOMLEFT" offsetY="8" />
-							<Anchor point="BOTTOMRIGHT" relativeTo="$(grandparent)" relativePoint="BOTTOMRIGHT" offsetX="-8" offsetY="-44" />
+							<Anchor point="TOPLEFT" relativeTo="$(parent)" relativePoint="TOPLEFT" offsetY="5" />
+							<Anchor point="BOTTOMRIGHT" relativeTo="$(parent)" relativePoint="BOTTOMRIGHT" offsetX="-8" offsetY="-44" />
 						</Control>
 					</Controls>
 				</Control>
 				<Control name="$(parent)SetItemFields">
-					<AnchorFill />
+					<Anchor point="TOPLEFT" relativeTo="$(parent)Title" relativePoint="BOTTOMLEFT"  offsetX="0" offsetY="5" />
+					<Anchor point="BOTTOMRIGHT" relativeTo="$(parent)" relativePoint="BOTTOMRIGHT" />
 					<Controls>
-						<Label name="$(grandparent)SetsLabel" font="ZoFontGame" text="Sets" tier="1" level="0">
-							<Dimensions  y="24" />
-							<Anchor point="TOPLEFT" relativeTo="$(grandparent)" relativePoint="TOPLEFT"  offsetX="8" offsetY="8" />
-						</Label>
-						<Button name="$(grandparent)BtnListSelect">
-							<Dimensions y="25" x="25" />
-							<Anchor point="TOPLEFT" relativeTo="$(grandparent)SetsLabel" relativePoint="BOTTOMLEFT"  offsetY="5" />
-							
-							<Textures normal="esoui/art/tradinghouse/tradinghouse_listings_tabicon_up.dds" pressed="esoui/art/tradinghouse/tradinghouse_listings_tabicon_down.dds" mouseOver="esoui/art/tradinghouse/tradinghouse_listings_tabicon_over.dds" />
-							<OnMouseExit>ZO_Tooltips_HideTextTooltip()</OnMouseExit>	
-						</Button>
 						<Backdrop name="$(grandparent)Sets" tier="1" inherits="ZO_SingleLineEditBackdrop_Keyboard"> <!-- tier HIGH? -->
-							<Dimensions  y="25" />					
-							<Anchor point="TOPLEFT" relativeTo="$(grandparent)BtnListSelect" relativePoint="TOPRIGHT"  offsetX="5" />
-							<Anchor point="RIGHT" relativeTo="$(grandparent)" relativePoint="RIGHT"  offsetX="-8" constrains="X" />
+							<Dimensions  y="30" />					
+							<Anchor point="TOPLEFT" relativeTo="$(parent)" relativePoint="TOPLEFT"  />
+							<Anchor point="RIGHT" relativeTo="$(parent)" relativePoint="RIGHT"  offsetX="-8" constrains="X" />
 							<Controls>
 								<EditBox name="$(parent)Edit" inherits="ZO_DefaultEditForBackdrop ZO_EditDefaultText">
 									<OnInitialized>
@@ -198,53 +235,36 @@
 
 						</Backdrop>
 					
-						<Control name="$(grandparent)Type" inherits="CSPSComboLabelPair" tier="1" level="0">
-							<Dimensions y="28" />
-							<Anchor point="TOPLEFT" relativeTo="$(grandparent)" relativePoint="TOPLEFT"  offsetX="5" offsetY="80" />
-							<Anchor point="TOPRIGHT" relativeTo="$(grandparent)" relativePoint="TOP"  offsetX="-52" offsetY="80" />
+						<Control name="$(grandparent)Type" inherits="CSPSLabelIconDropdownButton" tier="1" level="0">
+							<Anchor point="TOPLEFT" relativeTo="$(grandparent)Sets" relativePoint="BOTTOMLEFT"  offsetX="0" offsetY="8" />
+							<Anchor point="TOPRIGHT" relativeTo="$(grandparent)Sets" relativePoint="BOTTOM"  offsetX="-47" offsetY="8" />
+							
+						</Control>						
+						<Control name="$(grandparent)Enchantment" inherits="CSPSLabelIconDropdownButton" tier="1" level="0">
+							<Anchor point="TOPLEFT" relativeTo="$(grandparent)Sets" relativePoint="BOTTOM"  offsetX="-42" offsetY="8" />
+							<Anchor point="TOPRIGHT" relativeTo="$(grandparent)Sets" relativePoint="BOTTOMRIGHT"  offsetX="0" offsetY="8" />
 						</Control>
 						
-						<Control name="$(grandparent)Enchantment" inherits="CSPSComboLabelPair" tier="1" level="0">
-							<Dimensions y="28" />
-							<Anchor point="TOPLEFT" relativeTo="$(grandparent)" relativePoint="TOP"  offsetX="-42"  offsetY="80" />
-							<Anchor point="TOPRIGHT" relativeTo="$(grandparent)" relativePoint="TOPRIGHT"  offsetX="-5" offsetY="80" />
-						</Control>
-						
-						<Control name="$(grandparent)Quality" inherits="CSPSComboLabelPair" tier="1" level="0">
-							<Dimensions y="28" />
+						<Control name="$(grandparent)Quality" inherits="CSPSLabelIconDropdownButton" tier="1" level="0">
 							<Anchor point="TOPLEFT" relativeTo="$(grandparent)Type" relativePoint="BOTTOMLEFT" offsetY="8" />
-							<Anchor point="TOPRIGHT" relativeTo="$(grandparent)" relativePoint="TOP"  offsetX="-5"  constrains="X" />
+							<Anchor point="TOPRIGHT" relativeTo="$(grandparent)Type" relativePoint="BOTTOMRIGHT"  offsetY="8" />
 						</Control>
 						
-						<Control name="$(grandparent)Trait" inherits="CSPSComboLabelPair" tier="1" level="0">
-							<Dimensions y="28" />
-							<Anchor point="TOPLEFT" relativeTo="$(grandparent)" relativePoint="TOP"  offsetX="5" constrains="X" />
+						<Control name="$(grandparent)Trait" inherits="CSPSLabelIconDropdownButton" tier="1" level="0">
+							<Anchor point="TOPLEFT" relativeTo="$(grandparent)Enchantment" relativePoint="BOTTOMLEFT" offsetY="8" />
 							<Anchor point="TOPRIGHT" relativeTo="$(grandparent)Enchantment" relativePoint="BOTTOMRIGHT"  offsetY="8" />
 						</Control>
 					</Controls>	
 				</Control>
-				
-				<Button name="$(parent)Cancel" inherits="ZO_DefaultButton" text="SI_DIALOG_CANCEL" tier="1" level="0">
-					<Dimensions x="120" y="28" />
-					<Anchor point="BOTTOMRIGHT" relativeTo="$(parent)" relativePoint="BOTTOMRIGHT" offsetX="-8" offsetY="-8" />
-					<OnClicked>
-						EVENT_MANAGER:UnregisterForEvent(CSPS.name.."GearWinHider", EVENT_GLOBAL_MOUSE_DOWN)
-						self:GetParent():SetHidden(true)
-					</OnClicked>
-				</Button>
-				
-				<Button name="$(parent)Ok" inherits="ZO_DefaultButton" text="SI_DIALOG_CONFIRM" tier="1" level="0">
-					<Dimensions x="120" y="28" />
-					<Anchor point="RIGHT" relativeTo="$(parent)Cancel" relativePoint="LEFT" offsetX="-8" />
-				</Button>
-				
+								
 			</Controls>
 		</Control>
 		
 		
 		<Control name="CSPSLEGEAR" inherits="ZO_TreeEntry" virtual="true">
-			<Dimensions  y="32" /> <!-- x: 388 + 134 = 522 to the right side of the last button?  78 = button + icon + offsets -->
+			<Dimensions  y="32" /> 
 			<OnInitialized>
+				self.ctrSelected = self:GetNamedChild("Selected")
 				self.ctrIcon = self:GetNamedChild("Icon")
 				self.ctrSetName = self:GetNamedChild("SetName")
 				self.ctrTrait = self:GetNamedChild("Trait")
@@ -255,6 +275,12 @@
 			</OnInitialized>
 			<OnMouseUp></OnMouseUp>
 			<Controls>
+				<Texture name="$(parent)Selected" textureFile="EsoUI/Art/Miscellaneous/listItem_selectedHighlight.dds" >
+					<Dimensions y="30" />
+				    <Anchor point="TOPLEFT" relativeTo="$(parent)" relativePoint="TOPLEFT"  />
+					<Anchor point="RIGHT" relativePoint="LEFT" relativeTo="CSPSWindowScrollListScrollBar" constrains="X" offsetX="-4"/>
+					<TextureCoords left="0" right="1" top="0" bottom=".625" />
+				</Texture>
 				<Texture name="$(parent)Icon" mouseEnabled="true">
 					<Dimensions x="30" y="30" />
 				    <Anchor point="TOPLEFT" relativeTo="$(parent)" relativePoint="TOPLEFT" offsetY="2" />
@@ -300,7 +326,6 @@
 					<Dimensions x="84" y="32" />
 					<Anchor point="LEFT" relativePoint="LEFT" relativeTo="$(parent)LblTraitEnchantmentContainer" />
 					<Anchor point="RIGHT" relativePoint="CENTER" relativeTo="$(parent)LblTraitEnchantmentContainer" offsetX="-24" />
-					<OnMouseUp>self:GetParent():GetHandler("OnMouseUp")(self, button, upInside)</OnMouseUp>
 					<OnMouseEnter>if self:GetParent().tooltipFunction then self:GetParent().tooltipFunction(self) end</OnMouseEnter>
 					<OnMouseExit>if self:GetParent().tooltipExitFunction then self:GetParent().tooltipExitFunction() end</OnMouseExit>
 					<OnReceiveDrag>if self:GetParent().receiveDragFunction then self:GetParent().receiveDragFunction() end</OnReceiveDrag>
@@ -310,7 +335,6 @@
 					<Dimensions  y="32"  />
 					<Anchor point="LEFT" relativePoint="CENTER" relativeTo="$(parent)LblTraitEnchantmentContainer" offsetX="-22"/>
 					<Anchor point="RIGHT" relativePoint="RIGHT" relativeTo="$(parent)LblTraitEnchantmentContainer"  />
-					<OnMouseUp>self:GetParent():GetHandler("OnMouseUp")(self, button, upInside)</OnMouseUp>
 					<OnMouseEnter>if self:GetParent().tooltipFunction then self:GetParent().tooltipFunction(self) end</OnMouseEnter>
 					<OnMouseExit>if self:GetParent().tooltipExitFunction then self:GetParent().tooltipExitFunction() end</OnMouseExit>
 					<OnReceiveDrag>if self:GetParent().receiveDragFunction then self:GetParent().receiveDragFunction() end</OnReceiveDrag>

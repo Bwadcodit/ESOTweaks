@@ -83,6 +83,8 @@ local L = {}
 	L.CSPS_Tooltip_RemoveConnection = "Verknüpfung mit aktuellem Profil aufheben"
 	L.CSPS_Tooltip_ShowConnection = "Verknüpft mit Unterprofil: %s\n\n Veränderungen in dieser Disziplin werden angewendet aber nicht gespeichert. Beim Laden des aktuellen Charakterprofils wird automatisch das verknüpfte Unterprofil geladen.\n\n|t26:26:esoui/art/miscellaneous/icon_rmb.dds|t: Verknüpfung aufheben"
 	
+	L.CSPS_Tooltip_DynamicProfile = "Ein dynamisches Profil sollte leer begonnen werden. Bei jedem weiteren Speichern wird der alte Stand nicht überschrieben. Stattdessen werden Änderungen angehägt. So kann CSPS beim Laden die Reihenfolge berücksichtigen in der Punkte gespeichert wurden und stoppen, sobald das aktuelle Punktelimit erreicht wurde. Dies ermöglicht es, Championpunkte zu planen, bevor man sie verdient."
+	
 	L.CSPS_Tooltiptext_LoadAndApply = "Laden und direkt anwenden"
 	L.CSPS_MORPH = "<<1[Kein Morph/Morph 1/Morph $d]>>"
 	L.CSPS_MyRank = "Rang %s"
@@ -151,7 +153,10 @@ local L = {}
 	L.CSPS_QS_TT_Select = "|t26:26:esoui/art/miscellaneous/icon_lmb.dds|t: Auswählen"
 	L.CSPS_QS_TT_TestIt = "|t26:26:esoui/art/miscellaneous/icon_rmb.dds|t: Aktion jetzt ausführen"
 	L.CSPS_SubProfiles_Edit = "Unterprofile bearbeiten"
-
+	L.CSPS_IgnoreSubClasses = "Unterklassen ignorieren"
+	L.CSPS_LAM_ShowAllClassSkills = "Zeige und bearbeite alle Klassenfertigkeiten"
+	L.CSPS_LAM_ShowAllClassSkillsTT = "Diese Option erlaubt dir, alle Klassenfertigkeiten zu bearbeiten und zu speichern, auch wenn sie nicht Teil des aktuellen Unterklassen-Profils sind."
+	
 	L.CSPS_Help_Oversection1 = "Allgemeine Funktionen"
 	L.CSPS_Help_Head1 = "Daten speichern"
 	L.CSPS_Help_Sect1 = "1. Klicke auf ‚Lese aktuelle Daten aus'. (|t24:24:esoui/art/help/help_tabicon_feedback_up.dds|t)\n2. Klicke optional bei deinen Fertigkeiten auf Plus/Minus, um sie anzupassen. (Du kannst die Fertigkeiten auch später noch bearbeiten.)\n3. Klicke auf ‚Speichere angezeigte Daten‘. (|t24:24:esoui/art/mail/mail_tabicon_compose_up.dds|t)\nAlle Fertigkeiten, Attribute, CP, Schnellleisten und Ausrüstungsgegenstände (erfordert LibSets) werden gespeichert."
@@ -211,7 +216,8 @@ local L = {}
 	L.CSPS_MSG_Unslotted = "Die folgenden ausrüstbaren Championfertigkeiten konnten der Championleiste nicht hinzugefügt werden:"
 	L.CSPS_MSG_NoCPProfiles = "\n\n|cff7723ACHTUNG!|r\nDies ist nicht der optimale Weg um reine CP-Profile zu speichern! Nutze hierfür die entsprechenden Knöpfe im Extrabereich für CP-Profile, erreichbar über die drei Buttons oben rechts (|t28:28:esoui/art/champion/champion_points_magicka_icon-hud-32.dds|t, |t28:28:esoui/art/champion/champion_points_health_icon-hud-32.dds|t, |t28:28:esoui/art/champion/champion_points_stamina_icon-hud-32.dds|t)"
 	L.CSPS_MSG_CPPaths = "Der günstigste Weg um '<<C:1>>' freizuschalten:\n\n<<2>>"
-	L.CSPS_MSG_CPPathOpt = "|c<<1>>Möglichkeit <<2>> (<<3>>)|r:" -- 1 color 2 number 3 points
+	L.CSPS_MSG_CPPathOpt = "|c<<1>>Möglichkeit <<2>> (<<3>>)|r" -- 1 color 2 number 3 points
+	L.CSPS_MSG_SubclassingQuestGoal = "Die Quest '<<1>>' wurde noch nicht abgeschlossen. Um sie zu erfüllen, benötigtst du mindestens eine Fertigkeitenlinie, die noch nicht gemeistert wurde (<<2>>)."
 
 	--	Errorcodes
 	L.CSPS_ErrorNumber1 = "Diese Fertigkeit wurde bereits gelernt."
@@ -259,6 +265,16 @@ local L = {}
 	L.CSPS_LAM_SortCP_2 = "Alphabetisch"
 	L.CSPS_LAM_SortCP_3 = "Alphabetisch, passive Fertigkeiten separat"
 	L.CSPS_LAM_ShowNumSetItems = "Zeige Anzahl an Setteilen hinter Ausrüstungsbezeichnung. Sind Waffen beteiligt, werden zwei Zahlen im Format (Hauptleiste/Sekundärleiste) anzezeigt."
+	L.CSPS_IgnoreEmptyOutfitSlots = "Leere Outfit-Slots ignorieren"
+	L.CSPS_LAM_VersionHistory = "Anzahl an Profilbackups"
+	L.CSPS_LAM_VersionHistoryTT = "Wie viele Versionen eines Profils sollen als Backup gespeichert werden? Achtung: erhöht die Größe der Saved Variables"
+	L.CSPS_LAM_BGAlpha = "Hintergrundsichtbarkeit"
+	L.CSPS_LAM_WinAlpha = "Fenstersichtbarkeit"
+	L.CSPS_LAM_Modules = "Aktive Module"
+	L.CSPS_LAM_Module = "Modul"
+	
+	L.CSPS_Dynamic = "Dynamisch"
+	L.CSPS_Static = "Normal/statisch"
 	
 	-- Presets
 	L.CSPS_MSG_SwitchCP = "Setze Punkte in |c<<1>>'<<2>>'|r anstelle einer der anderen ausrüstbaren Fertigkeiten, wann immer du davon profitierst."
@@ -267,6 +283,7 @@ local L = {}
 	L.CSPS_AOE = "Flächenschaden"
 	L.CSPS_CRIT = "Kritischer Schaden"
 	L.CSPS_OffBalance = "Aus dem Gleichgewicht"
+	L.CSPS_SingleTarget = "Einzelziel"
 	
 	-- ImportExport
 	L.CSPS_ImpEx_BtnImpLink = "Link importieren"	
@@ -326,6 +343,20 @@ local L = {}
 	L.CSPS_ScribingDiag = "%s Fertigkeiten werden geschrieben (dies wird %s Tinte kosten)."
 	L.CSPS_ScribeNotEnough = "Du kannst deine ausgewählten Fertigkeiten nicht schreiben (nicht genug Tinte)."
 	L.CSPS_CustomStyles = "Anzupassende Stile: %s\nGesperrte Stile: %s\n\n%s"
+	
+	--New or changed with 6.0.0
+	L.CSPS_RespecCooldown = "Eine Neuverteilung ist noch nicht wieder möglich.\nCSPS wird es in %ss automatisch erneut versuchen."
+	L.CSPS_SubclassesIncompatible = "Inkompatible Unterklassen. Tausche <<C:1>> gegen <<C:2>>."
+	L.CSPS_QuickSlotPosition1 = "Oben"
+	L.CSPS_QuickSlotPosition2 = "Oben-rechts"
+	L.CSPS_QuickSlotPosition3 = "Rechts"
+	L.CSPS_QuickSlotPosition4 = "Unten-rechts"
+	L.CSPS_QuickSlotPosition5 = "Unten"
+	L.CSPS_QuickSlotPosition6 = "Unten-links"
+	L.CSPS_QuickSlotPosition7 = "Links"
+	L.CSPS_QuickSlotPosition8 = "Oben-links"
+	L.CSPS_LAM_DeveloperOptions = "Entwickleroptionen"
+	L.CSPS_LAM_DeveloperOptions = "Aktiviert versteckte Menü-Optionen zur Anzeige interner Daten"
 	
 for stringId, stringValue in pairs(L) do
 	SafeAddString(_G[stringId], stringValue, 0)

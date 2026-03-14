@@ -60,24 +60,39 @@ local function generateTextSkills(skillTypes)
 	local myText = {}
 	local skillTypesT = {}
 	for i, v in pairs(skillTypes) do skillTypesT[v] = true end
-	for i, v in ipairs(CSPS.skillTable) do
-		if skillTypesT[i] then
-			local typeTable = {GS("SI_SKILLTYPE", i)}
+	for skillType, typeData in ipairs(CSPS.skillTable) do
+		if skillTypesT[skillType] then
+			local typeTable = {GS("SI_SKILLTYPE", skillType)}
 			local typeHasEntries = false
-			for j, w in ipairs(v) do
+			for lineIndex, lineData in ipairs(typeData) do
 				local lineTable = {}
 				local lineHasEntries = false
-				for k, z in ipairs(w) do
-					if z.purchased then
+				for skillIndex, skillData in ipairs(lineData) do
+					if skillData.purchased then
 						typeHasEntries = true
 						lineHasEntries = true
-						local myName = string.format("    - %s", z.name)
-						if z.passive then myName = string.format("    - %s (%s)", z.name, z.rank) end
+						local myName = skillData.morph and skillData.morph > 0 and skillData.morphNames[skillData.morph] or skillData.name
+						if skillData.craftedId and skillData.scripts then
+							local scripts = {}
+							for _, scriptId in pairs(skillData.scripts) do
+								if scriptId and tonumber(scriptId) ~= 0 then
+									table.insert(scripts, zo_strformat("<<C:1>>", GetCraftedAbilityScriptDisplayName(scriptId)))
+								end
+							end
+							if #scripts > 0 then
+								myName = string.format("%s (%s)", myName, table.concat(scripts, ", "))
+							end
+						end
+						myName = string.format("    - %s", myName)
+						if skillData.passive then myName = string.format("    - %s (%s)", skillData.name, skillData.rank) end
 						table.insert(lineTable, myName)
 					end
 				end
-				if lineHasEntries and GetSkillLineId(i, j) ~= 71 then -- don't include emperor skills
-					table.insert(typeTable, string.format(" - %s", w.name))
+				if lineHasEntries and not CSPS.skillLineIdsToExclude[lineData.id] then 
+				--  GetSkillLineNameById(skillLineId)), 
+					local lineName = string.match(lineData.name, "(.+)%s%|") or lineData.name
+					if lineData.class then lineName = zo_strformat("<<1>> (<<C:2>>)", lineName, GetClassName(GetUnitGender("player"), lineData.class)) end
+					table.insert(typeTable, string.format(" - %s", lineName))
 					table.insert(typeTable, table.concat(lineTable, "\n"))
 				end
 			end
@@ -109,7 +124,8 @@ local function generateTextOther()
 		for j=1, 6 do
 			local mySkill = CSPS.hbTables[i][j]
 			if mySkill ~= nil then 
-				mySkill = string.format("   %s) %s", j, CSPS.skillTable[mySkill[1]][mySkill[2]][mySkill[3]].name)
+				local skillData = CSPS.skillTable[mySkill[1]][mySkill[2]][mySkill[3]]
+				mySkill = string.format("   %s) %s", j, skillData.morph and skillData.morph > 0 and skillData.morphNames[skillData.morph] or skillData.name)
 			else
 				mySkill = string.format("   %s) -", j)
 			end
@@ -221,7 +237,7 @@ local function generateLinkSF()
 		CSPS.attrPoints[3]}
 	local linkTable = { } 
 	
-	CSPS.impExpAddInfo(myAlliance, myRace, myClass)
+	CSPS.impExpAddInfo(myRace, myClass)
 	showMundus(CSPS.currentMundus)
 	
 	linkTable[1] = table.concat(lnkBaseData, ",")
@@ -258,6 +274,400 @@ function importSkills(auxTable)
 	CSPS.unsavedChanges = true
 	CSPS.refreshSkillSumsAndErrors()
 end
+
+local function exportESOHUB()
+	local skillsToIgnore = {
+		[150185] = true, -- armor passives that are auto grant
+		[152778] = true,
+		[150181] = true,
+		[150184] = true,
+		[152780] = true,
+	}
+	local myLink = {}
+	table.insert(myLink, GetUnitClassId("player")) --class
+	table.insert(myLink, GetUnitRaceId("player")) --race
+	CSPS.impExpAddInfo(GetUnitRaceId("player"), GetUnitClassId("player"))
+	table.insert(myLink, CSPS.role) --role
+	table.insert(myLink, table.concat(CSPS.attrPoints, ":")) --attributes
+	table.insert(myLink, "0") --curse
+	table.insert(myLink, CSPS.getMundus()) --mundus
+	--subclasses
+	local subclasses = {}
+	for i, v in pairs(CSPS.currentClassSkillLines) do
+		table.insert(subclasses, GetSkillLineId(1, v))
+	end
+	table.insert(myLink, table.concat(subclasses, ","))
+	
+	for hbIndex=1,2 do
+		local oneHotbar = {}
+		for slotIndex=1,6 do
+			local skillParams = CSPS.hbTables[hbIndex][slotIndex]
+			local abilityId = 0
+			if skillParams then
+				local skillType, skillLineIndex, skillIndex = unpack(skillParams)
+				local skillData = CSPS.skillTable[skillType][skillLineIndex][skillIndex]
+				abilityId = GetSpecificSkillAbilityInfo(skillType, skillLineIndex, skillIndex, skillData.morph, 1)
+				if IsCraftedAbilitySkill(skillType, skillLineIndex, skillIndex) then
+					local script1, script2, script3 = unpack(skillData.scripts)
+					abilityId = table.concat({abilityId, script1 or 0, script2 or 0, script3 or 0}, ":")
+				end
+			end
+			table.insert(oneHotbar, abilityId)
+		end
+		oneHotbar = table.concat(oneHotbar, ",")
+		table.insert(myLink, oneHotbar)
+	end
+	
+	local passives = {}
+	for skillType, typeData in ipairs(CSPS.skillTable) do
+		for skillLineIndex, lineData in ipairs(typeData) do
+			for skillIndex, skillData in ipairs(lineData) do
+				if skillData.purchased and skillData.passive then
+					local abilityId = GetSpecificSkillAbilityInfo(skillType, skillLineIndex, skillIndex, 0, 1)
+					table.insert(passives, abilityId)
+				end
+			end
+		end
+	end
+	table.insert(myLink, table.concat(passives, ","))
+	local slottedCP = {}
+	local passiveCP = {}
+	
+	for discipline = 1, 3 do
+		for slotIndex = 1,4 do
+			local skillData = cp.bar[discipline][slotIndex]
+			table.insert(slottedCP, skillData and skillData.id or 0)
+		end
+	end
+	
+	table.insert(myLink, table.concat(slottedCP, ","))
+	
+	for cpId, skillData in pairs(cp.table) do
+		if skillData.active and skillData.value > 0 and skillData.type == 1 then
+			table.insert(passiveCP, string.format("%s:%s", cpId, skillData.value))
+		end
+	end
+	table.insert(myLink, table.concat(passiveCP, ","))
+	local gearStr = "0"
+	if CSPS.doGear and not CSPS.moduleExclude.gear then
+		gearStr = CSPS.exportGearToESOHUB()
+	end
+	table.insert(myLink, gearStr)
+	
+	local buffFood = "0"
+	local potions = "0"
+	
+	if not CSPS.moduleExclude.qs then
+		local qsBar = CSPS.getQsBars()[1]
+		buffFood, potions = {}, {}
+		local tablesToInsert = {[ITEMTYPE_DRINK] = buffFood, [ITEMTYPE_POTION] = potions, [ITEMTYPE_FOOD] = buffFood}
+		for slotIndex, slotData in pairs(qsBar) do
+			if slotData.type == ACTION_TYPE_ITEM then
+				local itemType = GetItemLinkItemType(slotData.value)
+				local id1, _, _, id2 = CSPS.getItemIdsFromLink(slotData.value)
+				if tablesToInsert[itemType] then table.insert(tablesToInsert[itemType], string.format("%s:%s", id1, id2)) end
+			end
+		end
+		buffFood = table.concat(buffFood, ",")
+		potions = table.concat(potions, ",")
+	end	
+	table.insert(myLink, buffFood)
+	table.insert(myLink, potions)
+	theLink = table.concat(myLink, ";")
+	theLink = theLink
+	showLink()
+end
+
+local function buildCompleteLink()
+	local languagesForEsoHub = {
+		["en"] = true,
+		["de"] = true,
+		["fr"] = true,
+		["ru"] = true,
+		["es"] = true,
+	}
+
+	local language = GetCVar("language.2")
+	language = languagesForEsoHub[language] and language or "en"
+	return string.format("https://eso-hub.com/%s/build-editor?addondata=%s", language, theLink)
+end
+
+function CSPS.openLink()
+	RequestOpenUnsafeURL(buildCompleteLink())
+end
+
+function CSPS.showLinkTT(control)
+	ZO_Tooltips_ShowTextTooltip(control, TOP, buildCompleteLink())
+end
+
+local function importESOHUB()
+	local myLink = CSPSWindowImportExportTextEdit:GetText()
+	if myLink == nil or myLink == "" then return end
+	myLink = string.gsub(myLink, "http.*%=", "") --remove link data
+	d(myLink)
+	local lnkParameter = {SplitString(";", myLink)}
+	
+	if lnkParameter == nil or #lnkParameter < 14 then return end
+	
+	local classId, raceIdList, combatRoleIndex, attributes, curseId, mundusId, subclasses, hb1, hb2, passives, slottedCP, passiveCP, gear, buffFood, potions = unpack(lnkParameter)
+	-- curseId not yet included --passiveCP should be there before gear. aren't yet.
+	
+	raceIdList = {SplitString(",", raceIdList)}
+	CSPS.impExpAddInfo(tonumber(raceIdList[1]), tonumber(classId)) -- no alliance set
+	
+	CSPS.role = tonumber(combatRoleIndex)
+	CSPS.showRole()
+	
+	CSPS.attrExtract(attributes, ":")
+	
+	-- curseId not (yet) included in CSPS
+	
+	CSPS.setMundus(tonumber(mundusId))
+	
+	if CSPS.savedVariables.settings.importExportParts.reset then CSPS.resetSkills() end
+	
+	local subclassesInImport = {}
+	subclasses = {SplitString(",",  subclasses)}
+	local myClassThere = false
+	local linesByClass = {}
+	local oldClasses = {}
+	for i=1,3 do
+		if subclasses[i] and subclasses[i] ~= "0" then
+			local _, skillLineIndex = GetSkillLineIndicesFromSkillLineId(tonumber(subclasses[i]))
+			local classId = GetSkillLineClassId(1,skillLineIndex)
+			if skillLineIndex > 3 then 
+				linesByClass[classId] = linesByClass[classId] or {}
+				table.insert(linesByClass[classId], i)
+			else 
+				myClassThere = true
+			end
+			oldClasses[CSPS.currentClassSkillLines[i]] = true
+			CSPS.currentClassSkillLines[i] = skillLineIndex
+			subclassesInImport[skillLineIndex] = true
+		end
+	end
+	if not CSPS.savedVariables.settings.importExportParts.reset and not CSPS.savedVariables.settings.showAllClassSkills then
+		for i=1, 3 do
+			if oldClasses[i] and not subclassesInImport[oldClasses[i]] then
+				CSPS.removeSkillLine(1, oldClasses[i])
+			end
+		end	
+	end
+	
+	if not CSPS.savedVariables.settings.showAllClassSkills then
+		for _, classLines in pairs(linesByClass) do
+			if #classLines > 1 then
+				for i=2, #classLines do
+					for j=1,3 do
+						if not subclassesInImport[j] then
+							CSPS.post(zo_strformat(GS(CSPS_SubclassesIncompatible), GetSkillLineNameById(GetSkillLineId(1, CSPS.currentClassSkillLines[classLines[i]])), GetSkillLineNameById(GetSkillLineId(1, j))))
+							subclassesInImport[CSPS.currentClassSkillLines[classLines[i]]] = nil
+							CSPS.currentClassSkillLines[classLines[i]] = j
+							subclassesInImport[j] = true
+							myClassThere = true
+							break
+						end
+					end
+				end
+			end
+		end
+		if not myClassThere then
+			local changeIndex = math.random(3)
+			CSPS.post(zo_strformat(GS(CSPS_SubclassesIncompatible), GetSkillLineNameById(GetSkillLineId(1, CSPS.currentClassSkillLines[changeIndex])), GetSkillLineNameById(GetSkillLineId(1, changeIndex))))
+			subclassesInImport[CSPS.currentClassSkillLines[changeIndex]] = nil
+			CSPS.currentClassSkillLines[changeIndex] = changeIndex
+		end
+	end
+	
+	local skillTable = CSPS.skillTable
+	
+	local function setAbility(strValue)
+		if strValue == "0" then return 0 end
+		if string.find(strValue, ":") then 
+			local craftedAbilityId, script1, script2, script3 = SplitString(":", strValue)
+			craftedAbilityId = tonumber(craftedAbilityId)
+			local skillType, skillLineIndex, skillIndex = GetSkillAbilityIndicesFromCraftedAbilityId(GetAbilityCraftedAbilityId(craftedAbilityId))
+			if skillType == 0 then cspsD("Couldn't import crafted ability: "..craftedAbilityId) return 0 end
+			local scripts = skillTable[skillType][skillLineIndex][skillIndex].scripts
+			scripts[1] = tonumber(script1)
+			scripts[2] = tonumber(script2)
+			scripts[3] = tonumber(script3)
+			return skillType, skillLineIndex, skillIndex
+		else
+			local skillType, skillLineIndex, skillIndex, morphSlot = GetSpecificSkillAbilityKeysByAbilityId(tonumber(strValue))
+			if skillType == 0 then return 0 end
+			if skillType == SKILL_TYPE_RACIAL then skillLineIndex = 1 end -- always change it to 1 but keep the passives
+			if skillType == 1 and not subclassesInImport[skillLineIndex] and not CSPS.savedVariables.settings.showAllClassSkills then 
+				cspsD("Subclass not in build: "..strValue) 
+				return 0 
+			end
+			local skillData = skillTable[skillType]
+			skillData = skillData and skillData[skillLineIndex]
+			skillData = skillData and skillData[skillIndex]
+			if not skillData then cspsD("No skillData for "..strValue) return 0 end 
+			skillData.purchased = true
+			skillData.rank = skillData.passive and 42 or nil	-- 42 will later be reduced to the maxRank
+			skillData.morph = not skillData.passive and morphSlot or nil
+			skillData:setPoints()
+			--theSkill.lineData:sumUpSkills()
+			--theSkill.typeData:sumUpSkills()
+			return skillType, skillLineIndex, skillIndex
+		end
+	end
+	
+	local function setHotbar(strValue, hbIndex)
+		strValue = {SplitString(",", strValue)}
+		if #strValue < 6 then return end
+		for i, v in pairs(strValue) do
+			local skillType, skillLineIndex, skillIndex = setAbility(v)
+			if skillType and skillType > 0 then
+				CSPS.hbTables[hbIndex][i] = {skillType, skillLineIndex, skillIndex}
+				CSPS.skillTable[skillType][skillLineIndex][skillIndex].hb[hbIndex] = i
+			else
+				CSPS.hbTables[hbIndex][i] = nil
+			end
+		end
+	end
+	setHotbar(hb1, 1)
+	setHotbar(hb2, 2)
+
+	passives = {SplitString(",", passives)}
+	for i, v in pairs(passives) do
+		setAbility(v)
+	end
+	
+	CSPS.refreshSkillSumsAndErrors()
+	CSPS.hbPopulate()
+	
+	passiveCP = {SplitString(",", passiveCP)} 
+	slottedCP = {SplitString(",", slottedCP)}
+	
+	cp.resetTable()
+	
+	local function setCP(cpId)
+		if not cpId or cpId == "0" then return false end
+		local value = false
+		if string.find(cpId, ":") then 
+			cpId, value = SplitString(":", cpId)
+			value = tonumber(value)
+		end
+		local skillData = cp.table[tonumber(cpId)]
+		if not skillData then cspsD("No CP data for "..cpId) return false end
+		skillData.value = value or skillData.maxValue
+		return skillData
+	end
+	
+	for _, cpId in pairs(passiveCP) do
+		setCP(cpId)
+	end
+	
+	for barPos, cpId in pairs(slottedCP) do
+		local skillData = setCP(cpId)
+		if skillData then
+			local discipline = math.floor((barPos-1) / 4)
+			local slotIndex = barPos - (discipline * 4)
+			discipline = discipline + 1
+			if cp.bar[discipline] then
+				cp.bar[discipline][slotIndex] = skillData
+			end
+		end
+	end
+
+	local oldValues = cp.updateUnlock()
+	cspsD("Checking old cp values after update locking and finding paths")
+	if oldValues  then --and CSPS.helperFunctions.anyEntryNotFalse(oldValues)
+		cspsD(oldValues) 
+		local unlockPaths = {}
+		for cpId, value in pairs(oldValues) do
+			local unlockPath = cp.cpFastestWays(cpId)
+			table.insert(unlockPaths, unlockPath[1])
+		end
+		table.sort(unlockPaths, function(a,b) return a.points < b.points end)
+		local checkedSteps = {}
+		for _, unlockPath in pairs(unlockPaths) do
+			for stepIndex, stepCP in pairs(unlockPath.steps) do
+				if not checkedSteps[stepCP] then
+					local _, unlockPoints = GetChampionSkillJumpPoints(stepCP)
+					cp.table[stepCP].value = math.max(cp.table[stepCP].value or 0, oldValues[stepCP] or 0, unlockPoints)
+					cspsD("Set "..GetChampionSkillName(stepCP).." to "..cp.table[stepCP].value)
+					checkedSteps[stepCP] = true
+				end
+			end
+		end
+		for cpId, value in pairs(oldValues) do
+			cp.table[cpId].value = cp.table[cpId].value > 0 and cp.table[cpId].value or value
+		end
+	end
+	cspsD("Checking cp values again")
+	oldValues = cp.updateUnlock()
+	if oldValues and #oldValues > 0 then 
+		cspsD(oldValues) 
+	end
+	
+	cp.updateSum()
+	cp.recheckHotbar()
+
+	cp.updateSlottedMarks()
+	cp.updateClusterSum()
+	
+	if CSPS.doGear and not CSPS.moduleExclude.gear then CSPS.importGearFromHub(gear) end -- happens in csps_gear.lua
+	
+	if not CSPS.moduleExclude.qs then 
+		local qsBars = CSPS.getQsBars()
+		buffFood = {SplitString(",", buffFood)}
+		potions = {SplitString(",", potions)}
+		local indicesSet = {}
+		local itemsDone = {}
+		local slotRoutes = CSPS.savedVariables.settings.importQsSlots
+		local counters = {1,2}
+		local function setSlot(strValue, itemCat)
+			local param1, param2 = SplitString(":", strValue)
+			local itemLink = CSPS.findItemLinkForTwoIds(tonumber(param1), tonumber(param2))
+			param1, _, _, param2 = CSPS.getItemIdsFromLink(itemLink) --in case param2 was not needed or changed
+			local barIndex = slotRoutes[itemCat][counters[itemCat]]
+			if barIndex and barIndex ~= 0 then				
+				local slotData = qsBars[1][barIndex]
+				slotData.type = ACTION_TYPE_ITEM
+				slotData.value = itemLink
+				indicesSet[barIndex] = true
+				table.insert(itemsDone, {tonumber(param1), tonumber(param2)})
+				counters[itemCat] = counters[itemCat] + 1
+			end	
+		end
+		for i, v in pairs(buffFood) do
+			setSlot(v,1)
+		end
+		for i, v in pairs(potions) do
+			setSlot(v,2)		
+		end
+		local function findParamsInTable(tableToSearch, paramsToFind)
+			for i, v in pairs(tableToSearch) do
+				if v[1] == paramsToFind[1] and v[2] == paramsToFind[2] then return true end
+			end
+			return false
+		end
+		cspsD(itemsDone)
+		cspsD(indicesSet)
+		
+		for slotIndex, slotData in pairs(qsBars[1]) do
+			if not indicesSet[slotIndex] then
+				if slotData.type == ACTION_TYPE_ITEM then
+					local firstId, _, _, lastId = CSPS.getItemIdsFromLink(slotData.value)
+					if findParamsInTable(itemsDone, {firstId, lastId}) then 
+						slotData.value = ""
+						slotData.type = ACTION_TYPE_NOTHING
+					end
+				end
+			end
+		end
+	end
+	
+	if not CSPS.tabEx then CSPS.createTable() end -- create tree view
+	CSPS.refreshTree() 
+	CSPS.showElement("save", true)
+end
+
+CSPS.importESOHUB = importESOHUB
 
 local function importLinkSF()
 	local myLink = CSPSWindowImportExportTextEdit:GetText()
@@ -296,7 +706,7 @@ local function importLinkSF()
 	local myRace = raMapBw[lnkBaseData[2]]
 	local myClass = clMapBw[lnkBaseData[3]]
 	
-	CSPS.impExpAddInfo(myAlliance, myRace, myClass)
+	CSPS.impExpAddInfo(myRace, myClass)
 	local raceCorrect = true
 	if GetUnitRaceId('player') ~= myRace then raceCorrect = false end
 	local classCorrect = true
@@ -427,7 +837,6 @@ local function importLinkSF()
 	
 	if not CSPS.tabEx then CSPS.createTable()	end		
 	CSPS.refreshTree() 
-	CSPS.showElement("apply", true)
 	CSPS.showElement("save", true)
 end
 
@@ -442,8 +851,8 @@ local function importCompressed()
 	local invalidStr = {[""] = true, ["-"] = true}
 	
 	if compTable[1] and not invalidStr[compTable[1]] and partTable.skills then 
-		local prog, pass, crafted, styles = SplitString('*', compTable[1])
-		CSPS.tableExtract({part1 = prog}, {part1 = pass}, crafted, styles)
+		local prog, pass, crafted, styles, subclasses = SplitString('*', compTable[1])
+		CSPS.tableExtract({part1 = prog}, {part1 = pass}, crafted, styles, subclasses)
 	end
 	
 	if compTable[2] and not invalidStr[compTable[2]] and partTable.hotbars then 
@@ -471,13 +880,15 @@ local function importCompressed()
 	
 	if compTable[8] and not invalidStr[compTable[8]] and partTable.outfit then CSPS.outfits.extract(compTable[8]) end
 	
+	if compTable[9] and not invalidStr[compTable[9]] then CSPS.role = tonumber(compTable[9]) CSPS.showRole() end
+	
 	CSPS.refreshTree() 
 	CSPS.toggleImportExport(false)
 end
 
 local function exportCompressed()
 	local partTable = CSPS.savedVariables.settings.importExportParts -- skills, hotbar, attributes , mundus, cp, gear, quickslots
-	local compTable = {"-", "-", "-", "-", "-", "-", "-", "-"}
+	local compTable = {"-", "-", "-", "-", "-", "-", "-", "-", "-"}
 	
 	if partTable.skills then 
 		local skillTable = CSPS.compressLists()
@@ -490,12 +901,15 @@ local function exportCompressed()
 		pass = table.concat(pass, ",")
 		local crafted = skillTable.crafted ~= "" and skillTable.crafted or "-"
 		local styles = skillTable.styles ~= "" and skillTable.styles or "-"
-		compTable[1] = string.format("%s*%s*%s", prog ~= "" and prog or "-" , pass ~= "" and pass or "-", crafted, styles)
+		local subclasses = skillTable.subclasses ~= "" and skillTable.subclasses or "-"
+		local scribeStyleSubclass = skillTable.scribeStyleSubclass or table.concat({crafted, styles, subclasses}, "*")
+		compTable[1] = table.concat({prog ~= "" and prog or "-" , pass ~= "" and pass or "-", scribeStyleSubclass}, "*")
 	end
 	
 	if partTable.hotbar then compTable[2] = CSPS.hbCompress(CSPS.hbTables) or "-" end
 	if partTable.attributes then compTable[3] = CSPS.attrCompress(CSPS.attrPoints) or "-" end
 	if partTable.mundus then compTable[4] = CSPS.currentMundus or "-" end
+	if partTable.role then compTable[9] = CSPS.role or "-" end
 	if partTable.cp then
 		local cpComp = cp.compress(cp.table) or "-"
 		local cpHbComp = cp.hotBarCompress(cp.bar) or "-"
@@ -514,7 +928,6 @@ end
 local transferLevels = {}
 
 function CSPS.transferProfile(cpPSub)
-	CSPS.showElement("apply", true)
 	CSPS.showElement("save", true)
 	local myTable
 	if not cpPSub then 
@@ -533,25 +946,7 @@ function CSPS.transferProfile(cpPSub)
 		myTable = CSPSSavedVariables[transferLevels[1]][transferLevels[2]]["$AccountWide"]["charData"][transferLevels[3]]["cpHbProfiles"][transferLevels[4]]
 	end
 	if not cpPSub then
-		local skillTableClean = myTable.werte
-		local attrComp = myTable.attribute
-		local hbComp = myTable.hbwerte
-		CSPS.tableExtract(skillTableClean.prog, skillTableClean.pass, skillTableClean.crafted, skillTableClean.styles)
-			
-		if CSPS.doGear then
-			local gearComp = myTable.gearComp or ""
-			local gearCompUnique = myTable.gearCompUnique or ""
-			CSPS.setTheGear(CSPS.extractGearString(gearComp, gearCompUnique))
-		end
-		
-		CSPS.extractQS(myTable.qs, CSPS.getQsBars())
-		
-		CSPS.hbTables = CSPS.hbExtract(hbComp)
-		CSPS.hbLinkToSkills(CSPS.hbTables)
-		CSPS.hbPopulate()
-		CSPS.attrExtract(attrComp)
-		CSPS.refreshSkillSumsAndErrors()
-		
+		CSPS.loadBuild(nil, myTable)
 	end
 	
 	if cpPSub ~= 2 then
@@ -596,7 +991,6 @@ function CSPS.transferBindingsDiag(keepThem)
 end
 
 function CSPS.transferBindings(keepThem)
-	CSPS.showElement("apply", true)
 	CSPS.showElement("save", true)
 	local myTableBd = CSPSSavedVariables[transferLevels[1]][transferLevels[2]]["$AccountWide"]["charData"][transferLevels[3]]["bindings"] or {}
 	local myTableHk = CSPSSavedVariables[transferLevels[1]][transferLevels[2]]["$AccountWide"]["charData"][transferLevels[3]]["cp2hbpHotkeys"] or {}
@@ -758,6 +1152,7 @@ function CSPS.generateLink()
 		txtCP2_2 = function() CSPS.exportTextCP(2) end,
 		txtCP2_3 = function() CSPS.exportTextCP(3) end,
 		sf = function() generateLinkSF() showLink() end,
+		hub = exportESOHUB,
 		txtExport = textExport,
 		csps = exportCompressed,
 	}
@@ -767,6 +1162,7 @@ end
 
 function CSPS.importLink(ctrl, shift, alt, button)
 	local importFunctions = {
+		hub = importESOHUB,
 		sf = importLinkSF,
 		csvCP = CSPS.importListCP,
 		txtCP2_1 = function()
