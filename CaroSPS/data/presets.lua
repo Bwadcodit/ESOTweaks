@@ -30,29 +30,9 @@ CSPS.CPPresets = {
 ------------------------------------------------------------
 
 	-- STANDARD --
---[[
-50 Steed's Blessing 
-50 Gilded Fingers
-50 Breakfall
-15 Wanderer 1
-10 Steadfast Enchantment 1
-30 Rationer 
-50 Treasure Hunter 
-75 Liquid Efficiency
-15 Master Gatherer 1
-100 Gifted Rider 			445
-30 Out of Sight
-40 Fleet Phantom
-50 Steadfast Enchantment 2
-50 Fortune's Favor
-33 Soul Reservoir
-75 Wanderer 2
-50 Meticulous Disassembly
-50 Plentiful Harvest
-75 Master Gatherer 2
---]]
+
 	[101] = {
-		name = "Standard 445+",
+		name = "Standard",
 		addInfo = "",
 		updated = {11, 04, 2021},
 		points = "(dynamic)",
@@ -61,52 +41,39 @@ CSPS.CPPresets = {
 		discipline = 1,
 		preset = {
 			{66, 50},	-- Steed's Blessing
+			{279, 50},	-- Discipline Artisan
 			{74, 50},	-- Gilded Fingers
 			{69, 50},	-- Breakfall
 			{70, 15},	-- Wanderer 1
 			{75, 10},	-- Steadfast Enchantment 1
 			{85, 30},	-- Rationer
-			{79, 50},	-- Treasure Hunter
 			{86, 75},	-- Liquid Efficiency
+			{79, 50},	-- Treasure Hunter
 			{78, 15},	-- Master Gatherer 1
 			{92, 100},	-- Gifted Rider
-			{68, 30},	-- Out of Sight
-			{67, 40},	-- Fleet Phantom
-			{75, 50},	-- Steadfast Enchantment 2
-			{71, 50},	-- Fortune's Favor
-			{87, 33},	-- Soul Reservoir
-			{70, 75},	-- Wanderer 2
-			{83, 50},	-- Meticulous Disassembly
 			{81, 50},	-- Plentiful Harvest
 			{78, 75},	-- Master Gatherer 2
+			{70, 75},	-- Wanderer 2
+			{83, 50},	-- Meticulous Disassembly
+			{68, 30},	-- Out of Sight
+			{67, 40},	-- Fleet Phantom
+			{71, 50},	-- Fortune's Favor
+			{75, 50},	-- Steadfast Enchantment 2
+			{91, 25},	-- Home Maker
+			{87, 33},	-- Soul Reservoir
+			{76, 25},	-- Friends in low places
+			{77, 25},	-- Infamous
+			{80, 75},	-- Shadow Strike
+			{90, 25},	-- Cutpurse's Art
+			{84, 50},	-- Fade Away
 		},
 		slotted = {66,92,78,0}, -- Steed's Blessing, Gifted Rider, Master Gatherer
 	},
 
 	-- FARM -- 
---[[
-50 Steed's Blessing
-50 Gilded Fingers
-50 Breakfall
-15 Wanderer 1
-10 Steadfast Enchantment 1
-50 Treasure Hunter
-15 Master Gatherer 1
-50 Plentiful Harvest
-100 Gifted Rider 
-75 Master Gatherer 2		450
-50 Fortune's Favor
-30 Out of Sight
-40 Fleet Phantom
-75 Wanderer 2 				630
-50 Steadfast Enchantment 2
-33 Soul Reservoir
-30 Rationer
-75 Liquid Efficiency
-50 Meticulous Disassembly
---]]
+
 	[102] = {
-		name = "Farming 310+",
+		name = "Farming",
 		addInfo = "Prio harvesting, questing",
 		updated = {11, 04, 2021},
 		points = "(dynamic)",
@@ -115,109 +82,40 @@ CSPS.CPPresets = {
 		discipline = 1,
 		preset = {
 			{66, 50},	-- Steed's Blessing
+			{279, 50},	-- Discipline Artisan
 			{74, 50},	-- Gilded Fingers
 			{69, 50},	-- Breakfall
 			{70, 15},	-- Wanderer 1
 			{75, 10},	-- Steadfast Enchantment 1
 			{79, 50},	-- Treasure Hunter
 			{78, 15},	-- Master Gatherer 1
-			{81, 50},	-- Plentiful Harvest
 			{92, 100},	-- Gifted Rider
+			{81, 50},	-- Plentiful Harvest
 			{78, 75},	-- Master Gatherer 2
-			{71, 50},	-- Fortune's Favor
+			{70, 75},	-- Wanderer 2
+			{83, 50},	-- Meticulous Disassembly
 			{68, 30},	-- Out of Sight
 			{67, 40},	-- Fleet Phantom
-			{70, 75},	-- Wanderer 2
+			{71, 50},	-- Fortune's Favor
 			{75, 50},	-- Steadfast Enchantment 2
-			{87, 33},	-- Soul Reservoir
+			{91, 25},	-- Home Maker
 			{85, 30},	-- Rationer
 			{86, 75},	-- Liquid Efficiency
-			{83, 50},	-- Meticulous Disassembly
+			{87, 33},	-- Soul Reservoir
+			{76, 25},	-- Friends in low places
+			{77, 25},	-- Infamous
+			{80, 75},	-- Shadow Strike
+			{90, 25},	-- Cutpurse's Art
+			{84, 50},	-- Fade Away
 		},
 		slotted = {66,92,78,0}, -- Steed's Blessing, Gifted Rider, Master Gatherer
 	},
 
 	-- CRAFT --
---[[
-50 Steed's Blessing
-10 Gilded Fingers 1
-10 Fortune's Favor 1
-15 Wanderer 1
-10 Steadfast Enchantment 1
-50 Treasure Hunter
-50 Meticulous Disassembly
-75 Master Gatherer
-50 Plentiful Harvest
-50 Gilded Fingers 2
-50 Fortune's Favor 2
-50 Breakfall
-100 Gifted Rider 			550
-30 Out of Sight
-40 Fleet Phantom
-75 Wanderer 2 
-50 Steadfast Enchantment 2
-33 Soul Reservoir
-30 Rationer
-75 Liquid Efficiency
---]]
-	[103] = {
-		name = "Craft 470+",
-		addInfo = "Use the Treasure Hunter skill path to avoid Inspiration. Gifted Rider in slot 2.",
-		updated = {17, 10, 2022},
-		points = "(dynamic)",
-		source = "@Xisel",
-		role = 7,
-		discipline = 1,
-		preset = {
-			{66, 50},	-- Steed's Blessing
-			{74, 10},	-- Gilded Fingers 1
-			{71, 10},	-- Fortune's Favor 1
-			{70, 15},	-- Wanderer
-			{75, 10},	-- Steadfast Enchantment
-			{79, 50},	-- Treasure Hunter
-			{83, 50},	-- Meticulous Disassembly
-			{78, 75},	-- Master Gatherer
-			{81, 50},	-- Plentiful Harvest
-			{74, 50},	-- Gilded Fingers 2
-			{71, 50},	-- Fortune's Favor 2
-			{69, 50},	-- Breakfall
-			{92, 100},	-- Gifted Rider
-			{68, 30},	-- Out of Sight
-			{67, 40},	-- Fleet Phantom
-			{70, 75},	-- Wanderer 2
-			{75, 50},	-- Steadfast Enchantment 2
-			{87, 33},	-- Soul Reservoir
-			{85, 30},	-- Rationer
-			{86, 75},	-- Liquid Efficiency
-		},
-		slotted = {66,92,78,0}, -- Steed's Blessing, Gifted Rider, Master Gatherer
-	},
 
-	-- CRAFT INSPI --
---[[
-50 Steed's Blessing
-10 Gilded Fingers 1
-10 Fortune's Favor 1
-45 Inspiration Boost
-50 Meticulous Disassembly
-50 Treasure Hunter
-75 Master Gatherer
-50 Plentiful Harvest 
-50 Gilded Fingers 2
-50 Fortune's Favor 2
-50 Breakfall
-100 Gifted Rider 			570
-30 Out of Sight
-40 Fleet Phantom
-75 Wanderer
-50 Steadfast Enchantment
-33 Soul Reservoir
-30 Rationer
-75 Liquid Efficiency
---]]
-	[104] = {
-		name = "Craft (+Inspiration) 490+",
-		addInfo = "Gifted Rider in slot 2.",
+	[103] = {
+		name = "Craft Inspiration",
+		addInfo = "",
 		updated = {17, 10, 2022},
 		points = "(dynamic)",
 		source = "@Xisel",
@@ -225,24 +123,32 @@ CSPS.CPPresets = {
 		discipline = 1,
 		preset = {
 			{66, 50},	-- Steed's Blessing
-			{74, 10},	-- Gilded Fingers 1
-			{71, 10},	-- Fortune's Favor 1
-			{72, 45},	-- Inspiration Boost
-			{83, 50},	-- Meticulous Disassembly
-			{79, 50},	-- Treasure Hunter
-			{78, 75},	-- Master Gatherer
-			{81, 50},	-- Plentiful Harvest
-			{74, 50},	-- Gilded Fingers 2
-			{71, 50},	-- Fortune's Favor 2
+			{279, 50},	-- Discipline Artisan
+			{74, 50},	-- Gilded Fingers
 			{69, 50},	-- Breakfall
+			{70, 15},	-- Wanderer 1
+			{75, 10},	-- Steadfast Enchantment 1
+			{79, 50},	-- Treasure Hunter
+			{83, 50},	-- Meticulous Disassembly
+			{72, 45},	-- Inspiration Boost
+			{78, 15},	-- Master Gatherer 1
 			{92, 100},	-- Gifted Rider
+			{81, 50},	-- Plentiful Harvest
+			{78, 75},	-- Master Gatherer 2
+			{70, 75},	-- Wanderer 2
 			{68, 30},	-- Out of Sight
 			{67, 40},	-- Fleet Phantom
-			{70, 75},	-- Wanderer
-			{75, 50},	-- Steadfast Enchantment
-			{87, 33},	-- Soul Reservoir
+			{71, 50},	-- Fortune's Favor
+			{75, 50},	-- Steadfast Enchantment 2
+			{91, 25},	-- Home Maker
 			{85, 30},	-- Rationer
 			{86, 75},	-- Liquid Efficiency
+			{87, 33},	-- Soul Reservoir
+			{76, 25},	-- Friends in low places
+			{77, 25},	-- Infamous
+			{80, 75},	-- Shadow Strike
+			{90, 25},	-- Cutpurse's Art
+			{84, 50},	-- Fade Away
 		},
 		slotted = {66,92,78,0}, -- Steed's Blessing, Gifted Rider, Master Gatherer
 	},
